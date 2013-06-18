@@ -1,3 +1,5 @@
+# vim: set sts=4 et :
+
 import os, commands
 import numpy as np
 import sys
@@ -840,6 +842,9 @@ class CondorIterator(PMC_Iterator):
 
         self.control_jobs(cluster_id)
 
+###
+### Classes for "SGE"-based clusters
+###
 class SGE_Checker(TaskThread):
 
     def __init__(self, job_ids, interval=15, check_error_status=False):
@@ -1081,6 +1086,250 @@ def restart_jobs():
         if status != 0 or not output:
             raise Exception("Couldn't submit to SGE queue: \n Tried '%s'\n\n and received:\n\n %s" % (cmd, output))
 
+###
+### Classes for "Slurm"-based clusters
+###
+class Slurm_Checker(TaskThread):
+
+    def __init__(self, job_ids, interval=15, check_error_status=False):
+        super(Slurm_Checker, self).__init__()
+        self.job_ids = job_ids
+        self.setInterval(interval) # in seconds
+        self.check_error_status = check_error_status
+
+    def task(self):
+        """
+        Check if all jobs finished yet. Sample output to parse is
+        JOBID PARTITION     NAME     USER   ST       TIME   NODES NODELIST(REASON)
+        XXXXX default       xx       vandyk R        aa::bb 1     nodexxx
+        """
+
+        # poll status
+        status, output = commands.getstatusoutput('squeue -u vandyk')
+        #        print(output)
+
+        # extract job ids from first column, ignoring the first two rows
+        running_job_ids = [int(line.split()[0]) for line in output.splitlines()[1:]]
+        job_status = [line.split()[4] for line in output.splitlines()[1:]]
+
+        job_running = False
+        for job_number, id in self.job_ids.iteritems():
+            try:
+                # is job id still in queue?
+                i = running_job_ids.index(id)
+                status = job_status[i]
+                if status == 'R' or status == 'CG' or status == 'CF':
+                    job_running = True
+                    sys.stdout.write('Job %d still active with status %s. ' % (id, status))
+                    break
+                if status == 'F':
+                    sys.stderr.write('Job %d has failed' % id)
+                    self.shutdown(job_number)
+                    return
+                if status == 'CA':
+                    sys.stderr.write('Job %d has been cancelled' % id)
+                    self.shutdown(job_number)
+                    return
+                if status == 'TO':
+                    sys.stderr.write('Job %d has timed out' % id)
+                    self.shutdown(job_number)
+                    return
+            except ValueError:
+                pass
+
+        # all jobs finished successfully
+        if job_running:
+            return
+
+        print('All jobs seem to be finished;')
+        print("Checking error? %s" % str(self.check_error_status))
+
+        return_value = 0
+
+        if not self.check_error_status:
+            self.shutdown(return_value=return_value)
+            return
+
+        # check if there was an error code somewhere
+        for job_number, id in self.job_ids.iteritems():
+            while True:
+                status, output = commands.getstatusoutput('sacct -j %d --format ' % id)
+                print("Checking status of job %d" % id)
+                if status != 0:
+                    sys.stderr.write('Could not retrieve return code of job %d. Waiting 5 seconds\n' % id)
+                    time.sleep(5)
+                    continue
+
+                for line in output.splitlines():
+                    lid, lec = line.split()
+                    if str(id) == lid:
+                        sec, ssig = lec.split(':')
+                        job_ret_code = int(sec)
+
+                        if job_ret_code != 0:
+                            return_value = job_ret_code
+                            sys.stderr.write("Job %d finished with non-zero return code %d\n" % (id, job_ret_code))
+
+                # successfully checked this job
+                break
+
+        self.shutdown(return_value=return_value)
+
+class Slurm_Options(object):
+    """
+    Collect all options particular to the Slurm queue
+    """
+
+    def __init__(self):
+
+        try:
+            self.queue = os.environ['SLURM_QUEUE']
+        except KeyError:
+            self.queue = 'default'
+
+        try:
+            self.final_queue = os.environ['SLURM_FINAL_QUEUE']
+        except KeyError:
+            self.final_queue = 'default'
+
+        try:
+            self.check_error_status = bool(os.environ['SLURM_CHECK_ERROR_STATUS'])
+        except KeyError:
+            self.check_error_status = False
+
+class Slurm_Iterator(PMC_Iterator):
+
+    def __init__(self):
+        super(SGE_Iterator, self).__init__()
+
+        # somehow need job scripts in home directory?
+
+        self.output_job_base = os.path.join('/scratch/vandyk/bayes2/JobOutput/',
+                                            os.environ['PMC_DATE'],
+                                            os.environ['PMC_FULL_SCENARIO'])
+        if not os.path.isdir(self.output_job_base):
+            os.makedirs(self.output_job_base)
+
+        self.output_job_base = os.path.join(self.output_job_base, os.path.split(self.output_base)[1])
+
+        self.options = Slurm_Options()
+
+    def control_jobs(self, job_ids):
+        """
+        Handle job execution in queue in abstract fashion.
+        Returns once all jobs are finished.
+        """
+
+        print('Polling Slurm every %d seconds' % self.polling_interval)
+
+        checker = Slurm_Checker(job_ids, self.polling_interval)
+        ret_value = checker.run()
+
+        if ret_value:
+            sys.stderr.write("Some job did NOT finish alright, but had return code %d\n" % ret_value)
+#            self.start_job(ret_value)
+        else:
+            print('Finished controlling. All jobs returned successfully.')
+
+    def run_single_jobs(self, final=False):
+        """
+        Start jobs in the batch queue.
+        """
+
+        job_ids = {}
+        # submit and store job id
+        for i in self.job_infos.iterkeys():
+            job_ids[i] = self.start_job(i, final=final)
+        print("Running the following jobs:")
+        print(job_ids)
+
+        self.control_jobs(job_ids)
+
+    def run_update_job(self, script_name, final=False):
+        log_file_name = self.output_job_base + '_update_%d' % self.step + '.log'
+#        self.clean_files.append(log_file_name)
+
+        cmd =  'qsub'
+        #cmd += ' -q %s' % (self.options.final_queue if final else self.options.queue)
+        cmd += ' -J job_update_%d' % self.step #job_indentifier
+        cmd += ' -o %s' % log_file_name
+        cmd += ' -e %s.err' % log_file_name
+        cmd += ' -v'
+        cmd += ' %s' % script_name
+
+        status, output = commands.getstatusoutput(cmd)
+
+        if status != 0 or not output:
+            raise Exception("Couldn't submit to Slurm queue: \n Tried '%s'\n\n and received:\n\n %s" % (cmd, output))
+
+        # parse job id from a line like
+        # 'Submitted batch job 451849'
+        job_id = int(output.split()[-1])
+
+        # don't wait for job to finish
+        if final:
+            print("Final update job %d is on its way, I don't wait until it is finished" % job_id)
+            return
+
+        self.control_jobs({0:job_id})
+
+    def start_job(self, job_index, final=False):
+        """
+        Start a single job with the given index.
+        Returns the job id assigned by Slurm
+        """
+
+        log_file_name = self.output_job_base + '_%d' % job_index + '.log'
+        self.clean_files.append(log_file_name)
+
+        cmd =  'sbatch'
+        #cmd += ' -q %s' % (self.options.final_queue if final else self.options.queue)
+        cmd += ' -J job_%d_%d' % (self.step, job_index) #job_indentifier
+        cmd += ' -e %s' % log_file_name
+        cmd += ' -o %s' % log_file_name
+        cmd += ' -v'
+        cmd += ' %s' % self.job_infos[job_index].script_name
+
+        status, output = commands.getstatusoutput(cmd)
+
+        if status != 0 or not output:
+            raise Exception("Couldn't submit to SGE queue: \n Tried '%s'\n\n and received:\n\n %s" % (cmd, output))
+
+        # remove file immediately, sometimes get this error when removing due to incredibly slow file system:
+        """OSError: [Errno 110] Connection timed out:"""
+        try:
+            if os.path.exists(self.job_infos[job_index].script_name):
+                pass
+            #                os.remove(self.job_infos[job_index].script_name)
+        except OSError:
+            pass
+
+        # parse job id from a line like
+        # 'Submitted batch job 451849'
+        return int(output.split()[-1])
+
+def restart_jobs():
+    """Submit jobs after an OSError has stopped program"""
+    output_job_base = '/scratch/vandyk/bayes2/JobOutput/2012-06-25/Scenario1_all_nuis/sc1_all_nuis'
+    for i in range(481, 600):
+        log_file_name = output_job_base + ('_%d' % i) + '.log'
+
+        cmd =  'sbatch'
+        #cmd += ' -q %s' % "short"
+        cmd += ' -J job_%d_%d' % (1, i) #job_indentifier
+        cmd += ' -e %s' % log_file_name
+        cmd += ' -o %s' % log_file_name
+        cmd += ' -v'
+        cmd += ' %s' % output_job_base + ("_job_1_%d.sh" % i)
+
+        if i == 481:
+            print(cmd)
+    
+        status, output = commands.getstatusoutput(cmd)
+    
+        if status != 0 or not output:
+            raise Exception("Couldn't submit to Slurm queue: \n Tried '%s'\n\n and received:\n\n %s" % (cmd, output))
+
 def main():
     import argparse
 
@@ -1101,7 +1350,7 @@ def main():
     args = parser.parse_args()
     print("Initializing with args:")
     print(args.__dict__)
-    pmc_iterator = SGE_Iterator()
+    pmc_iterator = Slurm_Iterator()
     if args.__dict__['uncertainty_propagation']:
         pmc_iterator.run_uncertainty(args.n_samples)
     elif args.restart:
