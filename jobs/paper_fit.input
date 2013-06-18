@@ -1,0 +1,650 @@
+# -*- mode: sh;-*-
+
+export CONSTRAINTS_GAMMA="
+    --global-option model WilsonScan
+    --global-option scan-mode cartesian
+
+    --global-option form-factors BZ2004
+
+    --constraint B^0->K^*0gamma::BR@CLEO-2000
+    --constraint B^0->K^*0gamma::BR@Belle-2004
+    --constraint B^0->K^*0gamma::BR@BaBar-2009
+    --constraint B^0->K^*0gamma::S_K+C_K@Belle-2006
+    --constraint B^0->K^*0gamma::S_K+C_K@BaBar-2008
+"
+
+export CONSTRAINTS_BMUMU="
+    --global-option model WilsonScan
+    --global-option scan-mode cartesian
+
+    --constraint B^0_s->mu^+mu^-::BR_limit@LHCb-Nov-2012
+"
+
+export CONSTRAINTS_PLL_LARGE_RECOIL="
+    --global-option model WilsonScan
+    --global-option scan-mode cartesian
+
+    --global-option form-factors KMPW2010
+
+    --constraint B^+->K^+mu^+mu^-::BR[1.00,6.00]@Belle-2009
+    --constraint B^+->K^+mu^+mu^-::BR[1.00,6.00]@CDF-2012
+    --constraint B^+->K^+mu^+mu^-::BR[1.00,6.00]@BaBar-2012
+    --constraint B^+->K^+mu^+mu^-::BR[1.00,6.00]@LHCb-2012
+"
+export CONSTRAINTS_PLL_LOW_RECOIL="
+    --global-option model WilsonScan
+    --global-option scan-mode cartesian
+
+    --global-option form-factors KMPW2010
+
+    --constraint B^+->K^+mu^+mu^-::BR[14.18,16.00]@Belle-2009
+    --constraint B^+->K^+mu^+mu^-::BR[14.18,16.00]@CDF-2012
+    --constraint B^+->K^+mu^+mu^-::BR[14.21,16.00]@BaBar-2012
+    --constraint B^+->K^+mu^+mu^-::BR[14.18,16.00]@LHCb-2012
+
+    --constraint B^+->K^+mu^+mu^-::BR[16.00,18.00]@LHCb-2012
+    --constraint B^+->K^+mu^+mu^-::BR[18.00,22.00]@LHCb-2012
+
+    --constraint B^+->K^+mu^+mu^-::BR[16.00,22.86]@Belle-2009
+    --constraint B^+->K^+mu^+mu^-::BR[16.00,22.86]@CDF-2012
+    --constraint B^+->K^+mu^+mu^-::BR[16.00,22.86]@BaBar-2012
+"
+
+export CONSTRAINTS_VLL_LARGE_RECOIL="
+    --global-option model WilsonScan
+    --global-option scan-mode cartesian
+
+    --global-option form-factors BZ2004
+
+    --constraint B^0->K^*0mu^+mu^-::BR[1.00,6.00]@Belle-2009
+    --constraint B^0->K^*0mu^+mu^-::BR[1.00,6.00]@CDF-2012
+    --constraint B^0->K^*0mu^+mu^-::BR[1.00,6.00]@LHCb-2012
+    --constraint B^0->K^*0mu^+mu^-::BR[1.00,6.00]@BaBar-2012
+    --constraint B^0->K^*0mu^+mu^-::A_FB[1.00,6.00]@Belle-2009
+    --constraint B^0->K^*0mu^+mu^-::A_FB[1.00,6.00]@CDF-2012
+    --constraint B^0->K^*0mu^+mu^-::A_FB[1.00,6.00]@LHCb-2012
+    --constraint B^0->K^*0mu^+mu^-::A_FB[1.00,6.00]@BaBar-2012
+    --constraint B^0->K^*0mu^+mu^-::F_L[1.00,6.00]@Belle-2009
+    --constraint B^0->K^*0mu^+mu^-::F_L[1.00,6.00]@CDF-2012
+    --constraint B^0->K^*0mu^+mu^-::F_L[1.00,6.00]@LHCb-2012
+    --constraint B^0->K^*0mu^+mu^-::F_L[1.00,6.00]@BaBar-2012
+    --constraint B^0->K^*0mu^+mu^-::A_T_2[1.00,6.00]@CDF-2012
+    --constraint B^0->K^*0mu^+mu^-::S_3[1.00,6.00]@LHCb-2012
+"
+
+export CONSTRAINTS_VLL_LOW_RECOIL="
+    --global-option model WilsonScan
+    --global-option scan-mode cartesian
+
+    --global-option form-factors BZ2004
+
+    --constraint B^0->K^*0mu^+mu^-::BR[14.18,16.00]@Belle-2009
+    --constraint B^0->K^*0mu^+mu^-::BR[14.18,16.00]@CDF-2012
+    --constraint B^0->K^*0mu^+mu^-::BR[14.18,16.00]@LHCb-2012
+    --constraint B^0->K^*0mu^+mu^-::BR[14.21,16.00]@BaBar-2012
+    --constraint B^0->K^*0mu^+mu^-::A_FB[14.18,16.00]@Belle-2009
+    --constraint B^0->K^*0mu^+mu^-::A_FB[14.18,16.00]@CDF-2012
+    --constraint B^0->K^*0mu^+mu^-::A_FB[14.18,16.00]@LHCb-2012
+    --constraint B^0->K^*0mu^+mu^-::A_FB[14.18,16.00]@BaBar-2012
+    --constraint B^0->K^*0mu^+mu^-::F_L[14.18,16.00]@Belle-2009
+    --constraint B^0->K^*0mu^+mu^-::F_L[14.18,16.00]@CDF-2012
+    --constraint B^0->K^*0mu^+mu^-::F_L[14.18,16.00]@LHCb-2012
+    --constraint B^0->K^*0mu^+mu^-::F_L[14.18,16.00]@BaBar-2012
+    --constraint B^0->K^*0mu^+mu^-::A_T_2[14.18,16.00]@CDF-2012
+    --constraint B^0->K^*0mu^+mu^-::S_3[14.18,16.00]@LHCb-2012
+    --constraint B^0->K^*0mu^+mu^-::BR[16.00,19.21]@Belle-2009
+    --constraint B^0->K^*0mu^+mu^-::BR[16.00,19.21]@CDF-2012
+    --constraint B^0->K^*0mu^+mu^-::BR[16.00,19.00]@LHCb-2012
+    --constraint B^0->K^*0mu^+mu^-::BR[16.00,19.21]@BaBar-2012
+    --constraint B^0->K^*0mu^+mu^-::A_FB[16.00,19.21]@Belle-2009
+    --constraint B^0->K^*0mu^+mu^-::A_FB[16.00,19.21]@CDF-2012
+    --constraint B^0->K^*0mu^+mu^-::A_FB[16.00,19.00]@LHCb-2012
+    --constraint B^0->K^*0mu^+mu^-::A_FB[16.00,19.21]@BaBar-2012
+    --constraint B^0->K^*0mu^+mu^-::F_L[16.00,19.21]@Belle-2009
+    --constraint B^0->K^*0mu^+mu^-::F_L[16.00,19.21]@CDF-2012
+    --constraint B^0->K^*0mu^+mu^-::F_L[16.00,19.00]@LHCb-2012
+    --constraint B^0->K^*0mu^+mu^-::F_L[16.00,19.21]@BaBar-2012
+    --constraint B^0->K^*0mu^+mu^-::A_T_2[16.00,19.21]@CDF-2012
+    --constraint B^0->K^*0mu^+mu^-::S_3[16.00,19.00]@LHCb-2012
+"
+
+export CONSTRAINTS="
+    ${CONSTRAINTS_GAMMA}
+    ${CONSTRAINTS_BMUMU}
+    ${CONSTRAINTS_PLL_LARGE_RECOIL}
+    ${CONSTRAINTS_PLL_LOW_RECOIL}
+    ${CONSTRAINTS_VLL_LARGE_RECOIL}
+    ${CONSTRAINTS_VLL_LOW_RECOIL}
+"
+
+export CONSTRAINTS_NO_BMUMU="
+    ${CONSTRAINTS_GAMMA}
+    ${CONSTRAINTS_PLL_LARGE_RECOIL}
+    ${CONSTRAINTS_PLL_LOW_RECOIL}
+    ${CONSTRAINTS_VLL_LARGE_RECOIL}
+    ${CONSTRAINTS_VLL_LOW_RECOIL}
+"
+
+
+##################################################################
+# scan parameters
+##################################################################
+C7MIN=-1
+C7MAX=+1
+C7MIN_WIDE=-2
+C7MAX_WIDE=+2
+C9MIN=-10
+C9MAX=+10
+C9MIN_WIDE=-20
+C9MAX_WIDE=+20
+C10MIN=-10
+C10MAX=+10
+C10MIN_WIDE=-20
+C10MAX_WIDE=+20
+
+export SCAN_RE_C7="
+    --scan Re{c7}   ${C7MIN}  ${C7MAX}  --prior flat"
+export SCAN_RE_C9="
+    --scan Re{c9}   ${C9MIN}  ${C9MAX}  --prior flat"
+export SCAN_RE_C10="
+    --scan Re{c10}  ${C10MIN} ${C10MAX} --prior flat"
+
+export SCAN_PARAMETERS_REAL="
+    $SCAN_RE_C7
+    $SCAN_RE_C9
+    $SCAN_RE_C10
+"
+
+export SCAN_RE_C7_WIDE="
+    --scan Re{c7}   ${C7MIN_WIDE}  ${C7MAX_WIDE}  --prior flat"
+export SCAN_RE_C9_WIDE="
+    --scan Re{c9}   ${C9MIN_WIDE}  ${C9MAX_WIDE}  --prior flat"
+export SCAN_RE_C10_WIDE="
+    --scan Re{c10}  ${C10MIN_WIDE} ${C10MAX_WIDE} --prior flat"
+
+export SCAN_PARAMETERS_REAL_WIDE="
+    $SCAN_RE_C7_WIDE
+    $SCAN_RE_C9_WIDE
+    $SCAN_RE_C10_WIDE
+"
+
+export SCAN_PARAMETERS_IMAGINARY=${SCAN_PARAMETERS_REAL//Re/Im}
+
+# half ranges, useful for integrating suppressed modes
+export SCAN_RE_C7_LOW="
+    --scan Re{c7}   ${C7MIN}  0.0       --prior flat"
+export SCAN_RE_C7_HIGH="
+    --scan Re{c7}   0.0       ${C7MAX}  --prior flat"
+export SCAN_RE_C9_LOW="
+    --scan Re{c9}   ${C9MIN}  0.0       --prior flat"
+export SCAN_RE_C9_HIGH="
+    --scan Re{c9}   0.0       ${C9MAX}  --prior flat"
+export SCAN_RE_C10_LOW="
+    --scan Re{c10}  ${C10MIN} 0.0       --prior flat"
+export SCAN_RE_C10_HIGH="
+    --scan Re{c10}  0.0       ${C10MAX} --prior flat"
+
+##################################################################
+# nuisance parameters
+##################################################################
+
+
+# defines the allowed parameter range in terms of sigmas for Gaussian and LogGamma distributions
+N_SIGMAS=3
+
+export NUISANCE_PARAMETERS_FIT_CKM="
+    --nuisance    CKM::A                           ${N_SIGMAS}      --prior    gaussian     0.794     0.804     0.814
+    --nuisance    CKM::lambda                      ${N_SIGMAS}      --prior    gaussian     0.22470   0.22535   0.22600
+    --nuisance    CKM::rhobar                      0 1 ${N_SIGMAS}  --prior    gaussian     0.041     0.111     0.181
+    --nuisance    CKM::etabar                      ${N_SIGMAS}      --prior    gaussian     0.351     0.381     0.411
+"
+export NUISANCE_PARAMETERS_FIT_QUARK_MASSES="
+    --nuisance    mass::c                            0.0    2.0  ${N_SIGMAS}     --prior    log-gamma    1.18      1.27      1.34
+    --nuisance    mass::b(MSbar)                                 ${N_SIGMAS}     --prior    log-gamma    4.13      4.19      4.37
+"
+
+export NUISANCE_PARAMETERS_FIT_HADRONIC="
+    --nuisance    decay-constant::B_d                            ${N_SIGMAS}      --prior    gaussian     0.200     0.212     0.224
+    --nuisance    decay-constant::K_d                            ${N_SIGMAS}      --prior    gaussian     0.1549    0.1561    0.1573
+    --nuisance    B->K^*::f_Kstar_perp@2GeV                      ${N_SIGMAS}      --prior    gaussian     0.168     0.173     0.178
+    --nuisance    B->K^*::f_Kstar_par                            ${N_SIGMAS}      --prior    gaussian     0.212     0.217     0.222
+    --nuisance    lambda_B_p                         0.1  0.9    ${N_SIGMAS}      --prior    gaussian     0.37      0.485     0.6
+"
+
+export NUISANCE_PARAMETERS_FIT_HADRONIC_BSMUMU="
+    --nuisance    decay-constant::B_s                            ${N_SIGMAS}      --prior    gaussian     0.2215     0.2277     0.2339
+"
+
+export NUISANCE_PARAMETERS_FIT_FF_BV="
+    --nuisance    B->K^*::a1_uncertainty@BZ2004                  0.0        2.0   ${N_SIGMAS}     --prior    gaussian     0.85      1.0       1.15
+    --nuisance    B->K^*::a2_uncertainty@BZ2004                  0.0        2.0   ${N_SIGMAS}     --prior    gaussian     0.85      1.0       1.15
+    --nuisance    B->K^*::v_uncertainty@BZ2004                   0.0        2.0   ${N_SIGMAS}     --prior    gaussian     0.85      1.0       1.15
+"
+
+export NUISANCE_PARAMETERS_FIT_FF_BP="
+    --nuisance    B->K::F^p(0)@KMPW2010                          0.28       0.49  ${N_SIGMAS}     --prior    log-gamma    0.32      0.34      0.39
+    --nuisance    B->K::b^p_1@KMPW2010                          -6.9        0.6   ${N_SIGMAS}     --prior    log-gamma   -3.7      -2.1      -1.2
+"
+
+export NUISANCE_PARAMETERS_FIT_FF="
+    ${NUISANCE_PARAMETERS_FIT_FF_BV}
+    ${NUISANCE_PARAMETERS_FIT_FF_BP}
+"
+
+# define 'wide' priors with larger sigmas
+export NUISANCE_PARAMETERS_FIT_HADRONIC_BSMUMU_WIDE="
+    --nuisance    decay-constant::B_s                            ${N_SIGMAS}      --prior    gaussian     0.2091     0.2277     0.2463
+"
+
+export NUISANCE_PARAMETERS_FIT_FF_BV_WIDE="
+    --nuisance    B->K^*::a1_uncertainty@BZ2004                  0.0        2.0   ${N_SIGMAS}     --prior    gaussian     0.55      1.0       1.45
+    --nuisance    B->K^*::a2_uncertainty@BZ2004                  0.0        2.0   ${N_SIGMAS}     --prior    gaussian     0.55      1.0       1.45
+    --nuisance    B->K^*::v_uncertainty@BZ2004                   0.0        2.0   ${N_SIGMAS}     --prior    gaussian     0.55      1.0       1.45
+"
+
+# require FF >= 0. This requires F^P(0)>= 0 and b^p_1 < 3.7234, see KMPW paper http://arxiv.org/pdf/1006.4945v2.pdf, Appendix B, (8.8) and Table 4
+export NUISANCE_PARAMETERS_FIT_FF_BP_WIDE="
+    --nuisance    B->K::F^p(0)@KMPW2010                          0.0        0.79  ${N_SIGMAS}     --prior    log-gamma    0.28      0.34      0.49
+    --nuisance    B->K::b^p_1@KMPW2010                          -10         3.72  ${N_SIGMAS}     --prior    log-gamma   -6.9      -2.1       0.6
+"
+
+export NUISANCE_PARAMETERS_FIT_FF_WIDE="
+    ${NUISANCE_PARAMETERS_FIT_FF_BV_WIDE}
+    ${NUISANCE_PARAMETERS_FIT_FF_BP_WIDE}
+"
+
+# B->Pll::Lambda_pseudo@LargeRecoil is normalized differently than the others, we vary by 500 MeV
+export NUISANCE_PARAMETERS_FIT_SUBLEADING_MODULI="
+    --nuisance    B->Pll::Lambda_pseudo@LowRecoil               -0.5        0.5    ${N_SIGMAS}   --prior    gaussian     -0.15      0.0       0.15
+    --nuisance    B->Pll::Lambda_pseudo@LargeRecoil             -1.0        1.0    ${N_SIGMAS}   --prior    gaussian     -0.50      0.0       0.50
+    --nuisance    B->Vll::Lambda_0@LowRecoil                    -0.5        0.5    ${N_SIGMAS}   --prior    gaussian     -0.15      0.0       0.15
+    --nuisance    B->Vll::Lambda_pa@LowRecoil                   -0.5        0.5    ${N_SIGMAS}   --prior    gaussian     -0.15      0.0       0.15
+    --nuisance    B->Vll::Lambda_pp@LowRecoil                   -0.5        0.5    ${N_SIGMAS}   --prior    gaussian     -0.15      0.0       0.15
+    --nuisance    B->K^*ll::A_0^L_uncertainty@LargeRecoil        0.5        1.5    ${N_SIGMAS}   --prior    gaussian      0.85      1.0       1.15
+    --nuisance    B->K^*ll::A_0^R_uncertainty@LargeRecoil        0.5        1.5    ${N_SIGMAS}   --prior    gaussian      0.85      1.0       1.15
+    --nuisance    B->K^*ll::A_par^L_uncertainty@LargeRecoil      0.5        1.5    ${N_SIGMAS}   --prior    gaussian      0.85      1.0       1.15
+    --nuisance    B->K^*ll::A_par^R_uncertainty@LargeRecoil      0.5        1.5    ${N_SIGMAS}   --prior    gaussian      0.85      1.0       1.15
+    --nuisance    B->K^*ll::A_perp^L_uncertainty@LargeRecoil     0.5        1.5    ${N_SIGMAS}   --prior    gaussian      0.85      1.0       1.15
+    --nuisance    B->K^*ll::A_perp^R_uncertainty@LargeRecoil     0.5        1.5    ${N_SIGMAS}   --prior    gaussian      0.85      1.0       1.15
+"
+
+export NUISANCE_PARAMETERS_FIT_SUBLEADING_PHASES="
+    --nuisance    B->Pll::sl_phase_pseudo@LowRecoil             -1.5708     1.5708               --prior    flat
+    --nuisance    B->Pll::sl_phase_pseudo@LargeRecoil           -1.5708     1.5708               --prior    flat                    
+    --nuisance    B->Vll::sl_phase_0@LowRecoil                  -1.5708     1.5708               --prior    flat                    
+    --nuisance    B->Vll::sl_phase_pa@LowRecoil                 -1.5708     1.5708               --prior    flat
+    --nuisance    B->Vll::sl_phase_pp@LowRecoil                 -1.5708     1.5708               --prior    flat
+    --prior-as-proposal B->Pll::sl_phase_pseudo@LowRecoil
+    --prior-as-proposal B->Pll::sl_phase_pseudo@LargeRecoil
+    --prior-as-proposal B->Vll::sl_phase_0@LowRecoil
+    --prior-as-proposal B->Vll::sl_phase_pa@LowRecoil
+    --prior-as-proposal B->Vll::sl_phase_pp@LowRecoil
+"
+
+export NUISANCE_PARAMETERS_FIT_SUBLEADING_P_LOW="
+    --nuisance    B->Pll::Lambda_pseudo@LowRecoil               -0.5        0.5    ${N_SIGMAS}   --prior    gaussian     -0.15      0.0       0.15
+    --nuisance    B->Pll::sl_phase_pseudo@LowRecoil             -1.5708     1.5708               --prior    flat                    
+"
+
+export NUISANCE_PARAMETERS_FIT_SUBLEADING_P_LARGE="
+    --nuisance    B->Pll::Lambda_pseudo@LargeRecoil             -1.0        1.0    ${N_SIGMAS}   --prior    gaussian     -0.50      0.0       0.50
+    --nuisance    B->Pll::sl_phase_pseudo@LargeRecoil           -1.5708     1.5708               --prior    flat                    
+"
+
+export NUISANCE_PARAMETERS_FIT_SUBLEADING_V_LOW="
+    --nuisance    B->Vll::Lambda_0@LowRecoil                    -0.5        0.5    ${N_SIGMAS}   --prior    gaussian     -0.15      0.0       0.15
+    --nuisance    B->Vll::Lambda_pa@LowRecoil                   -0.5        0.5    ${N_SIGMAS}   --prior    gaussian     -0.15      0.0       0.15
+    --nuisance    B->Vll::Lambda_pp@LowRecoil                   -0.5        0.5    ${N_SIGMAS}   --prior    gaussian     -0.15      0.0       0.15
+    --nuisance    B->Vll::sl_phase_0@LowRecoil                  -1.5708     1.5708               --prior    flat                    
+    --nuisance    B->Vll::sl_phase_pa@LowRecoil                 -1.5708     1.5708               --prior    flat                    
+    --nuisance    B->Vll::sl_phase_pp@LowRecoil                 -1.5708     1.5708               --prior    flat                    
+"
+
+export NUISANCE_PARAMETERS_FIT_SUBLEADING_V_LARGE="
+    --nuisance    B->K^*ll::A_0^L_uncertainty@LargeRecoil        0.5        1.5    ${N_SIGMAS}   --prior    gaussian      0.85      1.0       1.15
+    --nuisance    B->K^*ll::A_0^R_uncertainty@LargeRecoil        0.5        1.5    ${N_SIGMAS}   --prior    gaussian      0.85      1.0       1.15
+    --nuisance    B->K^*ll::A_par^L_uncertainty@LargeRecoil      0.5        1.5    ${N_SIGMAS}   --prior    gaussian      0.85      1.0       1.15
+    --nuisance    B->K^*ll::A_par^R_uncertainty@LargeRecoil      0.5        1.5    ${N_SIGMAS}   --prior    gaussian      0.85      1.0       1.15
+    --nuisance    B->K^*ll::A_perp^L_uncertainty@LargeRecoil     0.5        1.5    ${N_SIGMAS}   --prior    gaussian      0.85      1.0       1.15
+    --nuisance    B->K^*ll::A_perp^R_uncertainty@LargeRecoil     0.5        1.5    ${N_SIGMAS}   --prior    gaussian      0.85      1.0       1.15
+"
+
+export NUISANCE_PARAMETERS_FIT_SUBLEADING="
+    ${NUISANCE_PARAMETERS_FIT_SUBLEADING_P_LOW}
+    ${NUISANCE_PARAMETERS_FIT_SUBLEADING_P_LARGE}
+    ${NUISANCE_PARAMETERS_FIT_SUBLEADING_V_LOW}
+    ${NUISANCE_PARAMETERS_FIT_SUBLEADING_V_LARGE}
+"
+
+# 'wide' priors to test sensitivity
+export NUISANCE_PARAMETERS_FIT_SUBLEADING_P_LOW_WIDE="
+    --nuisance    B->Pll::Lambda_pseudo@LowRecoil               -1.5        1.5    ${N_SIGMAS}   --prior    gaussian     -0.45      0.0       0.45
+    --nuisance    B->Pll::sl_phase_pseudo@LowRecoil             -1.5708     1.5708               --prior    flat                    
+"
+
+export NUISANCE_PARAMETERS_FIT_SUBLEADING_P_LARGE_WIDE="
+    --nuisance    B->Pll::Lambda_pseudo@LargeRecoil             -3.0        3.0    ${N_SIGMAS}   --prior    gaussian     -1.50      0.0       1.50
+    --nuisance    B->Pll::sl_phase_pseudo@LargeRecoil           -1.5708     1.5708               --prior    flat                    
+"
+
+export NUISANCE_PARAMETERS_FIT_SUBLEADING_V_LOW_WIDE="
+    --nuisance    B->Vll::Lambda_0@LowRecoil                    -1.5        1.5    ${N_SIGMAS}   --prior    gaussian     -0.45      0.0       0.45
+    --nuisance    B->Vll::Lambda_pa@LowRecoil                   -1.5        1.5    ${N_SIGMAS}   --prior    gaussian     -0.45      0.0       0.45
+    --nuisance    B->Vll::Lambda_pp@LowRecoil                   -1.5        1.5    ${N_SIGMAS}   --prior    gaussian     -0.45      0.0       0.45
+    --nuisance    B->Vll::sl_phase_0@LowRecoil                  -1.5708     1.5708               --prior    flat                    
+    --nuisance    B->Vll::sl_phase_pa@LowRecoil                 -1.5708     1.5708               --prior    flat                    
+    --nuisance    B->Vll::sl_phase_pp@LowRecoil                 -1.5708     1.5708               --prior    flat                    
+"
+
+export NUISANCE_PARAMETERS_FIT_SUBLEADING_V_LARGE_WIDE="
+    --nuisance    B->K^*ll::A_0^L_uncertainty@LargeRecoil        0.0        2.0    ${N_SIGMAS}   --prior    gaussian      0.55      1.0       1.45
+    --nuisance    B->K^*ll::A_0^R_uncertainty@LargeRecoil        0.0        2.0    ${N_SIGMAS}   --prior    gaussian      0.55      1.0       1.45
+    --nuisance    B->K^*ll::A_par^L_uncertainty@LargeRecoil      0.0        2.0    ${N_SIGMAS}   --prior    gaussian      0.55      1.0       1.45
+    --nuisance    B->K^*ll::A_par^R_uncertainty@LargeRecoil      0.0        2.0    ${N_SIGMAS}   --prior    gaussian      0.55      1.0       1.45
+    --nuisance    B->K^*ll::A_perp^L_uncertainty@LargeRecoil     0.0        2.0    ${N_SIGMAS}   --prior    gaussian      0.55      1.0       1.45
+    --nuisance    B->K^*ll::A_perp^R_uncertainty@LargeRecoil     0.0        2.0    ${N_SIGMAS}   --prior    gaussian      0.55      1.0       1.45
+"
+
+export NUISANCE_PARAMETERS_FIT_SUBLEADING_WIDE="
+    ${NUISANCE_PARAMETERS_FIT_SUBLEADING_P_LOW_WIDE}
+    ${NUISANCE_PARAMETERS_FIT_SUBLEADING_P_LARGE_WIDE}
+    ${NUISANCE_PARAMETERS_FIT_SUBLEADING_V_LOW_WIDE}
+    ${NUISANCE_PARAMETERS_FIT_SUBLEADING_V_LARGE_WIDE}
+"
+
+export NUISANCE_PARAMETERS_FIT_SUBLEADING_SIMPLE="
+    --global-option simple-sl 1
+    --nuisance    B->Pll::Lambda_pseudo@LowRecoil               -0.5        0.5    ${N_SIGMAS}   --prior    gaussian     -0.15      0.0       0.15
+    --nuisance    B->Pll::sl_phase_pseudo@LowRecoil             -1.5708     1.5708               --prior    flat                    
+    --nuisance    B->Pll::Lambda_pseudo@LargeRecoil             -1.0        1.0    ${N_SIGMAS}   --prior    gaussian     -0.50      0.0       0.50
+    --nuisance    B->Pll::sl_phase_pseudo@LargeRecoil           -1.5708     1.5708               --prior    flat                    
+    --nuisance    B->Vll::Lambda@LowRecoil                      -0.5        0.5    ${N_SIGMAS}   --prior    gaussian     -0.15      0.0       0.15
+    --nuisance    B->Vll::sl_phase@LowRecoil                    -1.5708     1.5708               --prior    flat                    
+    --nuisance    B->K^*ll::sl_uncertainty@LargeRecoil           0.5        1.5    ${N_SIGMAS}   --prior    gaussian      0.85      1.0       1.15
+"
+
+export NUISANCE_PARAMETERS_FIT_SUBLEADING_SIMPLE_NO_PHASES="
+    --global-option simple-sl 1
+    --nuisance    B->Pll::Lambda_pseudo@LowRecoil               -0.5        0.5    ${N_SIGMAS}   --prior    gaussian     -0.15      0.0       0.15
+    --nuisance    B->Pll::Lambda_pseudo@LargeRecoil             -1.0        1.0    ${N_SIGMAS}   --prior    gaussian     -0.50      0.0       0.50
+    --nuisance    B->Vll::Lambda@LowRecoil                      -0.5        0.5    ${N_SIGMAS}   --prior    gaussian     -0.15      0.0       0.15
+    --nuisance    B->K^*ll::sl_uncertainty@LargeRecoil           0.5        1.5    ${N_SIGMAS}   --prior    gaussian      0.85      1.0       1.15
+"
+
+export NUISANCE_PARAMETERS_FIT_CORRELATED="
+    --scan    mass::c                                        0.0        2.0   1               --prior    log-gamma    1.18      1.27      1.34
+
+    --scan    B->K::F^p(0)@KMPW2010                          0.28       0.49  2               --prior    log-gamma    0.32      0.34      0.39
+    --scan    B->K::b^p_1@KMPW2010                          -6.9        0.6   2               --prior    log-gamma   -3.7      -2.1      -1.2
+
+    --scan    B->K^*ll::A_0^L_uncertainty@LargeRecoil        0.5        1.5   1               --prior    gaussian     0.85      1.0       1.15
+    --scan    B->K^*ll::A_par^L_uncertainty@LargeRecoil      0.5        1.5   1               --prior    gaussian     0.85      1.0       1.15
+    --scan    B->K^*ll::A_perp^L_uncertainty@LargeRecoil     0.5        1.5   1               --prior    gaussian     0.85      1.0       1.15
+"
+
+export NUISANCE_PARAMETERS_FIT="
+    ${NUISANCE_PARAMETERS_FIT_CKM}
+    ${NUISANCE_PARAMETERS_FIT_QUARK_MASSES}
+    ${NUISANCE_PARAMETERS_FIT_HADRONIC_BSMUMU}
+    ${NUISANCE_PARAMETERS_FIT_FF}
+    ${NUISANCE_PARAMETERS_FIT_SUBLEADING}
+"
+
+export NUISANCE_PARAMETERS_FIT_WIDE="
+    ${NUISANCE_PARAMETERS_FIT_CKM}
+    ${NUISANCE_PARAMETERS_FIT_QUARK_MASSES}
+    ${NUISANCE_PARAMETERS_FIT_HADRONIC_BSMUMU_WIDE}
+    ${NUISANCE_PARAMETERS_FIT_FF_WIDE}
+    ${NUISANCE_PARAMETERS_FIT_SUBLEADING_WIDE}
+"
+###############################################################################################
+# Uncertainty propagation
+###############################################################################################
+
+# 1st group: CKM, masses, decay constants
+# 2nd group: form factors
+# 3rd group: subleading for Kll and K*ll
+
+# support only on 2 sigma range
+
+# results from UTFIT::SM fit summer 2010 pre ICHEP
+export NUISANCE_PARAMETERS_SM_UNCERTAINTY_PROP_CKM="
+    --vary    CKM::A                                         0.7905     0.8285     --prior    gaussian     0.8000    0.8095    0.8190
+    --vary    CKM::lambda                                    0.22415    0.22675    --prior    gaussian     0.22480   0.22545   0.22610
+    --vary    CKM::rhobar                                    0.092      0.172      --prior    gaussian     0.112     0.132     0.152
+    --vary    CKM::etabar                                    0.334      0.382      --prior    gaussian     0.346     0.358     0.370
+"
+
+# Replaces all matches of '--nuisance' with  '--vary'.
+export NUISANCE_PARAMETERS_SM_UNCERTAINTY_PROP_QUARK_MASSES=${NUISANCE_PARAMETERS_FIT_QUARK_MASSES//--nuisance/--vary}
+export NUISANCE_PARAMETERS_SM_UNCERTAINTY_PROP_HADRONIC=${NUISANCE_PARAMETERS_FIT_HADRONIC//--nuisance/--vary}
+export NUISANCE_PARAMETERS_SM_UNCERTAINTY_PROP_FF=${NUISANCE_PARAMETERS_FIT_FF//--nuisance/--vary}
+export NUISANCE_PARAMETERS_SM_UNCERTAINTY_PROP_SUBLEADING=${NUISANCE_PARAMETERS_FIT_SUBLEADING//--nuisance/--vary}
+export NUISANCE_PARAMETERS_SM_UNCERTAINTY_PROP_SUBLEADING_LOW="
+${NUISANCE_PARAMETERS_FIT_SUBLEADING_V_LOW//--nuisance/--vary}
+${NUISANCE_PARAMETERS_FIT_SUBLEADING_P_LOW//--nuisance/--vary}
+"
+export NUISANCE_PARAMETERS_SM_UNCERTAINTY_PROP_SUBLEADING_LARGE="
+${NUISANCE_PARAMETERS_FIT_SUBLEADING_V_LARGE//--nuisance/--vary}
+${NUISANCE_PARAMETERS_FIT_SUBLEADING_P_LARGE//--nuisance/--vary}
+"
+
+export NUISANCE_PARAMETERS_SM_UNCERTAINTY_PROP="
+    ${NUISANCE_PARAMETERS_SM_UNCERTAINTY_PROP_CKM}
+    ${NUISANCE_PARAMETERS_SM_UNCERTAINTY_PROP_QUARK_MASSES}
+    ${NUISANCE_PARAMETERS_SM_UNCERTAINTY_PROP_HADRONIC}
+    ${NUISANCE_PARAMETERS_SM_UNCERTAINTY_PROP_FF}
+    ${NUISANCE_PARAMETERS_SM_UNCERTAINTY_PROP_SUBLEADING}
+"
+
+# Common options for b->sll
+KSTAR0_MU_MU_OPT=",q=d,l=mu,form-factors=BZ2004,model=WilsonScan"
+K_PLUS_MU_MU_OPT=",q=u,l=mu,form-factors=KMPW2010,model=WilsonScan"
+
+# Return string def of large recoil observables for uncertainty propagation
+# expect two parameters: s_min, s_max
+large_recoil()
+{
+ observables="
+    --kinematics s_min  BIN_MIN  --kinematics s_max  BIN_MAX  --observable B->Kll::BR@LargeRecoil${K_PLUS_MU_MU_OPT}   
+
+    --kinematics s_min  BIN_MIN  --kinematics s_max  BIN_MAX  --observable B->K^*ll::BR@LargeRecoil${KSTAR0_MU_MU_OPT}  
+    --kinematics s_min  BIN_MIN  --kinematics s_max  BIN_MAX  --observable B->K^*ll::A_FB@LargeRecoil${KSTAR0_MU_MU_OPT}
+    --kinematics s_min  BIN_MIN  --kinematics s_max  BIN_MAX  --observable B->K^*ll::F_L@LargeRecoil${KSTAR0_MU_MU_OPT} 
+
+    --kinematics s_min  BIN_MIN  --kinematics s_max  BIN_MAX  --observable B->K^*ll::A_T^2@LargeRecoil${KSTAR0_MU_MU_OPT}
+    --kinematics s_min  BIN_MIN  --kinematics s_max  BIN_MAX  --observable B->K^*ll::A_T^3@LargeRecoil${KSTAR0_MU_MU_OPT}
+    --kinematics s_min  BIN_MIN  --kinematics s_max  BIN_MAX  --observable B->K^*ll::A_T^4@LargeRecoil${KSTAR0_MU_MU_OPT}
+    --kinematics s_min  BIN_MIN  --kinematics s_max  BIN_MAX  --observable B->K^*ll::A_T^5@LargeRecoil${KSTAR0_MU_MU_OPT}
+    --kinematics s_min  BIN_MIN  --kinematics s_max  BIN_MAX  --observable B->K^*ll::A_T^re@LargeRecoil${KSTAR0_MU_MU_OPT}
+    --kinematics s_min  BIN_MIN  --kinematics s_max  BIN_MAX  --observable B->K^*ll::A_T^im@LargeRecoil${KSTAR0_MU_MU_OPT}
+
+    --kinematics s_min  BIN_MIN  --kinematics s_max  BIN_MAX  --observable B->K^*ll::H_T^1@LargeRecoil${KSTAR0_MU_MU_OPT}
+    --kinematics s_min  BIN_MIN  --kinematics s_max  BIN_MAX  --observable B->K^*ll::H_T^2@LargeRecoil${KSTAR0_MU_MU_OPT}
+    --kinematics s_min  BIN_MIN  --kinematics s_max  BIN_MAX  --observable B->K^*ll::H_T^3@LargeRecoil${KSTAR0_MU_MU_OPT}
+    --kinematics s_min  BIN_MIN  --kinematics s_max  BIN_MAX  --observable B->K^*ll::H_T^4@LargeRecoil${KSTAR0_MU_MU_OPT}
+    --kinematics s_min  BIN_MIN  --kinematics s_max  BIN_MAX  --observable B->K^*ll::H_T^5@LargeRecoil${KSTAR0_MU_MU_OPT}
+
+    --kinematics s_min  BIN_MIN  --kinematics s_max  BIN_MAX  --observable B->K^*ll::J_1s@LargeRecoil${KSTAR0_MU_MU_OPT}
+    --kinematics s_min  BIN_MIN  --kinematics s_max  BIN_MAX  --observable B->K^*ll::J_1c@LargeRecoil${KSTAR0_MU_MU_OPT}
+    --kinematics s_min  BIN_MIN  --kinematics s_max  BIN_MAX  --observable B->K^*ll::J_2s@LargeRecoil${KSTAR0_MU_MU_OPT}
+    --kinematics s_min  BIN_MIN  --kinematics s_max  BIN_MAX  --observable B->K^*ll::J_2c@LargeRecoil${KSTAR0_MU_MU_OPT}
+    --kinematics s_min  BIN_MIN  --kinematics s_max  BIN_MAX  --observable B->K^*ll::J_3@LargeRecoil${KSTAR0_MU_MU_OPT}
+    --kinematics s_min  BIN_MIN  --kinematics s_max  BIN_MAX  --observable B->K^*ll::J_4@LargeRecoil${KSTAR0_MU_MU_OPT}
+    --kinematics s_min  BIN_MIN  --kinematics s_max  BIN_MAX  --observable B->K^*ll::J_5@LargeRecoil${KSTAR0_MU_MU_OPT}
+    --kinematics s_min  BIN_MIN  --kinematics s_max  BIN_MAX  --observable B->K^*ll::J_6s@LargeRecoil${KSTAR0_MU_MU_OPT}
+    --kinematics s_min  BIN_MIN  --kinematics s_max  BIN_MAX  --observable B->K^*ll::J_7@LargeRecoil${KSTAR0_MU_MU_OPT}
+    --kinematics s_min  BIN_MIN  --kinematics s_max  BIN_MAX  --observable B->K^*ll::J_8@LargeRecoil${KSTAR0_MU_MU_OPT}
+    --kinematics s_min  BIN_MIN  --kinematics s_max  BIN_MAX  --observable B->K^*ll::J_9@LargeRecoil${KSTAR0_MU_MU_OPT}
+"
+observables=${observables//BIN_MIN/$1}
+observables=${observables//BIN_MAX/$2}
+
+echo $observables
+}
+
+# Return string def of low recoil observables for uncertainty propagation
+# expect two parameters: s_min, s_max. If only one is passed, the suitable
+#  s_max is chosen automatically as the maximum q^2 (differs between K and K^*)
+low_recoil()
+{
+
+min_K=14
+max_K=22.86
+max_Kstar=19.21
+
+s_min=$1
+
+#  need bc for float comparison
+result=`echo "$s_min < $min_K" | bc` 
+if [ $result -eq 1 ]; then
+    echo "low_recoil(): s_min = $s_min < $min_K !"
+    exit
+fi
+
+# override default with second argument
+if [ "$#" -eq 2 ]; then
+    max_K=$2
+    max_Kstar=$2
+fi
+
+result=`echo "$s_min > $max_Kstar" | bc` 
+if [ $result -eq 1 ]; then
+    echo "low_recoil(): s_min = $s_min > s_max = $max_Kstar !"
+    exit
+fi
+
+observables="
+    --kinematics s_min  ${s_min}  --kinematics s_max  ${max_K}  --observable B->Kll::BR@LowRecoil${K_PLUS_MU_MU_OPT}   
+
+    --kinematics s_min  ${s_min}  --kinematics s_max  ${max_Kstar}  --observable B->K^*ll::BR@LowRecoil${KSTAR0_MU_MU_OPT}  
+    --kinematics s_min  ${s_min}  --kinematics s_max  ${max_Kstar}  --observable B->K^*ll::A_FB@LowRecoil${KSTAR0_MU_MU_OPT}
+    --kinematics s_min  ${s_min}  --kinematics s_max  ${max_Kstar}  --observable B->K^*ll::F_L@LowRecoil${KSTAR0_MU_MU_OPT} 
+
+    --kinematics s_min  ${s_min}  --kinematics s_max  ${max_Kstar}  --observable B->K^*ll::A_T^2@LowRecoil${KSTAR0_MU_MU_OPT}
+    --kinematics s_min  ${s_min}  --kinematics s_max  ${max_Kstar}  --observable B->K^*ll::A_T^3@LowRecoil${KSTAR0_MU_MU_OPT}
+    --kinematics s_min  ${s_min}  --kinematics s_max  ${max_Kstar}  --observable B->K^*ll::A_T^4@LowRecoil${KSTAR0_MU_MU_OPT}
+    --kinematics s_min  ${s_min}  --kinematics s_max  ${max_Kstar}  --observable B->K^*ll::A_T^5@LowRecoil${KSTAR0_MU_MU_OPT}
+    --kinematics s_min  ${s_min}  --kinematics s_max  ${max_Kstar}  --observable B->K^*ll::A_T^re@LowRecoil${KSTAR0_MU_MU_OPT}
+    --kinematics s_min  ${s_min}  --kinematics s_max  ${max_Kstar}  --observable B->K^*ll::A_T^im@LowRecoil${KSTAR0_MU_MU_OPT}
+
+    --kinematics s_min  ${s_min}  --kinematics s_max  ${max_Kstar}  --observable B->K^*ll::H_T^1@LowRecoil${KSTAR0_MU_MU_OPT}
+    --kinematics s_min  ${s_min}  --kinematics s_max  ${max_Kstar}  --observable B->K^*ll::H_T^2@LowRecoil${KSTAR0_MU_MU_OPT}
+    --kinematics s_min  ${s_min}  --kinematics s_max  ${max_Kstar}  --observable B->K^*ll::H_T^3@LowRecoil${KSTAR0_MU_MU_OPT}
+    --kinematics s_min  ${s_min}  --kinematics s_max  ${max_Kstar}  --observable B->K^*ll::H_T^4@LowRecoil${KSTAR0_MU_MU_OPT}
+    --kinematics s_min  ${s_min}  --kinematics s_max  ${max_Kstar}  --observable B->K^*ll::H_T^5@LowRecoil${KSTAR0_MU_MU_OPT}
+
+    --kinematics s_min  ${s_min}  --kinematics s_max  ${max_Kstar}  --observable B->K^*ll::J_1s@LowRecoil${KSTAR0_MU_MU_OPT}
+    --kinematics s_min  ${s_min}  --kinematics s_max  ${max_Kstar}  --observable B->K^*ll::J_1c@LowRecoil${KSTAR0_MU_MU_OPT}
+    --kinematics s_min  ${s_min}  --kinematics s_max  ${max_Kstar}  --observable B->K^*ll::J_2s@LowRecoil${KSTAR0_MU_MU_OPT}
+    --kinematics s_min  ${s_min}  --kinematics s_max  ${max_Kstar}  --observable B->K^*ll::J_2c@LowRecoil${KSTAR0_MU_MU_OPT}
+    --kinematics s_min  ${s_min}  --kinematics s_max  ${max_Kstar}  --observable B->K^*ll::J_3@LowRecoil${KSTAR0_MU_MU_OPT}
+    --kinematics s_min  ${s_min}  --kinematics s_max  ${max_Kstar}  --observable B->K^*ll::J_4@LowRecoil${KSTAR0_MU_MU_OPT}
+    --kinematics s_min  ${s_min}  --kinematics s_max  ${max_Kstar}  --observable B->K^*ll::J_5@LowRecoil${KSTAR0_MU_MU_OPT}
+    --kinematics s_min  ${s_min}  --kinematics s_max  ${max_Kstar}  --observable B->K^*ll::J_6s@LowRecoil${KSTAR0_MU_MU_OPT}
+    --kinematics s_min  ${s_min}  --kinematics s_max  ${max_Kstar}  --observable B->K^*ll::J_7@LowRecoil${KSTAR0_MU_MU_OPT}
+    --kinematics s_min  ${s_min}  --kinematics s_max  ${max_Kstar}  --observable B->K^*ll::J_8@LowRecoil${KSTAR0_MU_MU_OPT}
+    --kinematics s_min  ${s_min}  --kinematics s_max  ${max_Kstar}  --observable B->K^*ll::J_9@LowRecoil${KSTAR0_MU_MU_OPT}
+"
+
+echo $observables
+}
+
+export OBSERVABLES_UNCERTAINTY_PROP="
+    $(large_recoil 2 4.3)
+    $(large_recoil 1 6)
+    $(low_recoil 14.18 16)
+    $(low_recoil 16)
+    "
+
+# Create observables which haven't yet been observed
+# and which are interesting at large recoil
+unobserved_large_recoil()
+{
+    local s_min=$1; shift
+    local s_max=$1; shift
+
+    local obs_names=()
+    obs_names[0]="B->K^*ll::A_T^re"
+    obs_names[1]="B->K^*ll::A_T^3"
+    obs_names[2]="B->K^*ll::A_T^4"
+    obs_names[3]="B->K^*ll::A_T^5"
+    obs_names[4]="B->K^*ll::H_T^1"
+    obs_names[5]="B->K^*ll::H_T^2"
+    
+#    --kinematics s_min  BIN_MIN  --kinematics s_max  BIN_MAX  --observable B->K^*ll::A_T^re@LargeRecoil${KSTAR0_MU_MU_OPT}
+
+    local kinematics="--kinematics s_min  ${s_min}  --kinematics s_max  ${s_max}"
+
+    local full_observables=""
+
+    for o in "${obs_names[@]}"; do
+        full_observables+="$kinematics --observable ${o}@LargeRecoil${KSTAR0_MU_MU_OPT} "
+    done
+
+    echo $full_observables
+}
+
+# Create observables which haven't yet been observed
+# and which are interesting at low recoil
+unobserved_low_recoil()
+{
+    local s_min=$1; shift
+    local s_max=$1; shift
+
+    local obs_names=()
+    obs_names[0]="B->K^*ll::H_T^1"
+    obs_names[1]="B->K^*ll::H_T^2"
+    obs_names[2]="B->K^*ll::H_T^3"
+
+    local kinematics="--kinematics s_min  ${s_min}  --kinematics s_max  ${s_max}"
+
+    local full_observables=""
+
+    for o in "${obs_names[@]}"; do
+        full_observables+="$kinematics --observable ${o}@LowRecoil${KSTAR0_MU_MU_OPT} "
+    done
+
+    echo $full_observables
+}
+export OBSERVABLES_UNCERTAINTY_UNOBSERVED="
+    $(unobserved_large_recoil 1 2)
+    $(unobserved_large_recoil 2 3)
+    $(unobserved_large_recoil 3 4)
+    $(unobserved_large_recoil 4 5)
+    $(unobserved_large_recoil 5 6)
+    $(unobserved_large_recoil 1 6)
+    $(unobserved_low_recoil 14.18 16)
+    $(unobserved_low_recoil 16 19.21)
+    $(unobserved_low_recoil 14.18 19.21)
+    --kinematics s_min  1  --kinematics s_max  6  --observable B->K^*ll::BR@LargeRecoil${KSTAR0_MU_MU_OPT}
+    --kinematics s_min  1  --kinematics s_max  6  --observable B->K^*ll::F_L@LargeRecoil${KSTAR0_MU_MU_OPT}
+    --kinematics s_min  1  --kinematics s_max  6  --observable B->Kll::BR@LargeRecoil${K_PLUS_MU_MU_OPT}    
+    "
+
+###############################################################################################
+# Helper routine(s)
+###############################################################################################
+
+# bzip output files and store output in different directory
+backup_results()
+{
+	# no backup if no output directory known
+	if [ -z "${EOSRESULTS}" ]; then
+		echo "No backup possible, please specify a directory in variable EOSRESULTS"
+		return
+	fi
+    # read from global variables
+    local files="${OUTPUT}.hdf5 ${OUTPUT}.log ${OUTPUT}.job"
+	local backup_dir=$EOSRESULTS/$DATE
+
+    local backup_file=${OUTPUT}.tar.bz
+
+    mkdir -p $backup_dir
+    if [ -d "${backup_dir}" ]; then
+    # Control will enter here if $backup_dir exists
+		tar -cjf $backup_file ${files}
+    # delete only if move is successful
+		mv $backup_file ${backup_dir} && rm ${files}
+    fi
+}

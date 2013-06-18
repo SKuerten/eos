@@ -1,0 +1,53 @@
+###
+#SCENARIO 1
+###
+
+# submit this job assignment by entering (in workspace directory)
+# condor_submit condor.cmb
+
+# check status with
+# condor_q
+
+# list available criteria using
+# condor_status -l pcl128c
+
+# use SlotID to avoid running multiple jobs on same computer
+# Warning: regularly update platform string to allow jobs to run at all
+Requirements = (Pool=="Theory") && (CheckpointPlatform=="LINUX X86_64 3.4.11-2.16-desktop normal 0x2aaaaaacc000")
+
+#executable MUST be in home directory, not in scratch
+#program output to scratch works fine
+# If executable is a bash script, need to specify shebang line
+#to avoid 'Exec format error'
+Executable = /home/pcl312/beaujean/workspace/Sandbox/eos/jobs/1-real/Scenario1.job
+
+# offset to job index
+offset=0
+
+#output with relative path is copied to the working directory from where
+#this script is submitted
+Output       = scenario1-simple-out-$$([$(Process)+$(offset)]).log
+Error        = scenario1-simple-err-$$([$(Process)+$(offset)]).log
+Log          = /.th/pcl128c/scratch/beaujean/Condor.log
+Universe     = vanilla
+#only send emails if abnormal termination
+Notification = Complete
+Notify_user  = beaujean@mpp.mpg.de
+#read in the environment variables, needed to find eos-executables stored in custom directory via .bashrc
+getenv       = True
+
+#transfer HDF5 libraries as well
+#should_transfer_files = YES
+# transfer_input_files = /usr/local/lib/libhdf5_hl.so
+# LD_LIBRARY_PATH=$LD_LIBRARY_PATH:.
+
+when_to_transfer_output = ON_EXIT_OR_EVICT
+# output of  ${EOSRESULTS}/$(date +%Y-%m-%d)
+#initialdir = /home/pcl312/beaujean/Data/EOS/2011-07-12
+
+# third arg is the offset to the process id, starts with 0,1,2...
+#Arguments = SM_all --pre $$([$(Process)+$(offset)])
+Arguments = BPll_largeRec --gof $$([$(Process)+$(offset)])
+
+#how many processes are started? numerical arg.
+Queue 8

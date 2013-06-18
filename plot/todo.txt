@@ -1,0 +1,4 @@
+plotScript:
+- check with latest update on MPP
+- split into multiple files, 2800 lines way too long: one class to do the calculations, one to invoke it n(n-1) times, class that calls plot() does *not* store to pdf
+- inheritance for various data parsers

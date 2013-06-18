@@ -1,0 +1,893 @@
+#! /bin/bash
+
+USAGE_MESSAGE="Usage: $0 'SUBSCENARIO --[gof | gl | hc | pre | pmc | pmc-queue | unc | unc-queue] [job index]'"
+
+if [ "$#" -lt 2 ]; then
+    echo "not enough arguments"
+    echo $USAGE_MESSAGE
+    exit
+fi
+
+#read job index from command line, else define default argument
+let JOB_INDEX=0
+if [ "$#" -eq 3 ];then
+    let JOB_INDEX=$3
+fi
+
+SCENARIO=1 #2
+# read in all constraints
+source $HOME/workspace/Sandbox/eos/jobs/paper_fit.input
+
+DATE=2012-12-12
+
+###
+# Platform specific settings
+###
+PYTHON=/usr/bin/python
+
+case "$USER" in
+
+beaujean)
+        PMC_WD_BASE=/.th/pcl128c/scratch/beaujean/EOS
+        ;;
+
+fdb)
+        PMC_WD_BASE=/afs/ipp/home/f/fdb/results
+        PMC_WD_BASE=/afs/ipp/home/f/fdb/JobOutput
+        PYTHON=python26
+        ;;
+heinz)
+        PMC_WD_BASE=/storage/Programs/eos/results
+        ;;
+*)
+        echo "Unknown system with user $USER"
+        exit
+        ;;
+esac
+
+# for job manager log output
+export PMC_DATE=$DATE
+export PMC_FULL_SCENARIO=Scenario${SCENARIO}_$1
+
+PMC_WD=$PMC_WD_BASE/$DATE/$PMC_FULL_SCENARIO
+
+export PMC_OUTPUT_BASE_NAME=$PMC_WD/sc${SCENARIO}_$1
+
+###
+# MCMC prerun options
+###
+N_SAMPLES_MCMC=20000
+N_UPDATE_MCMC=1000
+N_CHAINS_MCMC=1
+
+###
+# Job manager options
+###
+export PMC_NUMBER_OF_JOBS=400
+export PMC_POLLING_INTERVAL=45
+export PMC_THREAD_PARALLELIZATION=0
+export SGE_QUEUE=short
+
+###
+# Steering options
+###
+
+# general options
+export PMC_GENERAL_OPTIONS="
+    --debug
+    --pmc-adjust-sample-size 0
+    --pmc-crop-highest-weights 200
+    "
+export PMC_INITIALIZATION_OPTIONS="
+    --pmc-patch-around-local-mode 0
+    --pmc-minimum-overlap 0.05
+    --pmc-group-by-r-value 1.5
+    "
+
+# initialize with different seeds for different jobs
+# space them large enough, such that with thread parallelization, up to 100 cores
+# could be used without reusing same seed
+let TIME_SEED=1445
+let PMC_SEED=${TIME_SEED}*1000+${JOB_INDEX}*100
+export PMC_SEED="${PMC_SEED}"
+echo "Using seed $PMC_SEED"
+
+export PMC_MAX_STEPS=20
+export PMC_CHUNK_SIZE=3000
+export PMC_FINAL_CHUNK_SIZE=2000000
+export PMC_CONVERGENCE_OPTIONS="
+    --pmc-relative-std-deviation-over-last-steps 0.05 2
+    --pmc-ignore-ess 1
+"
+export PMC_DOF=-1
+
+export PMC_INITIALIZATION_MODE=HierarchicalClustering
+export PMC_TARGET_NUMBER_OF_CLUSTERS=50
+export PMC_MERGE_FILE=${PMC_OUTPUT_BASE_NAME}_mcmc_merge.hdf5
+export PMC_SKIP_INITIAL=0.2
+export PMC_SLIDING_WINDOW=300
+
+# tune to run only with Wilson coefficients
+IGNORE_NUISANCE=1
+if [ "$IGNORE_NUISANCE" ]; then
+    export NUISANCE_PARAMETERS_FIT=
+    export NUISANCE_PARAMETERS_FIT_WIDE=
+    export NUISANCE_PARAMETERS_FIT_CKM=
+    export NUISANCE_PARAMETERS_FIT_QUARK_MASSES=
+    export NUISANCE_PARAMETERS_FIT_FF_BV=
+    export NUISANCE_PARAMETERS_FIT_FF_BP=
+    export NUISANCE_PARAMETERS_FIT_SUBLEADING_P_LOW=
+    export NUISANCE_PARAMETERS_FIT_SUBLEADING_P_LARGE=
+    export NUISANCE_PARAMETERS_FIT_SUBLEADING_V_LARGE=
+    export NUISANCE_PARAMETERS_FIT_SUBLEADING_V_LOW=
+    export NUISANCE_PARAMETERS_FIT_HADRONIC_BSMUMU=
+
+    N_UPDATE_MCMC=500
+
+    export PMC_NUMBER_OF_JOBS=150
+    export PMC_POLLING_INTERVAL=20
+
+    export PMC_CHUNK_SIZE=1000
+    export PMC_FINAL_CHUNK_SIZE=500000
+fi
+
+###
+# default scenario: use all constraints and all nuisance parameters
+###
+
+SCAN_PARAMETERS="
+    $SCAN_PARAMETERS_REAL
+"
+if [ "$SCENARIO" == '2' ]; then
+    SCAN_PARAMETERS="
+        $SCAN_PARAMETERS_REAL
+        $SCAN_PARAMETERS_IMAGINARY
+    "
+fi
+
+if [ "$1" == 'all_nuis' ]; then
+export PMC_ANALYSIS="
+    ${SCAN_PARAMETERS}
+    ${NUISANCE_PARAMETERS_FIT}
+    ${CONSTRAINTS}
+    "
+
+    #only starting points from individual prerun chain modes
+    modes[0]="{ -0.28521 +3.73591 -3.83367 +0.81048 +0.22575 +0.11580 +0.37455 +1.21756 +4.17664 +0.24760 +1.01874 +1.09499 +1.09096 +0.34249 -2.12220 -0.18639 +0.47064 -0.02010 -0.34476 +0.04325 +0.16369 +0.06068 -0.79616 -0.57804 +0.44515 +0.96279 +1.01541 +0.92155 +1.00246 +0.90186 +1.13074 }"
+    modes[1]="{ +0.39819 -4.46579 +4.15969 +0.80145 +0.22566 +0.16967 +0.39622 +1.27460 +4.22118 +0.24851 +1.02999 +1.15121 +1.08503 +0.32611 -2.20957 -0.13534 -1.51620 +0.47044 +0.70744 +0.16088 +0.01175 +0.12238 +0.51798 +0.11550 +0.77363 +0.92371 +1.01939 +0.91579 +1.02044 +0.87826 +0.91956 }"
+    modes[2]="{ -0.38469 -3.14939 +2.86967 +0.81175 +0.22619 +0.16389 +0.38775 +1.13853 +4.21520 +0.26255 +1.08174 +1.05387 +0.77084 +0.37070 -2.05407 +0.01370 -0.63203 -0.11307 -0.62633 -0.06862 -0.05449 +0.06990 -0.08756 -0.19481 -0.34770 +0.81255 +0.91804 +0.56470 +1.03624 +0.92929 +1.10166 }"
+    modes[3]="{ +0.55422 +2.24542 -3.11398 +0.80478 +0.22507 +0.12503 +0.37081 +1.22441 +4.24374 +0.24411 +1.06176 +1.05936 +0.67610 +0.37281 -1.99046 -0.00996 -0.62379 -0.01324 +0.67699 -0.15148 +0.06142 -0.07630 -0.69662 -0.68019 -0.98595 +0.89467 +1.00050 +0.59393 +1.01823 +0.93614 +1.09449 }"
+    modes[4]="{ +0.55260 -7.94346 +3.17090 +0.79533 +0.22517 +0.05996 +0.37989 +1.22138 +4.22525 +0.24464 +0.67743 +1.44180 +0.93553 +0.31159 -1.19778 +0.14267 -0.31317 +0.99081 +0.06510 -0.13127 +0.05470 -0.00897 -1.25833 -0.84792 -0.61722 +1.33588 +1.30380 +0.95141 +1.22083 +0.71350 +1.08376 }"
+
+    # output from Minuit (converged except 4) with old f_{B_s} prior. Taken as starting points with f_{B_s} at new central value
+    modes[0]="{ -0.294991910838    3.731820480717  -4.140554057902  0.8040061857056  0.2253504116543  0.1115129429205  0.3810688515113   1.274719190215   4.189684939788  0.2277   1.013148371823   1.088704682516   1.063311477328   0.335547240057  -2.488445170333 -0.004355297966   1.570799998281 -0.21811962745 0.018369846676 0.000318355235 0.004396977266 -0.00408332457 1.548203534475 -0.00450190902 1.545401296666  0.9454324635885  0.9990328339093   0.9645622956255     1.013570249464     0.9078397154114      1.05198975913 }"
+    modes[1]="{  0.41787049285  -4.639111764728  3.994616452063  0.804023381067  0.225350804884  0.110628568554  0.380905027443  1.266280349361  4.190314749428  0.2277  1.017119707833  1.104509038044  1.058089602898  0.334028900416 -2.495903861316 -0.005333275099 -0.083974459908  0.281539436095 -0.015628174618 -9.71051101e-05  0.005496970256 -0.003805090026 -0.201231494171 -1.568681200911  1.562618147055  0.923478753315  0.999855426032  0.967627952993  1.003784014491  0.948092186865  1.039124694532 }"
+    modes[2]="{ -0.3923333011 -3.0964214531 3.1898153498 0.8044880791 0.2253765843 0.1072140269 0.383872079 1.2601954847 4.2154412804 0.2277 1.0573616111 1.0717261056 0.7690970201 0.355143116 -2.424986257 0.0302285803 1.2373177286 0.1667951519 1.5702103717 -0.0013136332 -0.0220572161 0.0238388314 1.4508072117 1.5468003738 0.2872533563 0.8998714694 0.990164316 0.5510796565 1.0202447124 0.9017575559 1.0510109316 }"
+    modes[3]="{ 0.5570214652 2.2484413562 -3.237073899 0.8055112872 0.2253966452 0.1292005196 0.3780969346 1.2764434095 4.2693546551 0.2277 1.0575783457 1.0800896842 0.6932484876 0.3632573516 -2.0968008644 0.0143568565 0.5190809236 0.0955872027 -0.043358832 -0.0069603356 0.0062889845 0.0601883802 0.382774973 -1.3172302747 1.1577402295 0.946001619 1.000816627 0.5501429381 1.0214474088 0.9503311209 1.0291229232 }"
+    modes[4]="{  0.5610170358 -8.08722819 3.0338692174 0.803218536 0.2255355173 0.1092254104 0.3820438925 1.2648953649 4.2720728752 0.2277 0.673352871 1.4492405824 0.9501205003 0.3111141389 -0.9879950545 0.0095595091 -1.3201948355 0.9933278221 -0.0107449497 -0.0202893745 0.1005028158 -0.0042929391 -0.0379386758 -1.335510893 -0.5651605367 1.3913171074 1.0650905819 0.9744484565 1.1139527217 0.7282879673 1.1568873005 }"
+
+    # output from Minuit (all converged)
+    modes[0]="{ -0.293111 3.69357 -4.1907 0.804014 0.22535 0.11148 0.381072 1.27471 4.18983 0.227148 1.00937 1.08714 1.06141 0.33513 -2.46895 -0.0042728 1.5708 -0.224737 0.0183828 0.00028625 0.00419876 -0.00454914 0.299424 0.101164 0.0548943 0.947939 0.998937 0.962475 1.00999 0.913492 1.04841 }"
+    modes[1]="{ 0.415816 -4.59024 4.05233 0.804023 0.225351 0.110671 0.380902 1.26621 4.19037 0.227224 1.01388 1.10309 1.05637 0.333718 -2.47959 -0.00521859 -0.0317564 0.285356 -0.0164684 -3.1783e-05 0.00523313 -0.00378001 -0.216729 -1.5708 1.57079 0.926145 0.999818 0.965795 0.998971 0.95474 1.03463 }"
+    modes[2]="{ -0.38553 -3.03174 +3.71870 +0.80035 +0.22545 +0.11905 +0.40766 +1.26104 +4.54094 +0.22775 +0.98209 +1.08830 +0.83286 +0.33902 -2.15799 +0.10458 -1.02862 +0.21571 -0.21230 +0.01014 +0.18295 +0.01641 +1.00686 -0.36178 +0.19976 +1.00564 +0.93467 +0.55850 +0.94724 +0.80956 +1.00839 }"
+    modes[3]="{ 0.557804 2.25444 -3.23813 0.805675 0.22539 0.117244 0.381801 1.26901 4.20035 0.228109 1.05322 1.0931 0.714118 0.3636 -2.11854 0.00274282 0.56978 0.127599 0.051996 -0.00175994 0.0128477 0.018495 -0.785858 -0.964611 -1.2331 0.98311 1.00394 0.550082 1.0128 0.949094 1.01204 }"
+    modes[4]="{ 0.56054 -8.09887 2.9823 0.805014 0.225413 0.116107 0.38215 1.25848 4.26123 0.227902 0.676011 1.44996 0.96102 0.31062 -0.988492 -0.00232229 -1.17814 0.999678 0.0107227 -0.032838 0.101596 -0.0117173 -1.04786 -1.56175 1.29742 1.38847 1.05309 0.984761 1.10203 0.723075 1.14128 }"
+    modes[5]="{ +0.73805 +4.30052 -3.33878 +0.80435 +0.22532 +0.09003 +0.42885 +1.17223 +4.17816 +0.22428 +0.67214 +1.44226 +0.55274 +0.31211 -0.85591 -0.00306 +1.28440 -0.94307 +0.09113 -0.01197 -0.10583 +0.05248 +0.89154 -0.87177 +1.05834 +1.37671 +1.09961 +0.56644 +0.95619 +0.85780 +0.91949 }"
+    export N_SAMPLES_MCMC=40000
+
+    # remove suppressed modes from the start
+    export PMC_INITIALIZATION_OPTIONS="
+    $PMC_INITIALIZATION_OPTIONS
+    --pmc-ignore-group 0
+    --pmc-ignore-group 1
+    --pmc-ignore-group 4
+    "
+
+#    export PMC_MAX_STEPS=5
+#    export PMC_CLIENT_ARGV="--step 4 --resume-update"
+
+elif [ "$1" == 'all_wide' ]; then
+# use all constraints, and wide priors for FF and subleading
+
+    export PMC_ANALYSIS="
+    ${SCAN_PARAMETERS_REAL_WIDE}
+    ${NUISANCE_PARAMETERS_FIT_WIDE}
+    ${CONSTRAINTS}
+    "
+
+    export N_SAMPLES_MCMC=100000
+
+    # 1 = SM, 2 = flipped-sign, but contain some minor mode contribution
+    export PMC_INITIALIZATION_OPTIONS="
+    $PMC_INITIALIZATION_OPTIONS
+    --pmc-group-by-r-value 1.5
+    --pmc-ignore-group 0
+    --pmc-ignore-group 1
+    --pmc-ignore-group 4
+    "
+
+    export PMC_TARGET_NUMBER_OF_CLUSTERS=80
+    export PMC_CHUNK_SIZE=5000
+    export PMC_SLIDING_WINDOW=1000 # more degeneracy
+    export PMC_DOF=-1
+
+    # see first results
+    export PMC_MAX_STEPS=5
+
+#    export PMC_CLIENT_ARGV="--final --force-final-step --input $PMC_WD/sc1_all_wide_parameter_samples_10.hdf5"
+#    export PMC_CLIENT_ARGV="--merge --step 0 --input $PMC_WD/sc1_all_wide_parameter_samples_0.hdf5"
+#    export PMC_CLIENT_ARGV="--resume-samples --step 1 --input $PMC_WD/sc1_all_wide_parameter_samples_1.hdf5"
+    export PMC_NUMBER_OF_JOBS=500
+#     export SGE_FINAL_QUEUE=short
+
+elif [ "$1" == 'no_nuisance' ]; then
+# use all constraints, but no nuisance parameters
+    export PMC_ANALYSIS="
+    ${SCAN_PARAMETERS}
+    ${CONSTRAINTS}
+    "
+
+elif [ "$1" == 'BPll' ]; then
+# use all constraints for B -> K ll, B -> K* gamma, and relevant nuisance parameters.
+
+    export PMC_ANALYSIS="
+    ${SCAN_PARAMETERS}
+    ${NUISANCE_PARAMETERS_FIT_CKM}
+    ${NUISANCE_PARAMETERS_FIT_QUARK_MASSES}
+    ${NUISANCE_PARAMETERS_FIT_FF_BV}
+    ${NUISANCE_PARAMETERS_FIT_FF_BP}
+    ${NUISANCE_PARAMETERS_FIT_SUBLEADING_P_LOW}
+    ${NUISANCE_PARAMETERS_FIT_SUBLEADING_P_LARGE}
+    ${NUISANCE_PARAMETERS_FIT_SUBLEADING_V_LARGE}
+    ${CONSTRAINTS_PLL_LARGE_RECOIL}
+    ${CONSTRAINTS_PLL_LOW_RECOIL}
+    ${CONSTRAINTS_GAMMA}
+    "
+
+    # chain modes
+    modes[0]="{ +0.37778 +3.85778 -1.76818 +0.80162 +0.22578 +0.07882 +0.37685 +1.22365 +4.23954 +1.04285 +0.98256 +1.09054 +0.34405 -2.12965 +0.04273 +0.41929 -0.16698 -1.10794 +1.03784 +1.00645 +1.03618 +1.01855 +1.01964 +0.95298 }"
+    modes[1]="{ +0.49711 +3.30019 +2.62151 +0.79874 +0.22510 +0.12742 +0.36126 +1.28860 +4.19920 +0.94757 +0.89740 +0.95869 +0.33953 -2.13130 +0.03042 +0.27509 +0.17925 -1.25214 +1.12018 +0.94291 +1.10423 +0.96600 +0.85916 +0.96661 }"
+    modes[2]="{ -0.26559 -0.75797 -4.80213 +0.80746 +0.22550 +0.03078 +0.38682 +1.24000 +4.16021 +0.83620 +0.92810 +1.02859 +0.34285 -2.79728 -0.08749 -1.33155 -0.04261 -1.04877 +0.95065 +1.02426 +1.04889 +1.11749 +1.01097 +0.88006 }"
+    modes[3]="{ +0.37301 +2.11828 -4.04917 +0.81584 +0.22494 +0.18974 +0.36553 +1.28150 +4.20346 +1.06383 +1.03397 +1.03773 +0.33576 -2.35481 +0.10274 -1.52056 -0.33374 +1.23635 +1.01155 +0.96217 +0.92199 +1.03182 +1.06597 +1.02073 }"
+    
+    # elongated degeneracy in C9, C10 requires longer chains for convergence
+    export N_SAMPLES_MCMC=50000
+
+     export PMC_INITIALIZATION_OPTIONS="
+     $PMC_INITIALIZATION_OPTIONS
+     --pmc-group-by-r-value 2
+     --pmc-ignore-group 2
+     "
+#     --pmc-patch-around-local-mode 1
+    export PMC_SKIP_INITIAL=0.2
+
+    # expect two groups due to C7 sign
+    export PMC_TARGET_NUMBER_OF_CLUSTERS=45
+
+    export PMC_SLIDING_WINDOW=100
+    export PMC_CHUNK_SIZE=3000
+
+    # PMC_CLIENT_ARGV="--resume-samples 3"
+    # export PMC_MAX_STEPS=5
+    export PMC_NUMBER_OF_JOBS=150
+    export SGE_FINAL_QUEUE=short
+
+elif [ "$1" == 'BPll_largeRec' ]; then
+# use all constraints for B -> K ll, B -> K* gamma, and relevant nuisance parameters.
+
+    export PMC_ANALYSIS="
+    ${SCAN_PARAMETERS}
+    ${NUISANCE_PARAMETERS_FIT_CKM}
+    ${NUISANCE_PARAMETERS_FIT_QUARK_MASSES}
+    ${NUISANCE_PARAMETERS_FIT_FF_BV}
+    ${NUISANCE_PARAMETERS_FIT_FF_BP}
+    ${NUISANCE_PARAMETERS_FIT_SUBLEADING_P_LARGE}
+    ${NUISANCE_PARAMETERS_FIT_SUBLEADING_V_LARGE}
+    ${CONSTRAINTS_PLL_LARGE_RECOIL}
+    ${CONSTRAINTS_GAMMA}
+    "
+
+    # 2012-11-27 chains
+    modes[0]="{ -0.31380 -2.94939 -4.29370 +0.80446 +0.22507 +0.16108 +0.38791 +1.30665 +4.18094 +0.97601 +0.93238 +0.93309 +0.34340 -1.95754 -0.08959 -0.59456 +1.01447 +0.97979 +1.00757 +1.06585 +0.95128 +1.02978 }"
+    modes[1]="{ -0.29267 +5.93128 +0.82770 +0.79544 +0.22558 +0.09666 +0.36558 +1.31307 +4.24975 +1.07096 +0.96227 +0.95697 +0.35830 -1.90208 -0.09569 -1.18058 +0.94336 +0.91524 +1.06071 +1.00260 +0.98332 +1.01855 }"
+    modes[2]="{ -0.31998 -1.91130 +4.90561 +0.80172 +0.22509 +0.10790 +0.35964 +1.26054 +4.22784 +1.09940 +0.94946 +0.97817 +0.34969 -1.87950 -0.08974 +0.39439 +1.02593 +1.01968 +0.94793 +0.92990 +0.89892 +1.08373 }"
+    modes[3]="{ +0.41657 +3.67363 +2.96064 +0.80513 +0.22507 +0.10813 +0.37570 +1.26929 +4.31697 +0.95301 +0.98623 +0.94836 +0.34720 -1.58212 +0.06425 +1.06004 +1.06661 +0.88493 +0.92867 +1.07303 +0.99781 +1.03822 }"
+    modes[4]="{ +0.47004 +2.08280 -3.96015 +0.79948 +0.22530 +0.07033 +0.37405 +1.29058 +4.19141 +0.96103 +1.03079 +0.91136 +0.36242 -1.94647 +0.02928 -0.41077 +0.96047 +1.02943 +0.97303 +1.00867 +0.94071 +0.99533 }"
+    modes[5]="{ -0.31299 +5.91448 -1.35021 +0.80432 +0.22534 +0.14795 +0.39853 +1.23457 +4.27536 +1.08344 +1.04427 +0.88178 +0.33618 -2.36701 +0.04020 -0.36716 +1.08186 +1.06357 +1.02130 +1.04872 +0.96490 +0.97137 }"
+    modes[6]="{ +0.42858 -4.69929 +4.60476 +0.80057 +0.22491 +0.09285 +0.36503 +1.27721 +4.31905 +0.96148 +1.00605 +0.98750 +0.34895 -1.86781 +0.01869 +1.05955 +1.03090 +1.06461 +0.92547 +1.04064 +0.94717 +0.97495 }"
+    modes[7]="{ +0.48282 -0.37539 -5.59341 +0.80456 +0.22545 +0.15893 +0.36535 +1.22635 +4.28452 +1.05650 +0.89453 +0.85165 +0.34054 -1.80315 +0.03882 +0.65557 +1.12779 +1.00426 +1.05927 +0.99814 +0.94193 +0.89767 }"
+    
+    # elongated degeneracy in C9, C10 requires longer chains for convergence
+    export N_SAMPLES_MCMC=50000
+
+     export PMC_INITIALIZATION_OPTIONS="
+     $PMC_INITIALIZATION_OPTIONS
+     --pmc-group-by-r-value 2
+     --pmc-ignore-group 2
+     "
+    export PMC_SKIP_INITIAL=0.2
+
+    # expect two groups due to C7 sign
+    export PMC_TARGET_NUMBER_OF_CLUSTERS=45
+
+    export PMC_SLIDING_WINDOW=100
+    export PMC_CHUNK_SIZE=3000
+
+    export PMC_NUMBER_OF_JOBS=150
+    export SGE_FINAL_QUEUE=short
+
+    if [ "$IGNORE_NUISANCE" ]; then
+        export N_SAMPLES_MCMC=15000
+        export PMC_TARGET_NUMBER_OF_CLUSTERS=50
+        export PMC_CHUNK_SIZE=1000
+    fi
+
+elif [ "$1" == 'BPll_lowRec' ]; then
+# use all constraints for B -> K ll, B -> K* gamma, and relevant nuisance parameters.
+
+    export PMC_ANALYSIS="
+    ${SCAN_PARAMETERS}
+    ${NUISANCE_PARAMETERS_FIT_CKM}
+    ${NUISANCE_PARAMETERS_FIT_QUARK_MASSES}
+    ${NUISANCE_PARAMETERS_FIT_FF_BV}
+    ${NUISANCE_PARAMETERS_FIT_FF_BP}
+    ${NUISANCE_PARAMETERS_FIT_SUBLEADING_P_LOW}
+    ${NUISANCE_PARAMETERS_FIT_SUBLEADING_V_LARGE}
+    ${CONSTRAINTS_PLL_LOW_RECOIL}
+    ${CONSTRAINTS_GAMMA}
+    "
+
+    # 2012-11-27 chains
+    modes[0]="{ -0.28307 +1.78884 -4.60624 +0.80529 +0.22515 +0.09950 +0.39603 +1.27667 +4.24087 +1.01331 +0.96812 +1.03989 +0.35759 -1.84772 -0.05297 +0.56354 +0.92765 +1.04840 +1.04508 +1.04948 +0.94474 +0.95538 }"
+    modes[1]="{ +0.39593 -5.70611 +0.99568 +0.80804 +0.22516 +0.12663 +0.37609 +1.25866 +4.20578 +0.95991 +0.98601 +1.03428 +0.33966 -2.57809 +0.05872 -1.49561 +1.16097 +1.06148 +0.97825 +0.86610 +1.01036 +1.00945 }"
+    modes[2]="{ -0.28056 -4.50688 +0.62288 +0.80076 +0.22554 +0.06972 +0.40127 +1.14382 +4.27215 +0.91700 +1.00778 +0.94262 +0.34382 -1.68807 -0.09809 +0.76874 +1.03412 +0.91168 +1.05517 +0.94792 +0.99745 +0.97984 }"
+    modes[3]="{ -0.23951 +3.16774 +3.92172 +0.80523 +0.22474 +0.15926 +0.40745 +1.28789 +4.25324 +0.99298 +1.01640 +1.08171 +0.34530 -1.94729 -0.14532 -1.22140 +1.00166 +0.91507 +1.07462 +0.81860 +1.03348 +0.88162 }"
+    modes[4]="{ +0.36093 +1.75757 -4.06889 +0.79907 +0.22527 +0.19154 +0.35961 +1.29827 +4.26103 +0.93606 +0.90218 +1.10128 +0.34462 -3.18352 +0.10488 -1.14262 +1.11913 +0.99952 +1.10644 +0.92671 +1.03455 +0.99439 }"
+    modes[5]="{ +0.46100 +0.71296 +4.74315 +0.79528 +0.22534 +0.09337 +0.35413 +1.26174 +4.19236 +0.96414 +0.95744 +0.92364 +0.32929 -2.12337 +0.42414 -0.77786 +1.13611 +0.98664 +0.93256 +1.00341 +0.98169 +0.97428 }"
+    modes[6]="{ -0.31708 -3.34010 -2.86779 +0.80718 +0.22482 +0.00352 +0.38410 +1.27588 +4.26052 +0.98036 +0.99537 +0.88743 +0.34599 -2.82525 -0.31688 -0.53610 +0.89175 +0.95575 +1.00716 +0.98359 +0.95715 +1.05747 }"
+    modes[7]="{ +0.37572 -4.18821 -3.28314 +0.80487 +0.22462 +0.10008 +0.36930 +1.23160 +4.29658 +1.01834 +1.05324 +1.05250 +0.34472 -3.43994 +0.03937 -1.02541 +0.95918 +1.06575 +1.08621 +1.03984 +1.03434 +0.98163 }"
+
+    # elongated degeneracy in C9, C10 requires longer chains for convergence
+    export N_SAMPLES_MCMC=50000
+
+     export PMC_INITIALIZATION_OPTIONS="
+     $PMC_INITIALIZATION_OPTIONS
+     --pmc-group-by-r-value 2
+     --pmc-ignore-group 2
+     "
+    export PMC_SKIP_INITIAL=0.2
+
+    # expect two groups due to C7 sign
+    export PMC_TARGET_NUMBER_OF_CLUSTERS=45
+
+    export PMC_SLIDING_WINDOW=100
+    export PMC_CHUNK_SIZE=3000
+
+    export PMC_NUMBER_OF_JOBS=150
+    export SGE_FINAL_QUEUE=short
+
+    if [ "$IGNORE_NUISANCE" ]; then
+        export N_SAMPLES_MCMC=15000
+        export PMC_TARGET_NUMBER_OF_CLUSTERS=50
+        export PMC_CHUNK_SIZE=1000
+    fi
+
+elif [ "$1" == 'BVll_largeRec' ]; then
+# use only constraints for B -> K* ll @ LargeRecoil, B -> K* gamma, and relevant nuisance parameters
+    export PMC_ANALYSIS="
+    ${SCAN_PARAMETERS_REAL_WIDE}
+    ${NUISANCE_PARAMETERS_FIT_CKM}
+    ${NUISANCE_PARAMETERS_FIT_QUARK_MASSES}
+    ${NUISANCE_PARAMETERS_FIT_FF_BV}
+    ${NUISANCE_PARAMETERS_FIT_SUBLEADING_V_LARGE}
+    ${CONSTRAINTS_VLL_LARGE_RECOIL}
+    ${CONSTRAINTS_GAMMA}
+    "
+
+    # some chain modes
+    modes[0]="{ -0.28977 +2.47628 -4.06484 +0.79862 +0.225051 +0.14829 +0.37721 +1.29925 +4.18007 +1.07129 +1.07007 +1.01776 +0.97415 +1.00592 +0.97394 +1.01393 +0.96697 +1.01141 }"
+    modes[1]="{ +0.41328 -4.13259 +4.06492 +0.80402 +0.22492 +0.12778 +0.37434 +1.22173 +4.26883 +0.90429 +0.97954 +1.00125 +1.08278 +1.07355 +1.01164 +1.05124 +0.89801 +0.92005 }"
+    modes[2]="{ +0.42317 -3.15025 -4.53925 +0.81206 +0.22507 +0.11893 +0.39035 +1.24318 +4.22712 +0.96533 +0.93656 +0.92771 +0.98798 +0.97453 +0.95167 +1.01336 +0.95831 +1.10378 }"
+    modes[3]="{ +0.38255 -8.68301 -2.17275 +0.80071 +0.22555 +0.09159 +0.39469 +1.29318 +4.23859 +0.82321 +1.04117 +0.97643 +1.08673 +0.98615 +0.91897 +1.00355 +1.01598 +1.09643 }"
+    modes[4]="{ -0.28717 +5.42311 +4.26041 +0.80794 +0.22592 +0.10916 +0.38962 +1.22235 +4.18104 +0.89992 +1.00811 +1.00545 +0.93735 +0.93705 +1.07805 +0.88327 +0.95956 +1.05636 }"
+    modes[5]="{ -0.27878 +7.97981 +2.20854 +0.80649 +0.22553 +0.13867 +0.37567 +1.25039 +4.14203 +0.91195 +1.16346 +1.06182 +1.02847 +0.95334 +0.98754 +0.95038 +0.96051 +0.95519 }"
+
+    # minuit output (all converged)
+    modes[0]="{ -0.270282 2.71132 -4.30826 0.804004 0.22535 0.111215 0.381047 1.26983 4.19003 0.979667 1.01237 1.00729 0.992254 0.999239 0.995839 0.980553 1.00943 1.02287 }"
+    modes[1]="{ 0.409626 -3.91101 4.01795 0.803992 0.22535 0.110691 0.3809 1.26997 4.19002 0.971111 1.01765 1.00989 0.988274 0.999682 0.997917 0.980328 1.01139 1.01967 }"
+    modes[2]="{ 0.401271 -6.85211 -3.98294 0.80399 0.22535 0.110755 0.380913 1.26978 4.19021 0.885399 1.07008 1.02646 0.998648 0.966481 0.99069 0.990069 1.02025 1.02894 }"
+    modes[3]="{ 0.400552 -9.3069 -1.57673 0.803983 0.22535 0.110743 0.380908 1.26991 4.19016 0.849171 1.09214 1.0274 0.987832 0.974186 0.997684 0.986543 1.02162 1.02751 }"
+    modes[4]="{ -0.262786 5.46833 4.21312 0.804019 0.22535 0.111189 0.381066 1.26962 4.19015 0.907337 1.05666 1.02402 0.999818 0.970193 0.99198 0.989449 1.01828 1.03112 }"
+    modes[5]="{ -0.260358 8.21019 1.46722 0.804021 0.22535 0.111192 0.38107 1.26944 4.19016 0.86722 1.08109 1.02743 0.988913 0.975962 0.997036 0.986656 1.02282 1.03009 }"
+
+    export N_SAMPLES_MCMC=30000
+
+    export PMC_INITIALIZATION_OPTIONS="
+     $PMC_INITIALIZATION_OPTIONS
+     --pmc-group-by-r-value 1.7
+     "
+
+    export PMC_TARGET_NUMBER_OF_CLUSTERS=35
+    export PMC_SLIDING_WINDOW=300
+    export PMC_CHUNK_SIZE=3000
+
+    export PMC_NUMBER_OF_JOBS=250
+    export SGE_FINAL_QUEUE=short
+
+#    PMC_CLIENT_ARGV="--resume-samples 3"
+
+elif [ "$1" == 'BVll_lowRec' ]; then
+# use only constraints for B -> K* ll @ LowRecoil, B -> K* gamma, and relevant nuisance parameters
+    export PMC_ANALYSIS="
+    ${SCAN_PARAMETERS}
+    ${NUISANCE_PARAMETERS_FIT_CKM}
+    ${NUISANCE_PARAMETERS_FIT_QUARK_MASSES}
+    ${NUISANCE_PARAMETERS_FIT_FF_BV}
+    ${NUISANCE_PARAMETERS_FIT_SUBLEADING_V_LOW}
+    ${NUISANCE_PARAMETERS_FIT_SUBLEADING_V_LARGE}
+    ${CONSTRAINTS_VLL_LOW_RECOIL}
+    ${CONSTRAINTS_GAMMA}
+    "
+    modes[0]="{ -0.26962 +4.83713 -3.76467 +0.79730 +0.22551 +0.09512 +0.39323 +1.22506 +4.24316 +0.94599 +1.06560 +1.01594 +0.00923 +0.04489 -0.01036 -0.37982 +1.09739 +1.28629 +1.00064 +1.04967 +0.99085 +1.07795 +1.00175 +0.82031 }"
+    modes[1]="{ +0.44809 -5.63802 +3.66207 +0.80935 +0.22526 +0.12812 +0.37395 +1.21252 +4.17722 +0.97156 +1.10561 +0.92945 +0.02220 +0.00141 -0.02287 +1.08099 -1.29114 +1.03959 +0.99672 +1.06112 +1.04845 +1.07572 +0.89535 +1.00401 }"
+    modes[2]="{ -0.32739 -4.30090 +3.75307 +0.79981 +0.22536 +0.09826 +0.38755 +1.29132 +4.19047 +0.84288 +0.95947 +0.89364 +0.03117 +0.07258 +0.07552 +1.15484 -1.55451 -1.21914 +0.94986 +0.87097 +1.00311 +1.05791 +0.97892 +0.89785 }"
+    modes[3]="{ +0.37189 +1.94870 -4.46281 +0.80711 +0.22551 +0.08487 +0.36801 +1.23196 +4.22896 +0.94841 +1.08177 +1.07753 -0.02317 -0.13382 -0.08255 -0.28454 -0.58402 -0.73971 +0.96016 +0.94124 +0.91578 +0.99787 +0.96282 +0.93576 }"
+
+    # all converged
+    modes[0]="{ -0.268958 5.04045 -3.33501 0.803992 0.22535 0.111202 0.381057 1.26998 4.18992 0.944859 1.01845 1.029 0.000645513 -0.00247501 -0.00139245 -1.5708 0.20963 -0.352844 1 0.999963 1 0.999995 0.997372 1.00118 }"
+    modes[1]="{ 0.405997 -5.82448 3.31613 0.803995 0.22535 0.11071 0.380908 1.26999 4.19003 0.945914 1.01572 1.0344 0.00059715 -0.00210036 -0.00144688 0.102386 -1.57077 -1.57079 1 1 1 1 0.999874 0.998385 }"
+    modes[2]="{ -0.269268 -3.93158 3.38953 0.804018 0.22535 0.111207 0.381073 1.27005 4.19008 0.951054 1.02715 1.01887 -0.000871397 0.00256144 0.000614327 1.26647 -1.54475 -0.0881743 0.999964 1.00003 1 1.00002 1.0037 1.00118 }"
+    modes[3]="{ 0.408432 1.94118 -4.58733 0.803991 0.22535 0.110728 0.380901 1.26985 4.19004 0.945085 1.02676 1.02356 -0.000716367 0.00195563 0.000778545 -1.38173 -1.5708 -1.57049 0.999981 0.99996 1.00005 1 1.0025 0.998348 }"
+
+    export N_SAMPLES_MCMC=30000
+
+    export PMC_SKIP_INITIAL=0.1
+
+    # expect four modes
+    export PMC_TARGET_NUMBER_OF_CLUSTERS=30
+
+    export PMC_SLIDING_WINDOW=300
+    export PMC_CHUNK_SIZE=3000
+
+    export PMC_NUMBER_OF_JOBS=400
+    export SGE_FINAL_QUEUE=short
+
+    # PMC_CLIENT_ARGV="--resume-samples 3"
+
+elif [[ "$1" == 'SM_all' ]]; then
+    export PMC_ANALYSIS="
+    ${NUISANCE_PARAMETERS_FIT}
+    ${CONSTRAINTS}
+    "
+
+    # SM prediction, fit only nuisance parameters (converged)
+    wilson_coefficients="{ -0.32741917 +4.27584794 -4.15077942 }"
+    modes[0]="{ 0.802586 0.225308 0.108674 0.381065 1.27464 4.19148 0.227172 0.97107 1.06399 1.01597 0.32981 -2.21746 -0.00495318 -1.5708 -0.395645 0.0153101 0.000225226 0.00154324 -0.00212677 -1.56995 0.172616 0.129256 0.963619 0.99982 0.971313 1.02841 0.867712 1.0668 }"
+
+    export N_SAMPLES_MCMC=32000
+    export N_UPDATE_MCMC=800
+    export PMC_INITIALIZATION_OPTIONS="
+    $PMC_INITIALIZATION_OPTIONS
+    --pmc-group-by-r-value 1.1
+    "
+
+    export PMC_TARGET_NUMBER_OF_CLUSTERS=45
+    export PMC_CHUNK_SIZE=3000
+
+    export PMC_NUMBER_OF_JOBS=1000
+    expor PMC_CLIENT_ARGV=""
+elif [[ "$1" == 'SM_lowRec'  && ( "$2" == "--unc"  ||  "$2" == "--unc-queue") ]]; then
+# use for uncertainty propagation within SM
+    export PMC_CHUNK_SIZE=50000
+    export PMC_UNCERTAINTY_ANALYSIS="
+    ${NUISANCE_PARAMETERS_SM_UNCERTAINTY_PROP_CKM}
+    ${NUISANCE_PARAMETERS_SM_UNCERTAINTY_PROP_QUARK_MASSES}
+    ${NUISANCE_PARAMETERS_SM_UNCERTAINTY_PROP_FF}
+    ${NUISANCE_PARAMETERS_SM_UNCERTAINTY_PROP_SUBLEADING_LOW}
+    $(low_recoil 14.18 16)
+    $(low_recoil 16)
+    $(low_recoil 14.18)
+    "
+
+    export PMC_UNCERTAINTY_INPUT=$PMC_WD/sc1_all_nuis_parameter_samples_12.hdf5_merge
+
+elif [[ "$1" == 'SM_largeRec' && ("$2" == "--unc" ||  "$2" == "--unc-queue") ]]; then
+# use for uncertainty propagation within SM
+    export PMC_CHUNK_SIZE=50000
+    export PMC_UNCERTAINTY_ANALYSIS="
+    ${NUISANCE_PARAMETERS_SM_UNCERTAINTY_PROP_CKM}
+    ${NUISANCE_PARAMETERS_SM_UNCERTAINTY_PROP_QUARK_MASSES}
+    ${NUISANCE_PARAMETERS_SM_UNCERTAINTY_PROP_FF}
+    ${NUISANCE_PARAMETERS_SM_UNCERTAINTY_PROP_SUBLEADING_LARGE}
+    $(large_recoil 2 4.3)
+    $(large_recoil 1 6)
+    "
+
+elif [[ "$1" == 'NP_unobs' && ("$2" == "--unc" ||  "$2" == "--unc-queue") ]]; then
+    export SGE_QUEUE=short
+    export PMC_NUMBER_OF_JOBS=1500
+    export PMC_POLLING_INTERVAL=60
+
+    export PMC_UNCERTAINTY_ANALYSIS=$OBSERVABLES_UNCERTAINTY_UNOBSERVED
+    export PMC_UNCERTAINTY_INPUT=${PMC_OUTPUT_BASE_NAME}_pmc.hdf5
+
+    export PMC_UNCERTAINTY_ANALYSIS="
+    $OBSERVABLES_UNCERTAINTY_UNOBSERVED"
+
+elif [ "$1" == 'B_S_mu_mu' ]; then
+    export PMC_ANALYSIS="
+    ${SCAN_RE_C7}
+    ${SCAN_RE_C10}
+    ${NUISANCE_PARAMETERS_FIT_CKM}
+    ${NUISANCE_PARAMETERS_FIT_HADRONIC_BSMUMU}
+    ${CONSTRAINTS_BMUMU}
+    ${CONSTRAINTS_GAMMA}
+    "
+
+    N_SAMPLES_MCMC=15000
+    N_UPDATE_MCMC=500
+
+    export SGE_QUEUE=short
+
+    export PMC_TARGET_NUMBER_OF_CLUSTERS=20
+    export PMC_SLIDING_WINDOW=400
+    export PMC_CHUNK_SIZE=1000
+    export PMC_FINAL_CHUNK_SIZE=30
+    export PMC_DOF=-1
+
+    export PMC_CONVERGENCE_OPTIONS="
+    --pmc-ignore-ess 0
+    --pmc-crop-highest-weights 0
+    --pmc-relative-std-deviation-over-last-steps 0.1 2
+    "
+
+    PMC_NUMBER_OF_JOBS=5
+    export PMC_POLLING_INTERVAL=10
+    PMC_CLIENT_ARGV=" --input $PMC_WD/sc1_B_S_mu_mu_pmc.hdf5 --final"
+
+elif [ "$1" == 'toy' ]; then
+# quick example to check eos and job_manager
+    export PMC_ANALYSIS="
+    ${SCAN_RE_C10}
+    $NUISANCE_PARAMETERS_FIT_HADRONIC_BSMUMU
+    $CONSTRAINTS_BMUMU
+    "
+
+    N_SAMPLES_MCMC=20000
+    N_UPDATE_MCMC=500
+    N_CHAINS_MCMC=7
+
+    export PMC_NUMBER_OF_JOBS=2
+    export PMC_POLLING_INTERVAL=3
+
+    export PMC_TARGET_NUMBER_OF_CLUSTERS=15
+    export PMC_SLIDING_WINDOW=50
+    export PMC_MAX_STEPS=4
+    export PMC_CHUNK_SIZE=800
+    export PMC_FINAL_CHUNK_SIZE=1000000
+    export PMC_DOF=10
+
+    export SGE_FINAL_QUEUE=short
+
+    export PMC_CONVERGENCE_OPTIONS="
+    --pmc-relative-std-deviation-over-last-steps 0.05 2
+    --pmc-ignore-ess 1
+    "
+    export PMC_INITIALIZATION_OPTIONS="
+    --pmc-patch-around-local-mode 0
+    --pmc-group-by-r-value 1.2
+    "
+
+    export PMC_GENERAL_OPTIONS="
+    $PMC_GENERAL_OPTIONS
+    --pmc-crop-highest-weights 0
+    --pmc-adjust-sample-size 1
+    "
+
+#     PMC_CLIENT_ARGV="--input $HOME/JobOutput/2012-09-06/Scenario1_toy/sc1_toy_parameter_samples_2.hdf5_merge
+#     --resume-update  --final"
+
+else
+    echo "Unknown scenario $1"
+    echo $USAGE_MESSAGE
+    exit
+fi
+
+# create directory only for valid scenarios
+mkdir -p $PMC_WD
+
+###
+# scan actions
+###
+
+#goodness-of-fit
+if [ "$2" == "--gof" ]; then
+
+    if [ -z "${modes[$JOB_INDEX]}" ]; then
+        echo "No GOF point defined"
+        exit
+    fi
+
+    eos-scan-mc \
+        --debug \
+        ${PMC_ANALYSIS} \
+        --optimize ${modes[${JOB_INDEX}]} \
+        --goodness-of-fit \
+        --output ${PMC_OUTPUT_BASE_NAME}_gof_${JOB_INDEX}.hdf5 \
+        > ${PMC_OUTPUT_BASE_NAME}_mode_${JOB_INDEX}.log 2>&1
+
+    exit
+        --goodness-of-fit ${modes[$JOB_INDEX]} \
+
+elif [ "$2" == "--pre" ]; then
+    echo "Perform MCMC prerun"
+
+    eos-scan-mc \
+        --seed $PMC_SEED \
+        --debug \
+        --prerun-chains-per-partition $N_CHAINS_MCMC \
+        --prerun-max $N_SAMPLES_MCMC \
+        --prerun-min $N_SAMPLES_MCMC \
+        --prerun-only \
+        --prerun-update $N_UPDATE_MCMC \
+        --proposal "MultivariateGaussian" \
+        --scale-reduction 10 \
+        --store-prerun \
+        $PMC_ANALYSIS \
+        --output ${PMC_OUTPUT_BASE_NAME}_mcmc_${JOB_INDEX}.hdf5 \
+        > ${PMC_OUTPUT_BASE_NAME}_mcmc_${JOB_INDEX}.log 2>&1
+
+    exit
+
+elif [ "$2" == "--unc" ]; then
+    echo "Perform uncertainty propagation on this machine"
+    echo "using $PMC_UNCERTAINTY_INPUT as input"
+    eos-propagate-uncertainty \
+        --seed $PMC_SEED \
+        --chunks 1 \
+        --chunk-size $PMC_CHUNK_SIZE \
+        --parallel 0 \
+        ${PMC_UNCERTAINTY_ANALYSIS} \
+        --output ${PMC_OUTPUT_BASE_NAME}_unc_${JOB_INDEX}.hdf5 \
+        >> ${PMC_OUTPUT_BASE_NAME}_unc_${JOB_INDEX}.log 2>&1
+
+    echo "Done"
+    exit
+        --pmc-input $PMC_UNCERTAINTY_INPUT 0 20 \
+
+elif [ "$2" == "--unc-queue" ]; then
+    echo "Perform uncertainty propagation on cluster"
+#     echo $PMC_UNCERTAINTY_ANALYSIS
+#     echo "Not performing actual run, just outputting observables."
+#     exit
+
+    export PMC_INITIALIZATION_MODE="UncertaintyPropagation"
+    export PMC_GENERAL_OPTIONS=" --debug "
+
+    $PYTHON $HOME/workspace/Sandbox/eos/jobs/job_manager.py  --uncertainty-propagation $PMC_CLIENT_ARGV \
+        > ${PMC_OUTPUT_BASE_NAME}_manager.log 2>&1
+#    2>&1 | tee ${PMC_OUTPUT_BASE_NAME}_manager.log
+    exit
+
+# read and write global local joint proposal function: use "" for false
+elif [ "$2" == "--gl" ]; then
+
+    GL_INPUT="{ $PMC_WD/sc1_nuisance_phases_mcmc_merge.hdf5 }"
+
+    eos-scan-mc \
+        --debug \
+        --build-global-local /harr \
+        --global-local-input $GL_INPUT \
+            --global-local-covariance-window 2000 \
+            --global-local-equal-weights 1 \
+            --global-local-history-points 100 \
+            --global-local-history-points-ordered 1 \
+            --global-local-minimum-weight 1e-2 \
+            --global-local-perform-clustering 1.1 \
+            --global-local-rescale-local-covariance 1.0 \
+            --global-local-skip-initial 0.2 \
+            --global-local-strict-clustering 1 \
+
+    exit
+
+elif [ "$2" == "--hc" ]; then
+
+    # # sample plot for CHEP2012
+    # PMC_TARGET_NUMBER_OF_CLUSTERS=27
+    # PMC_SLIDING_WINDOW=5000
+    # PMC_SKIP_INITIAL=0.1
+    # PMC_INITIALIZATION_OPTIONS="
+    #     $PMC_INITIALIZATION_OPTIONS
+    # --pmc-group-by-r-value 1.0
+    # "
+    eos-scan-mc \
+        --seed $PMC_SEED \
+        $PMC_GENERAL_OPTIONS \
+        $PMC_INITIALIZATION_OPTIONS \
+        --parallel 0 \
+        --chunks 1 \
+        --chunk-size 50 \
+        --use-pmc \
+        --pmc-initialize-from-file $PMC_MERGE_FILE \
+        --pmc-hierarchical-clusters $PMC_TARGET_NUMBER_OF_CLUSTERS \
+        --global-local-covariance-window $PMC_SLIDING_WINDOW \
+        --global-local-skip-initial $PMC_SKIP_INITIAL \
+        --pmc-dof $PMC_DOF \
+        --pmc-draw-samples \
+        --pmc-final-chunksize $PMC_FINAL_CHUNK_SIZE \
+        ${PMC_ANALYSIS} \
+        --output ${PMC_OUTPUT_BASE_NAME}_hc.hdf5 \
+        2>&1 | tee ${PMC_OUTPUT_BASE_NAME}_hc.log
+
+    exit
+
+elif [ "$2" == "--pmc" ]; then
+    eos-scan-mc \
+    --seed $PMC_SEED \
+    $PMC_GENERAL_OPTIONS \
+    --parallel 1 \
+    --chunks $PMC_MAX_STEPS \
+    --chunk-size $PMC_CHUNK_SIZE \
+    --use-pmc \
+    --pmc-initialize-from-file $PMC_MERGE_FILE \
+    --pmc-hierarchical-clusters $PMC_TARGET_NUMBER_OF_CLUSTERS \
+    --global-local-covariance-window $PMC_SLIDING_WINDOW \
+    --global-local-skip-initial $PMC_SKIP_INITIAL \
+    --pmc-final-chunksize $PMC_FINAL_CHUNK_SIZE \
+    --pmc-dof $PMC_DOF \
+    $PMC_CONVERGENCE_OPTIONS \
+    $PMC_INITIALIZATION_OPTIONS \
+    ${PMC_ANALYSIS} \
+    --output ${PMC_OUTPUT_BASE_NAME}_pmc.hdf5 \
+#        --print-args
+
+    exit
+
+# Use massive parallelization on the queue
+elif [ "$2" == "--pmc-queue" ]; then
+
+    $PYTHON $HOME/workspace/Sandbox/eos/jobs/job_manager.py  \
+        $PMC_CLIENT_ARGV \
+#	2>&1 | tee ${PMC_OUTPUT_BASE_NAME}_manager.log
+#        > ${PMC_OUTPUT_BASE_NAME}_manager.log 2>&1
+
+    exit
+
+else
+    echo "Unknown action $2"
+    echo $USAGE_MESSAGE
+    exit
+fi
+
+exit
+
+#########################################################################################
+
+
+#########################################################################################
+# old code from 2011
+
+SGE_job_options="
+#$ -q short
+#$ -j y
+#$ -notify be
+#$ -e /afs/ipp-garching.mpg.de/home/f/fdb/JobOutput/Scenario.log
+#$ -o /afs/ipp-garching.mpg.de/home/f/fdb/JobOutput/Scenario.log
+#$ -V
+#$ -S /bin/bash
+"
+
+phido_job_options="
+#PBS -N 1:MCMC_12h_all_observables_all_nuisance_partitions
+#PBS -M beaujean@mpp.mpg.de
+#PBS -m abe
+# Use these resources
+#PBS -l walltime=23:59:00
+#PBS -l nodes=1:ppn=2
+#PBS -l mem=7gb
+"
+
+#collect cluster means as starting points for optimization
+MINUS_MINUS="-0.3192370252 -1.659204139 4.30454731 0.803678057 0.2253357906 0.1210370705 0.3788378516 1.191170682 4.317975373 0.2564072278 1.000174617 1.00459267 1.004431072 0.9953056426 0.3615965815 -2.2959014482"
+MINUS_PLUS="-0.3281004064 4.348951074 -3.865127457 0.8027442393 0.2253365756 0.1142662607 0.3814292642 1.264970692 4.294164656 0.2558547469 0.970343048 1.002846652 0.9968602546 0.9979113872 0.3320441655 -2.138338035"
+PLUS_MINUS="0.4023905674 -4.879109636 3.937309651 0.8042108222 0.2253021809 0.1187688527 0.3826882384 1.229762766 4.303940846 0.2554828367 0.9967026778 0.9882477571 0.9930969574 1.00325836 0.3334018225 -2.115452711"
+PLUS_PLUS="0.3978357663 1.406122383 -4.154536454 0.8040743689 0.2253760665 0.1249018796 0.3788027063 1.271885416 4.308243289 0.2555117436 1.010099542 1.015071141 0.9975935787 1.000833505 0.3559842782 -2.323412704"
+MEANS[0]=$MINUS_MINUS
+MEANS[1]=$MINUS_PLUS
+MEANS[2]=$PLUS_MINUS
+MEANS[3]=$PLUS_PLUS
+
+eos-scan-mc \
+    --debug \
+    --seed $SEED \
+    --proposal "MultivariateGaussian" \
+    --prerun-find-modes \
+    --prerun-min 20000 \
+    --prerun-max 20000 \
+    --prerun-only \
+    --prerun-update 1200 \
+    --scale-reduction 10.0 \
+    ${SCAN_PARAMETERS} \
+    ${NUISANCE_PARAMETERS_FIT_QUARK_MASSES} \
+    ${NUISANCE_PARAMETERS_FIT_HADRONIC_BSMUMU} \
+    ${NUISANCE_PARAMETERS_FIT_FF} \
+    ${NUISANCE_PARAMETERS_FIT_SUBLEADING_SIMPLE_NO_PHASES} \
+    ${CONSTRAINTS} \
+    --output ${OUTPUT}.hdf5 \
+    > ${OUTPUT}.log 2>&1
+#    2>&1 | tee ${OUTPUT}.log
+
+#backup_results
+
+exit
+    --resume "${RESULTS}/../2011-12-19/scenario1_no_nuisance_jump_gl.hdf5" \
+    --print-args \
+    --prerun-find-modes \
+        --proposal-block-decomposition \
+    --global-local-jump-indices { 0 1 2 } \
+    --global-local-adapt-iterations 3000 \
+    --optimize { ${MEANS[${JOB_INDEX}]} } \
+    --prerun-chains-per-partition 2 \
+    --store-observables-and-proposals \
+    --chains 2 \
+    --chunks 2 \
+    --chunk-size 2500 \
+    --global-local 1 \
+    --global-local-jump-probability 0.5 \
+
+#scan parameters
+    --partition "Re{c7}" $C7MIN  0.0 "Re{c10}" $C10MIN 0.0 \
+    --partition "Re{c7}" $C7MIN  0.0 "Re{c10}" 0.0 $C10MAX \
+    --partition "Re{c7}" 0.0 $C7MAX "Re{c10}" $C10MIN 0.0 \
+    --partition "Re{c7}" 0.0 $C7MAX "Re{c10}" 0.0 $C10MAX \
+    --partition-index $JOB_INDEX \
+
+#nuisance parameters
+
+NUISANCE_PARAMETERS="
+    ${NUISANCE_PARAMETERS_FIT_QUARK_MASSES}
+    ${NUISANCE_PARAMETERS_FIT_HADRONIC_BSMUMU}
+    ${NUISANCE_PARAMETERS_FIT_FF}
+    ${NUISANCE_PARAMETERS_FIT_SUBLEADING}
+"
+
+
+    ${NUISANCE_PARAMETERS_FIT} \
+    ${NUISANCE_PARAMETERS_FIT_QUARK_MASSES} \
+    ${NUISANCE_PARAMETERS_FIT_HADRONIC_BSMUMU} \
+    ${NUISANCE_PARAMETERS_FIT_FF} \
+
+    ${NUISANCE_PARAMETERS_FIT_HADRONIC} \
+${NUISANCE_PARAMETERS_FIT_SUBLEADING} \
+
+    ${NUISANCE_PARAMETERS_FIT_SUBLEADING_P_LOW} \
+    ${NUISANCE_PARAMETERS_FIT_SUBLEADING_V_LOW} \
+    ${NUISANCE_PARAMETERS_FIT_SUBLEADING_P_LARGE} \
+    ${NUISANCE_PARAMETERS_FIT_SUBLEADING_V_LARGE} \
+
+    ${NUISANCE_PARAMETERS_FIT_CKM} \
+    ${NUISANCE_PARAMETERS_FIT_SUBLEADING_MODULI} \
+
+
+#observables
+
+
+
+
+#partitions based on all observables and the four local modes found
+
+# mcmc options
+
+    --update 800 \
+    --burn-in 500 \
+    --prerun-max 15000 \
+    --scale-reduction 8.0 \
+    --parallel 1 \
+    --optimize { -0.334 4.214 -3.904 0.804 0.22535 0.111 0.381 +1.27 +4.19 +0.256 +1.00 +1.00 +1 +1 +0.34 -2.1 +0.212 +0.1561 +0.173 +0.217 +0.485 } \
+    --optimize { -0.3274 4.27584 -4.1507 } \
+        # SM like best fit point
+    --goodness-of-fit { -0.334036 4.21384 -3.90376 } \
+        # SM prediction
+    --goodness-of-fit { -0.32741917 +4.27584794 -4.15077942 } \
+
+    --goodness-of-fit { -0.35741917 +4.47584794 -4.65077942 } \
