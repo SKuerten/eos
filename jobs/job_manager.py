@@ -3,7 +3,7 @@
 import os, commands
 import numpy as np
 import sys
-import tables as pytables
+#import tables as pytables
 import time
 
 ## {{{ http://code.activestate.com/recipes/65222/ (r1)
@@ -412,7 +412,7 @@ class PMC_Iterator(object):
         """
 
         import h5py
-        import tables as pytables
+        #import tables as pytables
 
         merge_file_name = output_file_name + '_merge'
 
@@ -477,26 +477,38 @@ class PMC_Iterator(object):
             #                           input_files=weight_file_names)
 
         # merge using pytables
-        merge_file = pytables.openFile(merge_file_name, "r+")
+        #merge_file = pytables.openFile(merge_file_name, "r+")
+        # merge using h5py
+        merge_file = h5py.File(merge_file_name, "w")
+        data_grp = merge_file.create_group('data')
+        weights_data = np.array([])
 
         # repeat the sample line if needed to make up enough records
         if self.job_infos[0].broken:
-            weight_data_set = merge_file.createTable('data', 'weights', \
-                                                     np.repeat(weight_record, self.job_infos[0].max - self.job_infos[0].min, axis=0))
+            #weight_data_set = merge_file.createTable('data', 'weights', \
+            #                                         np.repeat(weight_record, self.job_infos[0].max - self.job_infos[0].min, axis=0))
+            weights_data = np.repeat(weight_record, self.job_infos[0].max - self.job_infos[0].min, axis=0)
         else:
-            f = pytables.openFile(self.job_infos[0].file_name, 'r')
-            weight_data_set = merge_file.createTable('/data', 'weights', f.getNode('/data/weights').read())
+            #f = pytables.openFile(self.job_infos[0].file_name, 'r')
+            #weight_data_set = merge_file['datacreateTable('/data', 'weights', f.getNode('/data/weights').read())
+            f = h5py.File(self.job_infos[0].file_name, 'r')
+            weights_data = f['/data/weights'].value
             f.close()
 
         for i in self.job_infos.keys()[1:]:
             j = self.job_infos[i]
             if j.broken:
                 print("Filling in broken record %d times" % (j.max - j.min))
-                weight_data_set.append(np.repeat(weight_record, j.max - j.min, axis=0))
+                #weight_data_set.append(np.repeat(weight_record, j.max - j.min, axis=0))
+                weights_data.append(np.repeat(weight_record, j.max - j.min, axis=0))
             else:
-                f = pytables.openFile(j.file_name, 'r')
-                weight_data_set.append(f.getNode('/data/weights').read())
+                #f = pytables.openFile(j.file_name, 'r')
+                #weight_data_set.append(f.getNode('/data/weights').read())
+                f = h5py.File(j.file_name, 'r')
+                weights_data.append(f['/data/weights'].value)
                 f.close()
+
+        data_grp.create_dataset('weights', data = weight_data)
         merge_file.close()
 
         # add information on broken files
@@ -515,7 +527,7 @@ class PMC_Iterator(object):
          o If file is broken set weight and observables to zero
         """
         import h5py
-        import tables as pytables
+        #import tables as pytables
 
         merge_file_name = self.output_base + '_unc.hdf5'
 
