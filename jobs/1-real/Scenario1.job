@@ -1,4 +1,5 @@
 #! /bin/bash
+# vim: set sts=4 et :
 
 USAGE_MESSAGE="Usage: $0 'SUBSCENARIO --[gof | gl | hc | pre | pmc | pmc-queue | unc | unc-queue] [job index]'"
 
@@ -16,7 +17,7 @@ fi
 
 SCENARIO=1 #2
 # read in all constraints
-source $HOME/workspace/Sandbox/eos/jobs/paper_fit.input
+source $HOME/bayes2/paper_fit.input
 
 DATE=2012-12-12
 
@@ -38,6 +39,10 @@ fdb)
         ;;
 heinz)
         PMC_WD_BASE=/storage/Programs/eos/results
+        ;;
+
+vandyk)
+        PMC_WD_BASE=/home/vandyk/Scratch/bayes2
         ;;
 *)
         echo "Unknown system with user $USER"
@@ -176,12 +181,12 @@ export PMC_ANALYSIS="
     export N_SAMPLES_MCMC=40000
 
     # remove suppressed modes from the start
-    export PMC_INITIALIZATION_OPTIONS="
-    $PMC_INITIALIZATION_OPTIONS
-    --pmc-ignore-group 0
-    --pmc-ignore-group 1
-    --pmc-ignore-group 4
-    "
+#    export PMC_INITIALIZATION_OPTIONS="
+#    $PMC_INITIALIZATION_OPTIONS
+#    --pmc-ignore-group 0
+#    --pmc-ignore-group 1
+#    --pmc-ignore-group 4
+#    "
 
 #    export PMC_MAX_STEPS=5
 #    export PMC_CLIENT_ARGV="--step 4 --resume-update"
