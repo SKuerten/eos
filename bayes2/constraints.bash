@@ -6,7 +6,7 @@ export CONSTRAINTS_B_TO_XSGAMMA="
 
     --constraint B->X_sgamma::BR[1.8]@BaBar-2012
     --constraint B->X_sgamma::E_1[1.8]+E_2[1.8]@BaBar-2012
-    --constraint B->X_sgamma::E_1[1.8]+E_2[1.8]@Belle-2008
+    --constraint B->X_sgamma::BR[1.8]+E_1[1.8]+E_2[1.8]@Belle-2009B
 "
 
 export CONSTRAINTS_B_TO_KSTARGAMMA="
@@ -67,6 +67,12 @@ export CONSTRAINTS_B_TO_PLL_LOW_RECOIL="
     --constraint B^+->K^+mu^+mu^-::BR[16.00,22.86]@BaBar-2012
 "
 
+export CONSTRAINTS_B_TO_PLL_FF="
+    --global-option form-factors KMPW2010
+
+    --constraint B->K::f_+@HPQCD-2013A
+"
+
 export CONSTRAINTS_B_TO_VLL_LARGE_RECOIL="
     --global-option model WilsonScan
     --global-option scan-mode cartesian
@@ -77,18 +83,25 @@ export CONSTRAINTS_B_TO_VLL_LARGE_RECOIL="
     --constraint B^0->K^*0mu^+mu^-::BR[1.00,6.00]@CDF-2012
     --constraint B^0->K^*0mu^+mu^-::BR[1.00,6.00]@LHCb-2013
     --constraint B^0->K^*0mu^+mu^-::BR[1.00,6.00]@BaBar-2012
+    --constraint B^0->K^*0mu^+mu^-::BR[1.00,6.00]@CMS-2013A
+
     --constraint B^0->K^*0mu^+mu^-::A_FB[1.00,6.00]@Belle-2009
     --constraint B^0->K^*0mu^+mu^-::A_FB[1.00,6.00]@CDF-2012
     --constraint B^0->K^*0mu^+mu^-::A_FB[1.00,6.00]@BaBar-2012
+    --constraint B^0->K^*0mu^+mu^-::A_T^re[1.00,6.00]@LHCb-2013
+    --constraint B^0->K^*0mu^+mu^-::A_FB[1.00,6.00]@CMS-2013A
+    --constraint B^0->K^*0mu^+mu^-::A_FB[1.00,6.00]@ATLAS-2013A
+
     --constraint B^0->K^*0mu^+mu^-::F_L[1.00,6.00]@Belle-2009
     --constraint B^0->K^*0mu^+mu^-::F_L[1.00,6.00]@CDF-2012
     --constraint B^0->K^*0mu^+mu^-::F_L[1.00,6.00]@LHCb-2013
     --constraint B^0->K^*0mu^+mu^-::F_L[1.00,6.00]@BaBar-2012
+    --constraint B^0->K^*0mu^+mu^-::F_L[1.00,6.00]@CMS-2013A
+    --constraint B^0->K^*0mu^+mu^-::F_L[1.00,6.00]@ATLAS-2013A
+
     --constraint B^0->K^*0mu^+mu^-::A_T^2[1.00,6.00]@CDF-2012
     --constraint B^0->K^*0mu^+mu^-::A_T^2[1.00,6.00]@LHCb-2013
-    --constraint B^0->K^*0mu^+mu^-::A_T^re[1.00,6.00]@LHCb-2013
 "
-#--constraint B^0->K^*0mu^+mu^-::S_9[1.00,6.00]@LHCb-2013
 
 export CONSTRAINTS_B_TO_VLL_LOW_RECOIL="
     --global-option model WilsonScan
@@ -100,40 +113,61 @@ export CONSTRAINTS_B_TO_VLL_LOW_RECOIL="
     --constraint B^0->K^*0mu^+mu^-::BR[14.18,16.00]@CDF-2012
     --constraint B^0->K^*0mu^+mu^-::BR[14.21,16.00]@BaBar-2012
     --constraint B^0->K^*0mu^+mu^-::BR[14.18,16.00]@LHCb-2013
+    --constraint B^0->K^*0mu^+mu^-::BR[14.18,16.00]@CMS-2013A
+
     --constraint B^0->K^*0mu^+mu^-::A_FB[14.18,16.00]@Belle-2009
     --constraint B^0->K^*0mu^+mu^-::A_FB[14.18,16.00]@CDF-2012
     --constraint B^0->K^*0mu^+mu^-::A_FB[14.18,16.00]@BaBar-2012
+    --constraint B^0->K^*0mu^+mu^-::A_FB[14.18,16.00]@LHCb-2013
+    --constraint B^0->K^*0mu^+mu^-::A_FB[14.18,16.00]@CMS-2013A
+    --constraint B^0->K^*0mu^+mu^-::A_FB[14.18,16.00]@ATLAS-2013A
+
     --constraint B^0->K^*0mu^+mu^-::F_L[14.18,16.00]@Belle-2009
     --constraint B^0->K^*0mu^+mu^-::F_L[14.18,16.00]@CDF-2012
     --constraint B^0->K^*0mu^+mu^-::F_L[14.18,16.00]@BaBar-2012
     --constraint B^0->K^*0mu^+mu^-::F_L[14.18,16.00]@LHCb-2013
+    --constraint B^0->K^*0mu^+mu^-::F_L[14.18,16.00]@CMS-2013A
+    --constraint B^0->K^*0mu^+mu^-::F_L[14.18,16.00]@ATLAS-2013A
+
     --constraint B^0->K^*0mu^+mu^-::A_T^2[14.18,16.00]@CDF-2012
     --constraint B^0->K^*0mu^+mu^-::A_T^2[14.18,16.00]@LHCb-2013
+
 
     --constraint B^0->K^*0mu^+mu^-::BR[16.00,19.21]@Belle-2009
     --constraint B^0->K^*0mu^+mu^-::BR[16.00,19.21]@CDF-2012
     --constraint B^0->K^*0mu^+mu^-::BR[16.00,19.21]@BaBar-2012
     --constraint B^0->K^*0mu^+mu^-::BR[16.00,19.00]@LHCb-2013
+    --constraint B^0->K^*0mu^+mu^-::BR[16.00,19.00]@CMS-2013A
+
     --constraint B^0->K^*0mu^+mu^-::A_FB[16.00,19.21]@Belle-2009
     --constraint B^0->K^*0mu^+mu^-::A_FB[16.00,19.21]@CDF-2012
     --constraint B^0->K^*0mu^+mu^-::A_FB[16.00,19.21]@BaBar-2012
+    --constraint B^0->K^*0mu^+mu^-::A_FB[16.00,19.00]@LHCb-2013
+    --constraint B^0->K^*0mu^+mu^-::A_FB[16.00,19.00]@CMS-2013A
+    --constraint B^0->K^*0mu^+mu^-::A_FB[16.00,19.00]@ATLAS-2013A
+
     --constraint B^0->K^*0mu^+mu^-::F_L[16.00,19.21]@Belle-2009
     --constraint B^0->K^*0mu^+mu^-::F_L[16.00,19.21]@CDF-2012
     --constraint B^0->K^*0mu^+mu^-::F_L[16.00,19.21]@BaBar-2012
     --constraint B^0->K^*0mu^+mu^-::F_L[16.00,19.00]@LHCb-2013
+    --constraint B^0->K^*0mu^+mu^-::F_L[16.00,19.00]@CMS-2013A
+    --constraint B^0->K^*0mu^+mu^-::F_L[16.00,19.00]@ATLAS-2013A
+
     --constraint B^0->K^*0mu^+mu^-::A_T^2[16.00,19.21]@CDF-2012
     --constraint B^0->K^*0mu^+mu^-::A_T^2[16.00,19.00]@LHCb-2013
-    --constraint B^0->K^*0mu^+mu^-::A_T^re[16.00,19.00]@LHCb-2013
 "
-##    --constraint B^0->K^*0mu^+mu^-::A_T^re[14.18,16.00]@LHCb-2013
-##    --constraint B^0->K^*0mu^+mu^-::S_9[14.18,16.00]@LHCb-2013
-##    --constraint B^0->K^*0mu^+mu^-::S_9[16.00,19.00]@LHCb-2013
+
+export CONSTRAINTS_B_MASS_SPLITTING="
+    --constraint B^0::M_B^*-M_B@PDG-2012
+"
 
 export CONSTRAINTS_ALL="
+    ${CONSTRAINTS_B_MASS_SPLITTING}
     ${CONSTRAINTS_B_TO_XSGAMMA}
     ${CONSTRAINTS_B_TO_KSTARGAMMA}
     ${CONSTRAINTS_BS_TO_MUMU}
     ${CONSTRAINTS_B_TO_XSLL}
+    ${CONSTRAINTS_B_TO_PLL_FF}
     ${CONSTRAINTS_B_TO_PLL_LARGE_RECOIL}
     ${CONSTRAINTS_B_TO_PLL_LOW_RECOIL}
     ${CONSTRAINTS_B_TO_VLL_LARGE_RECOIL}
@@ -143,6 +177,7 @@ export CONSTRAINTS_ALL="
 export CONSTRAINTS_EXCL="
     ${CONSTRAINTS_B_TO_KSTARGAMMA}
     ${CONSTRAINTS_BS_TO_MUMU}
+    ${CONSTRAINTS_B_TO_PLL_FF}
     ${CONSTRAINTS_B_TO_PLL_LARGE_RECOIL}
     ${CONSTRAINTS_B_TO_PLL_LOW_RECOIL}
     ${CONSTRAINTS_B_TO_VLL_LARGE_RECOIL}
@@ -150,6 +185,41 @@ export CONSTRAINTS_EXCL="
 "
 
 export CONSTRAINTS_INCL="
+    ${CONSTRAINTS_B_MASS_SPLITTING}
     ${CONSTRAINTS_B_TO_XSGAMMA}
     ${CONSTRAINTS_B_TO_XSLL}
+"
+
+export CONSTRAINTS_INCL_NO_XSLL="
+    ${CONSTRAINTS_B_MASS_SPLITTING}
+    ${CONSTRAINTS_B_TO_XSGAMMA}
+"
+
+export CONSTRAINTS_BSGAMMA="
+    ${CONSTRAINTS_B_MASS_SPLITTING}
+    ${CONSTRAINTS_B_TO_XSGAMMA}
+    ${CONSTRAINTS_B_TO_KSTARGAMMA}
+"
+
+export CONSTRAINTS_ALL_NO_BSMUU="
+    ${CONSTRAINTS_B_MASS_SPLITTING}
+    ${CONSTRAINTS_B_TO_XSGAMMA}
+    ${CONSTRAINTS_B_TO_KSTARGAMMA}
+    ${CONSTRAINTS_B_TO_XSLL}
+    ${CONSTRAINTS_B_TO_PLL_FF}
+    ${CONSTRAINTS_B_TO_PLL_LARGE_RECOIL}
+    ${CONSTRAINTS_B_TO_PLL_LOW_RECOIL}
+    ${CONSTRAINTS_B_TO_VLL_LARGE_RECOIL}
+    ${CONSTRAINTS_B_TO_VLL_LOW_RECOIL}
+"
+
+export CONSTRAINTS_ALL_NO_VLL="
+    ${CONSTRAINTS_B_MASS_SPLITTING}
+    ${CONSTRAINTS_B_TO_XSGAMMA}
+    ${CONSTRAINTS_B_TO_KSTARGAMMA}
+    ${CONSTRAINTS_B_TO_XSLL}
+    ${CONSTRAINTS_BS_TO_MUMU}
+    ${CONSTRAINTS_B_TO_PLL_FF}
+    ${CONSTRAINTS_B_TO_PLL_LARGE_RECOIL}
+    ${CONSTRAINTS_B_TO_PLL_LOW_RECOIL}
 "
