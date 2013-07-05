@@ -1,0 +1,49 @@
+#!/bin/bash
+#SBATCH --mail-type=FAIL
+#SBATCH --mail-user=vandyk@tp1.physik.uni-siegen.de
+#SBATCH --mincpus=12
+#SBATCH --mem=40960
+#SBATCH --nodes=1
+#SBATCH --output=/scratch/vandyk/bayes2/excl-norm/@DATE@/pmc_hc.slurm.out
+#SBATCH --error=/scratch/vandyk/bayes2/excl-norm/@DATE@/pmc_hc.slurm.err
+#SBATCH --time=60:00:00
+# vim: set sts=4 et:
+
+SEED=12345
+BASE_NAME=/scratch/vandyk/bayes2/excl-norm/@DATE@/
+
+source /home/vandyk/bayes2/constraints.bash
+source /home/vandyk/bayes2/priors.bash
+
+srun eos-scan-mc \
+    --seed ${SEED} \
+    --debug \
+    --parallel 12 \
+    --chunks 1 \
+    --chunk-size 50 \
+    --use-pmc \
+    --pmc-initialize-from-file ${BASE_NAME}/mcmc_pre_merged.hdf5 \
+    --pmc-patch-around-local-mode 0 \
+    --pmc-minimum-overlap 0.05 \
+    --pmc-group-by-r-value 1.5 \
+    --pmc-hierarchical-clusters 40 \
+    --global-local-covariance-window 250 \
+    --global-local-skip-initial 0.2 \
+    ${CONSTRAINTS_EXCL} \
+    --scan      "Re{c7}"      -2.0     +2.0              --prior flat \
+    --scan      "Re{c9}"     -15.0    +15.0              --prior flat \
+    --scan      "Re{c10}"    -15.0    +15.0              --prior flat \
+    ${NUISANCE_CKM} \
+    ${NUISANCE_QUARK_MASSES} \
+    ${NUISANCE_DECAY_CONSTANTS} \
+    ${NUISANCE_B_TO_VLL_HADRONICS} \
+    ${NUISANCE_B_TO_VLL_FORM_FACTORS} \
+    ${NUISANCE_B_TO_VLL_SUBLEADING} \
+    ${NUISANCE_B_TO_PLL_FORM_FACTORS} \
+    ${NUISANCE_B_TO_PLL_SUBLEADING} \
+    --output "${BASE_NAME}/pmc_hc.hdf5" \
+    > ${BASE_NAME}/pmc_hc.log 2>&1
+exit
+    --scan      "Re{c7'}"     -2.0     +2.0              --prior flat \
+    --scan      "Re{c9'}"    -15.0    +15.0              --prior flat \
+    --scan      "Re{c10'}"   -15.0    +15.0              --prior flat \

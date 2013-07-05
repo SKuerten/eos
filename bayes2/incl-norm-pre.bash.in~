@@ -1,0 +1,41 @@
+#!/bin/bash
+#SBATCH --mail-type=FAIL
+#SBATCH --mail-user=vandyk@tp1.physik.uni-siegen.de
+#SBATCH --mincpus=1
+#SBATCH --nodes=1
+#SBATCH --output=/scratch/vandyk/bayes2/incl-norm/@DATE@/mcmc_pre_@IDX@.slurm.out
+#SBATCH --error=/scratch/vandyk/bayes2/incl-norm/@DATE@/mcmc_pre_@IDX@.slurm.err
+#SBATCH --time=4:00:00
+# vim: set sts=4 et:
+
+IDX=@IDX@
+SEED=$((12345 + 100 * ${IDX}))
+BASE_NAME=/scratch/vandyk/bayes2/incl-norm/@DATE@/
+
+source /home/vandyk/bayes2/constraints.bash
+source /home/vandyk/bayes2/priors.bash
+
+srun eos-scan-mc \
+    --seed ${SEED} \
+    --debug \
+    --prerun-chains-per-partition 1 \
+    --prerun-max 80000 \
+    --prerun-min 80000 \
+    --prerun-update 4000 \
+    --prerun-only \
+    --proposal "MultivariateGaussian" \
+    --scale-reduction 10 \
+    --store-prerun \
+    ${CONSTRAINTS_INCL} \
+    --scan      "Re{c7}"      -2.0     +2.0              --prior flat \
+    --scan      "Re{c7'}"     -2.0     +2.0              --prior flat \
+    --scan      "Re{c9}"     -15.0    +15.0              --prior flat \
+    --scan      "Re{c9'}"    -15.0    +15.0              --prior flat \
+    --scan      "Re{c10}"    -15.0    +15.0              --prior flat \
+    --scan      "Re{c10'}"   -15.0    +15.0              --prior flat \
+    --output "${BASE_NAME}/mcmc_pre_@IDX@.hdf5" \
+    > ${BASE_NAME}/mcmc_pre_@IDX@.log 2>&1
+exit
+    ${NUISANCE_CKM} \
+    ${NUISANCE_QUARK_MASSES} \
+    ${NUISANCE_DECAY_CONSTANTS} \
