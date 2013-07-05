@@ -1,5 +1,7 @@
 # vim: set sts=4 et :
 
+echo "[priors loaded]"
+
 # defines the allowed parameter range in terms of sigmas for Gaussian and LogGamma distributions
 export N_SIGMAS=3
 
@@ -20,27 +22,35 @@ export NUISANCE_QUARK_MASSES="
 
 # From Lattice Averages, June 2013
 export NUISANCE_DECAY_CONSTANTS="
-    --nuisance    decay-constant::B_d                                       ${N_SIGMAS}     --prior    gaussian    0.1859    0.1906    0.1953
     --nuisance    decay-constant::B_s                                       ${N_SIGMAS}     --prior    gaussian    0.2226    0.2276    0.2326
-    --nuisance    decay-constant::K_d                                       ${N_SIGMAS}     --prior    gaussian    0.1549    0.1561    0.1573
 "
+#    --nuisance    decay-constant::B_d                                       ${N_SIGMAS}     --prior    gaussian    0.1859    0.1906    0.1953
+#    --nuisance    decay-constant::K_d                                       ${N_SIGMAS}     --prior    gaussian    0.1549    0.1561    0.1573
 
-export NUISANCE_B_TO_VLL_HADRONICS="
-    --nuisance    B->K^*::f_Kstar_perp@2GeV                                 ${N_SIGMAS}     --prior    gaussian    0.168     0.173     0.178
-    --nuisance    B->K^*::f_Kstar_par                                       ${N_SIGMAS}     --prior    gaussian    0.212     0.217     0.222
-    --nuisance    lambda_B_p                                     0.1   0.9  ${N_SIGMAS}     --prior    gaussian    0.37      0.485     0.6
-"
+#export NUISANCE_B_TO_VLL_HADRONICS="
+#    --nuisance    B->K^*::f_Kstar_perp@2GeV                                 ${N_SIGMAS}     --prior    gaussian    0.168     0.173     0.178
+#    --nuisance    B->K^*::f_Kstar_par                                       ${N_SIGMAS}     --prior    gaussian    0.212     0.217     0.222
+#    --nuisance    lambda_B_p                                     0.1   0.9  ${N_SIGMAS}     --prior    gaussian    0.37      0.485     0.6
+#"
 
-export NUISANCE_B_TO_VLL_FORM_FACTORS="
+export NUISANCE_B_TO_VPERPLL_FORM_FACTORS="
     --nuisance    B->K^*::F^V(0)@KMPW2010                                   ${N_SIGMAS}     --prior    log-gamma   0.24      0.36      0.59
     --nuisance    B->K^*::b^V_1@KMPW2010                        -6.0   5.4  ${N_SIGMAS}     --prior    log-gamma  -5.20     -4.80     -4.00
+"
+
+export NUISANCE_B_TO_VPARALL_FORM_FACTORS="
     --nuisance    B->K^*::F^A1(0)@KMPW2010                                  ${N_SIGMAS}     --prior    log-gamma   0.15      0.25      0.41
     --nuisance    B->K^*::b^A1_1@KMPW2010                       -2.06  5.4  ${N_SIGMAS}     --prior    log-gamma  -0.46     +0.34     +1.20
     --nuisance    B->K^*::F^A2(0)@KMPW2010                                  ${N_SIGMAS}     --prior    log-gamma   0.13      0.23      0.42
     --nuisance    B->K^*::b^A2_1@KMPW2010                       -4.9   5.4  ${N_SIGMAS}     --prior    log-gamma  -2.20     -0.85     +2.03
 "
 
-export NUISANCE_B_TO_VLL_SUBLEADING="
+export NUISANCE_B_TO_VPERPLL_SUBLEADING="
+    --nuisance    B->K^*ll::A_perp^L_uncertainty@LargeRecoil     0.5   1.5  ${N_SIGMAS}     --prior    gaussian    0.85      1.0       1.15
+    --nuisance    B->K^*ll::A_perp^R_uncertainty@LargeRecoil     0.5   1.5  ${N_SIGMAS}     --prior    gaussian    0.85      1.0       1.15
+"
+
+export NUISANCE_B_TO_VPARALL_SUBLEADING="
     --nuisance    B->Vll::Lambda_0@LowRecoil                    -0.5   0.5  ${N_SIGMAS}     --prior    gaussian   -0.15      0.0       0.15
     --nuisance    B->Vll::Lambda_pa@LowRecoil                   -0.5   0.5  ${N_SIGMAS}     --prior    gaussian   -0.15      0.0       0.15
     --nuisance    B->Vll::Lambda_pp@LowRecoil                   -0.5   0.5  ${N_SIGMAS}     --prior    gaussian   -0.15      0.0       0.15
@@ -48,8 +58,6 @@ export NUISANCE_B_TO_VLL_SUBLEADING="
     --nuisance    B->K^*ll::A_0^R_uncertainty@LargeRecoil        0.5   1.5  ${N_SIGMAS}     --prior    gaussian    0.85      1.0       1.15
     --nuisance    B->K^*ll::A_par^L_uncertainty@LargeRecoil      0.5   1.5  ${N_SIGMAS}     --prior    gaussian    0.85      1.0       1.15
     --nuisance    B->K^*ll::A_par^R_uncertainty@LargeRecoil      0.5   1.5  ${N_SIGMAS}     --prior    gaussian    0.85      1.0       1.15
-    --nuisance    B->K^*ll::A_perp^L_uncertainty@LargeRecoil     0.5   1.5  ${N_SIGMAS}     --prior    gaussian    0.85      1.0       1.15
-    --nuisance    B->K^*ll::A_perp^R_uncertainty@LargeRecoil     0.5   1.5  ${N_SIGMAS}     --prior    gaussian    0.85      1.0       1.15
 "
 
 export NUISANCE_B_TO_PLL_FORM_FACTORS="
@@ -65,4 +73,47 @@ export NUISANCE_B_TO_PLL_SUBLEADING="
 export NUISANCE_B_TO_XS_HQE="
     --nuisance    B->B::mu_pi^2@1GeV                             0.0   2.0  ${N_SIGMAS}     --prior    gaussian    0.35      0.45      0.55
     --nuisance    B->B::mu_G^2@1GeV                              0.0   2.0  ${N_SIGMAS}     --prior    gaussian    0.33      0.35      0.38
+"
+
+export NUISANCE_all="
+    ${NUISANCE_CKM}
+    ${NUISANCE_QUARK_MASSES}
+    ${NUISANCE_DECAY_CONSTANTS}
+    ${NUISANCE_B_TO_VPERPLL_FORM_FACTORS}
+    ${NUISANCE_B_TO_VPERPLL_SUBLEADING}
+    ${NUISANCE_B_TO_VPARALL_FORM_FACTORS}
+    ${NUISANCE_B_TO_VPARALL_SUBLEADING}
+    ${NUISANCE_B_TO_PLL_FORM_FACTORS}
+    ${NUISANCE_B_TO_PLL_SUBLEADING}
+    ${NUISANCE_B_TO_XS_HQE}
+"
+
+export NUISANCE_incl="
+    ${NUISANCE_CKM}
+    ${NUISANCE_QUARK_MASSES}
+    ${NUISANCE_B_TO_XS_HQE}
+"
+
+export NUISANCE_excl="
+    ${NUISANCE_CKM}
+    ${NUISANCE_QUARK_MASSES}
+    ${NUISANCE_DECAY_CONSTANTS}
+    ${NUISANCE_B_TO_VPERPLL_FORM_FACTORS}
+    ${NUISANCE_B_TO_VPERPLL_SUBLEADING}
+    ${NUISANCE_B_TO_VPARALL_FORM_FACTORS}
+    ${NUISANCE_B_TO_VPARALL_SUBLEADING}
+    ${NUISANCE_B_TO_PLL_FORM_FACTORS}
+    ${NUISANCE_B_TO_PLL_SUBLEADING}
+"
+
+export NUISANCE_bsgamma="
+    ${NUISANCE_CKM}
+    ${NUISANCE_QUARK_MASSES}
+    ${NUISANCE_B_TO_VPERPLL_FORM_FACTORS}
+    ${NUISANCE_B_TO_VPERPLL_SUBLEADING}
+"
+
+export NUISANCE_bsmumu="
+    ${NUISANCE_CKM}
+    ${NUISANCE_DECAY_CONSTANTS}
 "
