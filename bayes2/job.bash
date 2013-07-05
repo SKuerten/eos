@@ -122,7 +122,12 @@ pmc_monolithic() {
 
 ## Job Main Function ##
 main() {
-    local name=${0##*/}
+    local name=${0}
+    if [[ ${name##*/} == slurm_script ]] ; then
+        name=${SLURM_JOB_NAME}
+    fi
+
+    local name=${name##*/}
     local name=${name%%.*}
     local scenario=${name%%-*}
     local data=${name##*-}
