@@ -1,3 +1,4 @@
+#!/bin/bash
 #vim: set sts=4 et :
 
 source job.bash

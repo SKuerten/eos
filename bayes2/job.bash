@@ -72,6 +72,7 @@ export PMC_MONO_CLUSTERS=50
 export PMC_MONO_FINAL_CHUNKSIZE=2000000
 export PMC_MONO_COV_WINDOW=300
 export PMC_MONO_SKIP_INITIAL=0.2
+export PMC_MONO_ADJUST_SAMPLE_SIZE="--pmc-adjust-sample-size"
 
 pmc_monolithic() {
     scenario=${1}
@@ -109,6 +110,7 @@ pmc_monolithic() {
         --global-local-covariance-window ${PMC_MONO_COV_WINDOW} \
         --global-local-skip-initial ${PMC_MONO_SKIP_INITIAL} \
         --pmc-final-chunksize ${PMC_MONO_FINAL_CHUNKSIZE} \
+        ${PMC_MONO_ADJUST_SAMPLE_SIZE} \
         ${PMC_MONO_CONVERGENCE} \
         ${!constraints} \
         ${!scan} \
