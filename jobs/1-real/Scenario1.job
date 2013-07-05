@@ -42,7 +42,7 @@ heinz)
         ;;
 
 vandyk)
-        PMC_WD_BASE=/home/vandyk/Scratch/bayes2
+        PMC_WD_BASE=/home/vandyk/bayes2
         ;;
 *)
         echo "Unknown system with user $USER"
@@ -525,7 +525,7 @@ elif [ "$1" == 'B_S_mu_mu' ]; then
     ${SCAN_RE_C10}
     ${NUISANCE_PARAMETERS_FIT_CKM}
     ${NUISANCE_PARAMETERS_FIT_HADRONIC_BSMUMU}
-    ${CONSTRAINTS_BMUMU}
+    ${CONSTRAINTS_BSMUMU}
     ${CONSTRAINTS_GAMMA}
     "
 
@@ -555,7 +555,7 @@ elif [ "$1" == 'toy' ]; then
     export PMC_ANALYSIS="
     ${SCAN_RE_C10}
     $NUISANCE_PARAMETERS_FIT_HADRONIC_BSMUMU
-    $CONSTRAINTS_BMUMU
+    $CONSTRAINTS_BSMUMU
     "
 
     N_SAMPLES_MCMC=20000
