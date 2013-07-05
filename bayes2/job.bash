@@ -7,9 +7,9 @@ export MCMC_PRERUN_UPDATE_SIZE=1000
 export MCMC_PRERUN_SCALE_REDUCTION=10
 export MCMC_PRERUN_PARALLEL=1
 
-source constraints.bash
-source priors.bash
-source scan.bash
+source ${EOS_SCRIPT_PATH}/constraints.bash
+source ${EOS_SCRIPT_PATH}/priors.bash
+source ${EOS_SCRIPT_PATH}/scan.bash
 
 mcmc_pre() {
     scenario=${1}
