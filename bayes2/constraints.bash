@@ -159,6 +159,12 @@ export CONSTRAINTS_B_TO_VLL_LOW_RECOIL="
     --constraint B^0->K^*0mu^+mu^-::A_T^2[16.00,19.00]@LHCb-2013
 "
 
+export CONSTRAINTS_B_TO_VLL_FF="
+    --global-option form-factors KMPW2010
+
+    --kinematics s 0.0 --observable B->K^*::V(s)/A_1(s) 1.0 1.4 1.8
+"
+
 export CONSTRAINTS_B_MASS_SPLITTING="
     --constraint B^0::M_B^*-M_B@PDG-2012
 "
@@ -174,6 +180,7 @@ export CONSTRAINTS_all="
     ${CONSTRAINTS_B_TO_PLL_LOW_RECOIL}
     ${CONSTRAINTS_B_TO_VLL_LARGE_RECOIL}
     ${CONSTRAINTS_B_TO_VLL_LOW_RECOIL}
+    ${CONSTRAINTS_B_TO_VLL_FF}
 "
 
 export CONSTRAINTS_allnobsmumu="
@@ -186,6 +193,7 @@ export CONSTRAINTS_allnobsmumu="
     ${CONSTRAINTS_B_TO_PLL_LOW_RECOIL}
     ${CONSTRAINTS_B_TO_VLL_LARGE_RECOIL}
     ${CONSTRAINTS_B_TO_VLL_LOW_RECOIL}
+    ${CONSTRAINTS_B_TO_VLL_FF}
 "
 
 export CONSTRAINTS_allnovll="
@@ -217,6 +225,7 @@ export CONSTRAINTS_excl="
     ${CONSTRAINTS_B_TO_PLL_LOW_RECOIL}
     ${CONSTRAINTS_B_TO_VLL_LARGE_RECOIL}
     ${CONSTRAINTS_B_TO_VLL_LOW_RECOIL}
+    ${CONSTRAINTS_B_TO_VLL_FF}
 "
 
 export CONSTRAINTS_incl="
