@@ -19,12 +19,8 @@ import numpy as np
 
 import sys
 import time
-from copy import deepcopy
-
-DEBUG = False
 
 #get the figtree module, assume its directory is in the python path
-
 try:
     import figtree
 except:
@@ -269,6 +265,7 @@ def find_runs(x, element):
     x = (0, 1, 1, 1, 0, 0, 0, 1, 1)
     find_runs(x, 1) = [[1,4], [7,9]]
     """
+    from copy import deepcopy
 
     runs = []
 
@@ -346,7 +343,7 @@ class Translator:
                   "Im{c9'}":r"$\Im\left(C_{9}^{'}\right)$",
                   "Im{c10'}":r"$\Im\left(C_{10}^{'}\right)$",
                   # masses
-                  "mass::b(MSbar)":r"$m_{b}$", #"$m_{b}(\overline{MS})$"
+                  "mass::b(MSbar)":r"$m_{b}$",
                   "mass::c":r"$m_{c}$",
                   # CKM
                   "CKM::rhobar":r"$\bar{\rho}_{CKM}$",
@@ -393,17 +390,11 @@ class Translator:
                   "B_q->ll::BR":r"$\mathcal{B}(B_s \to \bar{\mu}\mu $",
                   "B->Kll::BR@LargeRecoil":r"$\mathcal{B}(B \to K \bar{\ell}\ell $",
                   "B->Kll::BR@LowRecoil":r"$\mathcal{B}(B \to K \bar{\ell}\ell $",
-#                  "B->K^*ll::BR@LargeRecoil":r"$\mathcal{B}(B \to K^{*} \bar{\ell}\ell $",
                   "B->K^*ll::BR@LargeRecoil":r"$ \langle \mathcal{B} \rangle $",
-#                  "B->K^*ll::BR@LowRecoil":r"$\mathcal{B}(B \to K^{*} \bar{\ell}\ell $",
                   "B->K^*ll::BR@LowRecoil":r"$ \langle \mathcal{B} \rangle $",
-#                  "B->K^*ll::F_L@LargeRecoil":r"$F_L(B \to K^{*} \bar{\ell}\ell $",
                   "B->K^*ll::F_L@LargeRecoil":r"$ \langle F_L \rangle $",
-#                  "B->K^*ll::F_L@LowRecoil":r"$F_L(B \to K^{*} \bar{\ell}\ell $",
                   "B->K^*ll::F_L@LowRecoil":r"$ \langle F_L \rangle $",
-#                  "B->K^*ll::A_FB@LargeRecoil":r"$A_{FB}(B \to K^{*} \bar{\ell}\ell $",
                   "B->K^*ll::A_FB@LargeRecoil":r"$ \langle A_{\rm FB} \rangle $",
-#                  "B->K^*ll::A_FB@LowRecoil":r"$A_{FB}(B \to K^{*} \bar{\ell}\ell $",
                   "B->K^*ll::A_FB@LowRecoil":r"$ \langle A_{\rm FB} \rangle $",
                   "B->K^*ll::A_T^2@LargeRecoil":r"$A_T^{(2)}(B \to K^{*} \bar{\ell}\ell $",
                   "B->K^*ll::A_T^2@LowRecoil":r"$A_T^{(2)}(B \to K^{*} \bar{\ell}\ell $",
@@ -418,7 +409,6 @@ class Translator:
                   "B->K^*ll::A_T^im@LargeRecoil":r"$A_T^{(im)}(B \to K^{*} \bar{\ell}\ell $",
                   "B->K^*ll::A_T^im@LowRecoil":r"$A_T^{(im)}(B \to K^{*} \bar{\ell}\ell $",
                   "B->K^*ll::H_T^1@LargeRecoil":r"$ \langle H_T^{(1)} \rangle $",
-#                  "B->K^*ll::H_T^1@LowRecoil":r"$H_T^{(1)}(B \to K^{*} \bar{\ell}\ell $",
                   "B->K^*ll::H_T^1@LowRecoil":r"$ \langle H_T^{(1)} \rangle $",
                   "B->K^*ll::H_T^2@LargeRecoil":r"$ \langle H_T^{(2)} \rangle $",
                   "B->K^*ll::H_T^2@LowRecoil":r"$H_T^{(2)}(B \to K^{*} \bar{\ell}\ell $",
@@ -531,7 +521,6 @@ class Gauss(Prior):
                       - Gaussian.cdf(self.min, self.mu, self.sigma))
 
     def evaluate(self, x):
-#        if isinstance(x, float):
         return self.norm * np.exp(- ((x - self.mu) / self.sigma)**2 / 2)
 
 class LogGamma(Prior):
@@ -642,7 +631,6 @@ class PriorFactory(object):
                 i = s.find('alpha:', j)
                 alpha = float(s[i + 6:])
 
-#                    raise Exception("LogGamma not fully implemented yet.")
                 return (par_name, LogGamma((min, max), nu, lamb, alpha))
 
         else:
@@ -666,11 +654,7 @@ def test_priors():
     assert(prior.evaluate(0) == gauss.evaluate(0))
     assert(par_name == 'Re{c9}')
 
-    # raises Exception
-#    par_name, prior = f.create("Parameter: Re{c9}, prior type: Gaussian, range: [-1,1], x = 0.0 + 1 - 0.8")
-
     par_name, prior = f.create('Parameter: mass::c, prior type: LogGamma, range: [1,1.48], x = 1.27 + 0.07 - 0.09, nu: 1.201633227, lambda: 0.1046632085, alpha: 1.921694426')
-
 
 class MarginalDistributions:
     """
@@ -936,7 +920,7 @@ class MarginalDistributions:
         self.crop_last_columns = 3
 
         if samples is not None:
-        #compute weights exactly once
+            #compute weights exactly once
             posterior = None
             if equal_weights:
                 size = len(samples.T[-1])
@@ -950,18 +934,18 @@ class MarginalDistributions:
                 self.weights = np.exp(samples.T[-1][self.select[0]:self.select[1]])
                 posterior = samples.T[-2][self.select[0]:self.select[1]]
 
-        # find mode
+            # find mode
             if posterior is not None:
                 i_max = np.argmax(posterior)
                 print("Found maximum posterior = %g with weight %g at" % (posterior[i_max], self.weights[i_max]))
                 print(samples[i_max][:-3])
 
-        # plot only a single component
+            # plot only a single component
             if self.single_chain is not None:
                 self.weights[samples.T[-3] != float(self.single_chain)] = 0.0
                 print('\033[91m' + 'WARNING: plotting only component %s' % self.single_chain + '\033[0m')
 
-        # reset highest 'outliers'
+            # reset highest 'outliers'
             if crop_outliers > 0:
                 weight_clone = np.array(self.weights)
                 weight_clone.sort()
@@ -987,8 +971,6 @@ class MarginalDistributions:
 
                 self.weights[filter] = 0.0
                 print('\033[91m' + 'WARNING: filtering highest %d points from components' % len(np.where(filter)[0]) + '\033[0m')
-            #            np.set_printoptions(threshold='nan')
-#                print(samples.T[-3][filter].astype('int'))
 
             print("Samples have a total shape of %s " % str(samples.shape) )
             print("Non-zero weights: %d " % len(np.where(self.weights > 0.0)[0]))
@@ -1027,7 +1009,6 @@ class MarginalDistributions:
 
         # convert info to usable format
         usable_stats = np.array(stats)
-
 
         # read components
         if hc_comp is not None:
@@ -1266,29 +1247,19 @@ class MarginalDistributions:
 
         if method=='ECDF':
             #ascending order
-    #        ordered = sort(self.data.T[index])
 
             #find multiplicity of multiple events
             #it's in last column
             order_statistics = filter_duplicates( sort(self.data.T[index]) )
-#            savetxt("order.dat", order_statistics)
-    #        print(order_statistics)
 
             #build cdf. normalize to unity
             ecdf = cumsum(order_statistics.T[-1])
             ecdf /= float(ecdf[-1])
 
-    #        print(ecdf)
-#            savetxt("ecd.dat", ecdf)
 
             #binary search for index next to CDF value,
             #then extract physical parameter
             #subtract/add one from index to overcover
-    #        test_index = searchsorted(ecdf, 0.15865525393145705)
-    #        print(test_index)
-    #        print(order_statistics[test_index])
-    #        print((len(order_statistics), len(ecdf)))
-
             limit_one_sigma = [order_statistics[max(0,searchsorted(ecdf, 0.15865525393145705)-1),0],
                                order_statistics[min(ecdf.shape[0]-1,searchsorted(ecdf, 0.84134474606854293)+1),0]]
             limit_two_sigma = [order_statistics[max(0,searchsorted(ecdf, 0.02275013194817919)-1),0],
@@ -1299,15 +1270,9 @@ class MarginalDistributions:
             #bin the data
             histo, edges = np.histogram(self.data.T[index], self.nBins[index])
 
-#            print(histo)
-#            print(edges)
-
             #build CDF
             temp = cumsum(histo)
             cdf = temp / float(temp[-1])
-
-#            print(cdf)
-
 
             #binary search for index next to CDF value,
             #then extract physical parameter
@@ -1830,9 +1795,6 @@ class MarginalDistributions:
         if self.plot_prior and self.priors[index] is not None:
             prior = self.priors[index]
             integral = 1
-#            if self.use_histogram:
-                # plot density at bin centers
-#                integral =  np.sum(hist_normal[1] * np.diff(hist_normal[0]))
             mesh_points = linspace(x_min, x_max, self.nBins[index] )
 
             prior_values = prior.evaluate(mesh_points)
@@ -2006,8 +1968,6 @@ class MarginalDistributions:
                 mesh_points = np.c_[X.ravel(), Y.ravel()].T
 
             verbosity=False
-            if DEBUG :
-                verbosity = True
 
             #do the work from the ctypes wrapper to the C-code
             estimated_pdf = figtree.figtree(transformed_samples,
@@ -2088,8 +2048,6 @@ class MarginalDistributions:
 
         P.xlabel(x_label)
         P.ylabel(y_label)
-#        ax = P.gca()
-#        ax.set_aspect('equal')
 
         P.title(self.__title())
 
@@ -2118,9 +2076,6 @@ class MarginalDistributions:
 
         #print out mode info
         for par in range(self.data.shape[1]-self.crop_last_columns):
-
-#            if self.par_defs[par].nuisance:
-#                continue
 
             #set labels, avoid empty parameter names
             y_label = self.tr.to_tex(self.par_defs[par].name)
@@ -2167,10 +2122,8 @@ class MarginalDistributions:
             #rescale to coordinate range
             if posterior and (self.single_chain is not None):
                 ax2 = ax1.twinx()
-#                ax2.plot((self.data.T[-1] - min_posterior) * (x_max - x_min) / (max_posterior - min_posterior) + x_min, 'k--')
                 l2 = ax2.plot(self.data.T[-1], label='$\log P$', color='black')
                 ax2.set_ylabel('$\log P$')
-#                print((max_posterior, min_posterior, x_max, x_min))
                 ax2.set_ylim(min_posterior, max_posterior)
                 P.legend(loc='upper left')
 
@@ -2193,7 +2146,7 @@ class MarginalDistributions:
 
         self.pdf_file = PdfPages(self.__output_base_name + "_stats.pdf")
 
-        if True: #self.pmc:
+        if True:
             P.figure(figsize=(8,8))
             P.plot(self.stats.T[0], label='perplexity')
             P.plot(self.stats.T[1], label='eff. sample size')
@@ -2326,24 +2279,6 @@ class MarginalDistributions:
 
         return (integral, ratio, total_weight, error)
 
-        """
-        # check variance: Eq. 21 of Kilbinger, Wraith
-        temp = self.weights[rows] - integral
-
-        # normalized weights: order important to avoid overflow
-        norm_weights = self.weights[rows] / total_weight
-        temp *= norm_weights
-
-        # rescale by largest element to avoid overflow
-        maximum = np.max(temp)
-        temp /= maximum
-        print("rescale my max of %g" % maximum)
-        temp *= temp
-
-        variance = np.sum(temp)
-        std_dev = maximum * np.sqrt(len(self.data)) * np.sqrt(variance)
-        print(" weights' std. dev = %g, rel. std. dev = %g " % (std_dev, std_dev / partial_weight))
-        """
     def proposal_2D(self, par1, par2, centers=False, solid_edge=False, **kwargs):
         """
         Plot the proposal distribution (PMC).
@@ -2364,10 +2299,6 @@ class MarginalDistributions:
         cmap = get_cmap(name='spectral')
         colors = [cmap(i) for i in np.linspace(0, 0.9, len(self.components.T['covariance']))]
 
-        """
-        for par1 in range(nCols):
-            for par2 in range(par1 + 1, nCols):
-            """
         if (self.par_defs[par1].nuisance or  self.par_defs[par2].nuisance) and not self.use_nuisance:
             return False
         if (self.par_defs[par1].nuisance and self.par_defs[par2].nuisance) and self.no_nuisance_vs_nuisance:
@@ -2423,14 +2354,10 @@ class MarginalDistributions:
             # 'Combining error ellipses' by John E. Davis
             correlation = np.array([[1.0, cov[par1,par2] / np.sqrt(cov[par1,par1] * cov[par2,par2])], [0.0, 1.0]])
             correlation[1,0] = correlation[0,1]
-#                    print(cov)
-#                    print(correlation)
             assert( -1 < correlation[0,1] and correlation[0,1] < 1)
 
             ew, ev = linalg.eigh(submatrix)
             assert(ew.min() > 0)
-#                    print(submatrix)
-#                    print(ew)
 
             # rotation angle of major axis with x-axis
             if submatrix[0,0] ==  submatrix[1,1]:
@@ -2614,17 +2541,6 @@ class MarginalDistributions:
         epilog()
 
         self.pdf_file.close()
-#        self.pdf_file = None
-
-    def __del__(self):
-
-        #Leads to
-        #Exception AttributeError: "'NoneType' object has no attribute 'report'" in <bound method MarginalDistributions.__del__ of <__main__.MarginalDistributions instance at 0x9609f8c>> ignored
-        """
-        if self.pdf_file is None:
-            return
-        self.pdf_file.close()
-        """
 
 def factory(cmd_line=None):
     """
@@ -2780,7 +2696,6 @@ def test_ellipse():
     P.xlim((4.5, 5.5))
     P.ylim((0, 1))
 
-#                    rho = submatrix[0,1] / np.sqrt(submatrix[0,0] * submatrix[1,1])
     ew, ev = linalg.eigh(submatrix)
 
     aspect_ratio = 1
@@ -2816,4 +2731,3 @@ if __name__ == '__main__':
     matplotlib.rcParams['text.latex.unicode'] = True
 
     main()
-#    test_ellipse()
