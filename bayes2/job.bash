@@ -63,10 +63,59 @@ mcmc_merge() {
     echo
 }
 
+hc() {
+    scenario=${1}
+    if [[ -z ${scenario} ]] ; then
+        echo "No scenario given!"
+        exit -1
+    fi
+    echo "[scenario = ${scenario}]"
+
+    shift
+    data=${1}
+    if [[ -z ${data} ]] ; then
+        echo "No data given!"
+        exit -1
+    fi
+    echo "[data = ${data}]"
+
+    seed=789654
+
+    scan=SCAN_${scenario}
+    constraints=CONSTRAINTS_${data}
+    nuisance=NUISANCE_${data}
+
+    mkdir -p ${BASE_NAME}/${scenario}_${data}
+    eos-scan-mc \
+        --seed ${seed} \
+        --debug \
+        --parallel 0 \
+        --chunks 1 \
+        --chunk-size 50 \
+        --use-pmc \
+        --pmc-dof ${PMC_MONO_DOF} \
+        --pmc-adjust-sample-size 0 \
+        --pmc-initialize-from-file ${BASE_NAME}/${scenario}_${data}/mcmc_pre_merged.hdf5 \
+        --pmc-hierarchical-clusters ${PMC_MONO_CLUSTERS} \
+        --global-local-covariance-window ${PMC_MONO_COV_WINDOW} \
+        --global-local-skip-initial ${PMC_MONO_SKIP_INITIAL} \
+        --pmc-group-by-r-value ${PMC_MONO_GROUP_BY_RVALUE} \
+        ${PMC_MONO_INITIALIZATION} \
+        --pmc-draw-samples \
+        --pmc-final-chunksize ${PMC_MONO_FINAL_CHUNKSIZE} \
+        ${!constraints} \
+        ${!scan} \
+        ${!nuisance} \
+        --output "${BASE_NAME}/${scenario}_${data}/hc.hdf5" \
+        > ${BASE_NAME}/${scenario}_${data}/hc.log 2>&1
+}
+
 export PMC_MONO_PARALLEL=1
 export PMC_MONO_CHUNKS=20
 export PMC_MONO_CHUNKSIZE=3000
 export PMC_MONO_DOF=-1 ## Gaussian
+export PMC_MONO_INITIALIZATION="--pmc-patch-around-local-mode 0 --pmc-minimum-overlap 0.05"
+export PMC_MONO_GROUP_BY_RVALUE=1.5
 export PMC_MONO_CONVERGENCE="--pmc-relative-std-deviation-over-last-steps 0.05 2 --pmc-ignore-ess 1"
 export PMC_MONO_CLUSTERS=50
 export PMC_MONO_FINAL_CHUNKSIZE=2000000
@@ -110,6 +159,8 @@ pmc_monolithic() {
         --global-local-covariance-window ${PMC_MONO_COV_WINDOW} \
         --global-local-skip-initial ${PMC_MONO_SKIP_INITIAL} \
         --pmc-final-chunksize ${PMC_MONO_FINAL_CHUNKSIZE} \
+        --pmc-group-by-r-value ${PMC_MONO_GROUP_BY_RVALUE} \
+        ${PMC_MONO_INITIALIZATION} \
         ${PMC_MONO_ADJUST_SAMPLE_SIZE} \
         ${PMC_MONO_CONVERGENCE} \
         ${!constraints} \
@@ -145,6 +196,9 @@ main() {
             ;;
         merge)
             mcmc_merge ${scenario} ${data} $@
+            ;;
+        hc)
+            hc ${scenario} ${data} $@
             ;;
         pmc)
             pmc_monolithic ${scenario} ${data} $@
