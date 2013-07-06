@@ -1,0 +1,15 @@
+How to setup on a new machine:
+
+1. Set EOS_SCRIPT_PATH as base directory where scripts are located
+2. Set BASE_NAME as base directory where output and log files are stored
+
+How to add a new scenario foo with data bar:
+
+1. In scan.bash, add a new variable  SCAN_foo.
+2. In constraints.bash, add a new variable CONSTRAINTS_bar.
+3. In priors.bash, add a new variable NUISANCE_bar that contains the necessary
+   parameters to describe the observables in the constraints.
+4. Create a new executable file foo_bar.bash, in which the default options for prerun and main run
+   can be overridden.
+5. Start the script with ./foo_bar.bash pre INDEX
+   NOTE: Don't use INDEX=0003, prefer INDEX=3 instead
