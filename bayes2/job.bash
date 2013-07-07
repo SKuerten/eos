@@ -122,6 +122,7 @@ export PMC_MONO_FINAL_CHUNKSIZE=2000000
 export PMC_MONO_COV_WINDOW=300
 export PMC_MONO_SKIP_INITIAL=0.2
 export PMC_MONO_ADJUST_SAMPLE_SIZE="--pmc-adjust-sample-size 1"
+export PMC_MONO_IGNORE_GROUPS=""
 
 pmc_monolithic() {
     scenario=${1}
@@ -163,6 +164,7 @@ pmc_monolithic() {
         ${PMC_MONO_INITIALIZATION} \
         ${PMC_MONO_ADJUST_SAMPLE_SIZE} \
         ${PMC_MONO_CONVERGENCE} \
+        ${PMC_MONO_IGNORE_GROUPS} \
         ${!constraints} \
         ${!scan} \
         ${!nuisance} \
