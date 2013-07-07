@@ -172,6 +172,46 @@ pmc_monolithic() {
         > ${BASE_NAME}/${scenario}_${data}/pmc_monolithic.log 2>&1
 }
 
+gof() {
+    scenario=${1}
+    if [[ -z ${scenario} ]] ; then
+        echo "No scenario given!"
+        exit -1
+    fi
+    echo "[scenario = ${scenario}]"
+
+    shift
+    data=${1}
+    if [[ -z ${data} ]] ; then
+        echo "No data given!"
+        exit -1
+    fi
+    echo "[data = ${data}]"
+
+    shift
+    idx=${1}
+    if [[ -z ${idx} ]] ; then
+        echo "No gof index given!"
+        exit -1
+    fi
+
+    scan=SCAN_${scenario}
+    constraints=CONSTRAINTS_${data}
+    nuisance=NUISANCE_${data}
+    mode=GOF_MODE_${idx}
+
+    mkdir -p ${BASE_NAME}/${scenario}_${data}
+    eos-scan-mc \
+        --debug \
+        --optimize ${!mode} \
+        --goodness-of-fit \
+        ${!constraints} \
+        ${!scan} \
+        ${!nuisance} \
+        --output "${BASE_NAME}/${scenario}_${data}/gof_${idx}.hdf5" \
+        > ${BASE_NAME}/${scenario}_${data}/gof_${idx}.log 2>&1
+}
+
 
 ## Job Main Function ##
 main() {
@@ -204,6 +244,9 @@ main() {
             ;;
         pmc)
             pmc_monolithic ${scenario} ${data} $@
+            ;;
+        gof)
+            gof ${scenario} ${data} $@
             ;;
         *)
             echo "No command given!"
