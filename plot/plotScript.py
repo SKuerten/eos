@@ -1453,7 +1453,7 @@ class MarginalDistributions:
         # since all bins have same size, the integral in bin
         # is just mean value times volume, and the volume cancels
 
-        levels = self.find_hist_limits(densities)
+        levels = self.find_hist_limits(densities).flatten().tolist()
 
         # default: use 1 and 2 sigma
         if desired_levels == '1 sigma':
