@@ -21,7 +21,12 @@ export SCAN_scIII="
         --scan      Re{c10}    -15.0    +15.0              --prior flat
         --scan      Re{c10'}   -15.0    +15.0              --prior flat
 "
+
 export SCAN_scIV="
         --scan      Re{c10}    -15.0    +15.0              --prior flat
         --scan      Re{c10'}   -15.0    +15.0              --prior flat
+"
+
+export SCAN_scV="
+        --scan      Re{c10}    -15.0    +15.0              --prior flat
 "
