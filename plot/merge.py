@@ -5,7 +5,16 @@ import glob
 import os
 import shutil
 
-def merge_preruns(output_file_name='merge.hdf5', search='*.hdf5', input_files=None, strict=False, compression=False, use_pytables=False):
+# solution from http://stackoverflow.com/a/341730
+def natsorted(strings):
+    "Sort strings the way humans are said to expect."
+    return sorted(strings, key=natural_sort_key)
+
+def natural_sort_key(key):
+    import re
+    return [int(t) if t.isdigit() else t for t in re.split(r'(\d+)', key)]
+
+def merge_preruns(output_file_name, search='*.hdf5', input_files=None, strict=False, compression=False, use_pytables=False):
     """
     Merge a prerun, stored in different files into one common file.
     Before:
@@ -19,7 +28,7 @@ def merge_preruns(output_file_name='merge.hdf5', search='*.hdf5', input_files=No
 
     #find hdf5 files to merge
     if input_files is None:
-        search_results = natsorted(glob.glob(os.path.join(base_dir,search)))
+        search_results = natsorted(glob.glob(os.path.join(base_dir, search)))
     else:
         search_results = input_files
         
@@ -136,8 +145,8 @@ def main():
     parser.add_argument('--descriptions', dest='desc',
                         help='Copy descriptions from this HDF5 input file to output', action='store')
     parser.add_argument('--search', dest='search',
-                        help='HDF5 input file name pattern', action='store')
-    parser.add_argument('output',
+                        help='HDF5 input file name pattern', action='store', default='*.hdf5')
+    parser.add_argument('--output',
                         help='Output file name', action='store')
     parser.add_argument('--strict', dest='strict', default=False,
                         help='Check congruence', action='store_true')
@@ -149,6 +158,9 @@ def main():
                         help='Merge uncertainty propagation files', action='store_true')
     
     args = parser.parse_args()
+
+    if args.output is None:
+        args.output = os.path.join(os.getcwd(), 'mcmc_pre_merged.hdf5')
     
     if args.desc is not None:
         import h5py
