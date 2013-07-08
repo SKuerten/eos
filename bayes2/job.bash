@@ -173,13 +173,14 @@ pmc_monolithic() {
         > ${BASE_NAME}/${scenario}_${data}/pmc_monolithic.log 2>&1
 }
 
-export PMC_NUMBER_OF_JOBS=400
+export PMC_NUMBER_OF_JOBS=200
 export PMC_POLLING_INTERVAL=45
 export SGE_QUEUE=short
 export SGE_FINAL_QUEUE=standard
 export SGE_CHECK_ERROR_STATUS=0
+export PYTHON=${PYTHON:-python}
 
-pmc-queue() {
+pmc_queue() {
     scenario=${1}
     if [[ -z ${scenario} ]] ; then
         echo "No scenario given!"
@@ -203,7 +204,7 @@ pmc-queue() {
     export PMC_OUTPUT_BASE_NAME=${BASE_NAME}/${scenario}_${data}/
     export PMC_MERGE_FILE=$PMC_OUTPUT_BASE_NAME/mcmc_pre_merged.hdf5
 
-    $PYTHON $HOME/workspace/Sandbox/eos/jobs/job_manager.py  \
+    $PYTHON $EOS_SCRIPT_PATH/../jobs/job_manager.py  \
         $PMC_CLIENT_ARGV \
 	2>&1 | tee ${BASE_NAME}/${scenario}_${data}/manager.log
 }
@@ -280,6 +281,9 @@ main() {
             ;;
         pmc)
             pmc_monolithic ${scenario} ${data} $@
+            ;;
+        pmc-queue)
+            pmc_queue ${scenario} ${data} $@
             ;;
         gof)
             gof ${scenario} ${data} $@
