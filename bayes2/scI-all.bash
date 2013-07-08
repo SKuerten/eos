@@ -8,8 +8,8 @@ export MCMC_PRERUN_UPDATE_SIZE=1000
 export MCMC_PRERUN_CHAINS=12
 export MCMC_PRERUN_PARALLEL=1
 
-export PMC_MONO_FINAL_CHUNKSIZE=120000
-export PMC_MONO_IGNORE_GROUPS="
+export PMC_FINAL_CHUNKSIZE=120000
+export PMC_IGNORE_GROUPS="
     --pmc-ignore-group 0
     --pmc-ignore-group 3
     --pmc-ignore-group 4

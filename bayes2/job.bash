@@ -93,16 +93,16 @@ hc() {
         --chunks 1 \
         --chunk-size 50 \
         --use-pmc \
-        --pmc-dof ${PMC_MONO_DOF} \
+        --pmc-dof ${PMC_DOF} \
         --pmc-adjust-sample-size 0 \
         --pmc-initialize-from-file ${BASE_NAME}/${scenario}_${data}/mcmc_pre_merged.hdf5 \
-        --pmc-hierarchical-clusters ${PMC_MONO_CLUSTERS} \
-        --global-local-covariance-window ${PMC_MONO_COV_WINDOW} \
-        --global-local-skip-initial ${PMC_MONO_SKIP_INITIAL} \
-        --pmc-group-by-r-value ${PMC_MONO_GROUP_BY_RVALUE} \
-        ${PMC_MONO_INITIALIZATION} \
+        --pmc-hierarchical-clusters ${PMC_CLUSTERS} \
+        --global-local-covariance-window ${PMC_COV_WINDOW} \
+        --global-local-skip-initial ${PMC_SKIP_INITIAL} \
+        --pmc-group-by-r-value ${PMC_GROUP_BY_RVALUE} \
+        ${PMC_INITIALIZATION} \
         --pmc-draw-samples \
-        --pmc-final-chunksize ${PMC_MONO_FINAL_CHUNKSIZE} \
+        --pmc-final-chunksize ${PMC_FINAL_CHUNKSIZE} \
         ${!constraints} \
         ${!scan} \
         ${!nuisance} \
@@ -110,19 +110,19 @@ hc() {
         > ${BASE_NAME}/${scenario}_${data}/hc.log 2>&1
 }
 
-export PMC_MONO_PARALLEL=1
-export PMC_MONO_CHUNKS=20
-export PMC_MONO_CHUNKSIZE=3000
-export PMC_MONO_DOF=-1 ## Gaussian
-export PMC_MONO_INITIALIZATION="--pmc-patch-around-local-mode 0 --pmc-minimum-overlap 0.05"
-export PMC_MONO_GROUP_BY_RVALUE=1.5
-export PMC_MONO_CONVERGENCE="--pmc-relative-std-deviation-over-last-steps 0.05 2 --pmc-ignore-ess 1"
-export PMC_MONO_CLUSTERS=50
-export PMC_MONO_FINAL_CHUNKSIZE=2000000
-export PMC_MONO_COV_WINDOW=300
-export PMC_MONO_SKIP_INITIAL=0.2
-export PMC_MONO_ADJUST_SAMPLE_SIZE="--pmc-adjust-sample-size 1"
-export PMC_MONO_IGNORE_GROUPS=""
+export PMC_PARALLEL=1
+export PMC_CHUNKS=20
+export PMC_CHUNKSIZE=3000
+export PMC_DOF=-1 ## Gaussian
+export PMC_INITIALIZATION="--pmc-patch-around-local-mode 0 --pmc-minimum-overlap 0.05"
+export PMC_GROUP_BY_RVALUE=1.5
+export PMC_CONVERGENCE="--pmc-relative-std-deviation-over-last-steps 0.05 2 --pmc-ignore-ess 1"
+export PMC_CLUSTERS=50
+export PMC_FINAL_CHUNKSIZE=2000000
+export PMC_COV_WINDOW=300
+export PMC_SKIP_INITIAL=0.2
+export PMC_ADJUST_SAMPLE_SIZE="--pmc-adjust-sample-size 1"
+export PMC_IGNORE_GROUPS=""
 
 pmc_monolithic() {
     scenario=${1}
@@ -150,21 +150,21 @@ pmc_monolithic() {
     eos-scan-mc \
         --seed ${seed} \
         --debug \
-        --parallel ${PMC_MONO_PARALLEL} \
-        --chunks ${PMC_MONO_CHUNKS} \
-        --chunk-size ${PMC_MONO_CHUNKSIZE} \
+        --parallel ${PMC_PARALLEL} \
+        --chunks ${PMC_CHUNKS} \
+        --chunk-size ${PMC_CHUNKSIZE} \
         --use-pmc \
-        --pmc-dof ${PMC_MONO_DOF} \
+        --pmc-dof ${PMC_DOF} \
         --pmc-initialize-from-file ${BASE_NAME}/${scenario}_${data}/mcmc_pre_merged.hdf5 \
-        --pmc-hierarchical-clusters ${PMC_MONO_CLUSTERS} \
-        --global-local-covariance-window ${PMC_MONO_COV_WINDOW} \
-        --global-local-skip-initial ${PMC_MONO_SKIP_INITIAL} \
-        --pmc-final-chunksize ${PMC_MONO_FINAL_CHUNKSIZE} \
-        --pmc-group-by-r-value ${PMC_MONO_GROUP_BY_RVALUE} \
-        ${PMC_MONO_INITIALIZATION} \
-        ${PMC_MONO_ADJUST_SAMPLE_SIZE} \
-        ${PMC_MONO_CONVERGENCE} \
-        ${PMC_MONO_IGNORE_GROUPS} \
+        --pmc-hierarchical-clusters ${PMC_CLUSTERS} \
+        --global-local-covariance-window ${PMC_COV_WINDOW} \
+        --global-local-skip-initial ${PMC_SKIP_INITIAL} \
+        --pmc-final-chunksize ${PMC_FINAL_CHUNKSIZE} \
+        --pmc-group-by-r-value ${PMC_GROUP_BY_RVALUE} \
+        ${PMC_INITIALIZATION} \
+        ${PMC_ADJUST_SAMPLE_SIZE} \
+        ${PMC_CONVERGENCE} \
+        ${PMC_IGNORE_GROUPS} \
         ${!constraints} \
         ${!scan} \
         ${!nuisance} \
