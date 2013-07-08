@@ -97,7 +97,7 @@ hc() {
         --pmc-adjust-sample-size 0 \
         --pmc-initialize-from-file ${BASE_NAME}/${scenario}_${data}/mcmc_pre_merged.hdf5 \
         --pmc-hierarchical-clusters ${PMC_CLUSTERS} \
-        --global-local-covariance-window ${PMC_COV_WINDOW} \
+        --global-local-covariance-window ${PMC_PATCH_LENGTH} \
         --global-local-skip-initial ${PMC_SKIP_INITIAL} \
         --pmc-group-by-r-value ${PMC_GROUP_BY_RVALUE} \
         ${PMC_INITIALIZATION} \
@@ -119,10 +119,11 @@ export PMC_GROUP_BY_RVALUE=1.5
 export PMC_CONVERGENCE="--pmc-relative-std-deviation-over-last-steps 0.05 2 --pmc-ignore-ess 1"
 export PMC_CLUSTERS=50
 export PMC_FINAL_CHUNKSIZE=2000000
-export PMC_COV_WINDOW=300
+export PMC_PATCH_LENGTH=300
 export PMC_SKIP_INITIAL=0.2
-export PMC_ADJUST_SAMPLE_SIZE="--pmc-adjust-sample-size 1"
+export PMC_ADJUST_SAMPLE_SIZE=1
 export PMC_IGNORE_GROUPS=""
+export PMC_SEED=789654
 
 pmc_monolithic() {
     scenario=${1}
@@ -140,7 +141,7 @@ pmc_monolithic() {
     fi
     echo "[data = ${data}]"
 
-    seed=789654
+    seed=$PMC_SEED
 
     scan=SCAN_${scenario}
     constraints=CONSTRAINTS_${data}
@@ -157,12 +158,12 @@ pmc_monolithic() {
         --pmc-dof ${PMC_DOF} \
         --pmc-initialize-from-file ${BASE_NAME}/${scenario}_${data}/mcmc_pre_merged.hdf5 \
         --pmc-hierarchical-clusters ${PMC_CLUSTERS} \
-        --global-local-covariance-window ${PMC_COV_WINDOW} \
+        --global-local-covariance-window ${PMC_PATCH_LENGTH} \
         --global-local-skip-initial ${PMC_SKIP_INITIAL} \
         --pmc-final-chunksize ${PMC_FINAL_CHUNKSIZE} \
         --pmc-group-by-r-value ${PMC_GROUP_BY_RVALUE} \
         ${PMC_INITIALIZATION} \
-        ${PMC_ADJUST_SAMPLE_SIZE} \
+        --pmc-adjust-sample-size ${PMC_ADJUST_SAMPLE_SIZE} \
         ${PMC_CONVERGENCE} \
         ${PMC_IGNORE_GROUPS} \
         ${!constraints} \
@@ -170,6 +171,41 @@ pmc_monolithic() {
         ${!nuisance} \
         --output "${BASE_NAME}/${scenario}_${data}/pmc_monolithic.hdf5" \
         > ${BASE_NAME}/${scenario}_${data}/pmc_monolithic.log 2>&1
+}
+
+export PMC_NUMBER_OF_JOBS=400
+export PMC_POLLING_INTERVAL=45
+export SGE_QUEUE=short
+export SGE_FINAL_QUEUE=standard
+export SGE_CHECK_ERROR_STATUS=0
+
+pmc-queue() {
+    scenario=${1}
+    if [[ -z ${scenario} ]] ; then
+        echo "No scenario given!"
+        exit -1
+    fi
+    echo "[scenario = ${scenario}]"
+
+    shift
+    data=${1}
+    if [[ -z ${data} ]] ; then
+        echo "No data given!"
+        exit -1
+    fi
+    echo "[data = ${data}]"
+
+    scan=SCAN_${scenario}
+    constraints=CONSTRAINTS_${data}
+    nuisance=NUISANCE_${data}
+
+    export PMC_ANALYSIS="${!constraints} ${!scan} ${!nuisance}"
+    export PMC_OUTPUT_BASE_NAME=${BASE_NAME}/${scenario}_${data}/
+    export PMC_MERGE_FILE=$PMC_OUTPUT_BASE_NAME/mcmc_pre_merged.hdf5
+
+    $PYTHON $HOME/workspace/Sandbox/eos/jobs/job_manager.py  \
+        $PMC_CLIENT_ARGV \
+	2>&1 | tee ${BASE_NAME}/${scenario}_${data}/manager.log
 }
 
 gof() {

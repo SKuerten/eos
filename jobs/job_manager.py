@@ -1,6 +1,7 @@
 # vim: set sts=4 et :
 
 import os, commands
+from os import environ
 import numpy as np
 import sys
 #import tables as pytables
@@ -54,6 +55,16 @@ class JobInfo(object):
         return "min = %d, max = %d, file = %s, job script = %s" % \
                (self.min, self.max, self.file_name, self.script_name)
 
+def env(variable, default=None):
+    " Read environment variable. If no default value given, an exception is raised"
+    try:
+        return environ[variable]
+    except KeyError:
+        if default is None:
+            raise
+        else:
+            return default
+
 class PMC_Iterator(object):
     def __init__(self):
         """
@@ -66,9 +77,7 @@ class PMC_Iterator(object):
         ###
         # required environment variables
         ###
-        self.initialization_mode = os.environ['PMC_INITIALIZATION_MODE']
-
-        self.output_base = os.environ['PMC_OUTPUT_BASE_NAME']
+        self.output_base = environ['PMC_OUTPUT_BASE_NAME']
 
         # default: put log and job files in same directory as HDF5 output
         self.output_job_base = self.output_base
@@ -82,61 +91,47 @@ class PMC_Iterator(object):
         ###
         # optional environment variables
         ###
-        try:
-            # always passed along, use it for --debug etc
-            self.general_options = os.environ['PMC_GENERAL_OPTIONS']
-        except KeyError:
-            self.general_options = ""
+        self.initialization_mode = env('PMC_INITIALIZATION_MODE', 'HierarchicalClustering')
 
-        try:
-            self.convergence_options = os.environ['PMC_CONVERGENCE_OPTIONS']
-        except KeyError:
-            self.convergence_options = ""
-
-        try:
-            self.initialization_options = os.environ['PMC_INITIALIZATION_OPTIONS']
-        except KeyError:
-            self.initialization_options = ""
+        # always passed along, use it for --debug etc
+        self.general_options = env('PMC_GENERAL_OPTIONS', "")
+        self.convergence_options = env('PMC_CONVERGENCE', "")
+        self.initialization_options = env('PMC_INITIALIZATION')
+        self.ignore_groups = env('PMC_IGNORE_GROUPS','')
+        self.group_by_r_value = env('PMC_GROUP_BY_RVALUE', 1.5)
+        self.adjust_sample_size = env('PMC_ADJUST_SAMPLE_SIZE', 1)
 
         max_number_of_jobs = 5000
         try:
-            self.number_of_jobs = min(int(os.environ['PMC_NUMBER_OF_JOBS']), max_number_of_jobs)
+            self.number_of_jobs = min(int(environ['PMC_NUMBER_OF_JOBS']), max_number_of_jobs)
         except KeyError:
             self.number_of_jobs = max_number_of_jobs
 
-        try:
-            self.thread_parallelization = int(os.environ['PMC_THREAD_PARALLELIZATION'])
-        except KeyError:
-            self.thread_parallelization = False
+        # shouldn't use multiple cores on a cluster
+        #        self.thread_parallelization = int(env('PMC_PARALLEL', False))
+        self.thread_parallelization = int(False)
+        self.polling_interval = int(env('PMC_POLLING_INTERVAL', 30))
 
-        try:
-            self.polling_interval = int(os.environ['PMC_POLLING_INTERVAL'])
-        except:
-            self.polling_interval = 30
-
-        # either initialize from global local or merged prerun directly
-        if self.initialization_mode == 'GlobalLocal':
-            self.gl_file_name = os.environ['PMC_GL_FILE']
-            self.components_per_cluster = int(os.environ['PMC_COMPONENTS_PER_CLUSTER'])
-        elif self.initialization_mode == 'HierarchicalClustering':
-            self.prerun_file_name = os.environ['PMC_MERGE_FILE']
-            self.target_number_of_clusters = int(os.environ['PMC_TARGET_NUMBER_OF_CLUSTERS'])
-            self.sliding_window = int(os.environ['PMC_SLIDING_WINDOW'])
-            self.skip_initial = float(os.environ['PMC_SKIP_INITIAL'])
+        # initialize from merged prerun directly
+        if self.initialization_mode == 'HierarchicalClustering':
+            self.prerun_file_name = env('PMC_MERGE_FILE')
+            self.target_number_of_clusters = int(environ['PMC_CLUSTERS'])
+            self.patch_length = int(environ['PMC_PATCH_LENGTH'])
+            self.skip_initial = float(environ['PMC_SKIP_INITIAL'])
 
         elif self.initialization_mode == 'UncertaintyPropagation':
-            self.uncertainty_analysis = os.environ['PMC_UNCERTAINTY_ANALYSIS']
-            self.uncertainty_input = os.environ['PMC_UNCERTAINTY_INPUT']
+            self.uncertainty_analysis = environ['PMC_UNCERTAINTY_ANALYSIS']
+            self.uncertainty_input = environ['PMC_UNCERTAINTY_INPUT']
         else:
             raise Exception("Unknown initialization mode: '%s'" % self.initialization_mode)
 
-        if self.initialization_mode in ('GlobalLocal', 'HierarchicalClustering'):
-            self.seed = long(os.environ['PMC_SEED'])
-            self.analysis = os.environ['PMC_ANALYSIS']
-            self.chunk_size = int(os.environ['PMC_CHUNK_SIZE'])
-            self.final_chunk_size = int(os.environ['PMC_FINAL_CHUNK_SIZE'])
-            self.max_steps = int(os.environ['PMC_MAX_STEPS'])
-            self.dof = float(os.environ['PMC_DOF'])
+        if self.initialization_mode == 'HierarchicalClustering':
+            self.seed = long(environ['PMC_SEED'])
+            self.analysis = environ['PMC_ANALYSIS']
+            self.chunk_size = int(environ['PMC_CHUNKSIZE'])
+            self.final_chunk_size = int(environ['PMC_FINAL_CHUNKSIZE'])
+            self.max_steps = int(environ['PMC_MAX_STEPS'])
+            self.dof = float(environ['PMC_DOF'])
 
         ###
         # book keeping
@@ -183,7 +178,7 @@ class PMC_Iterator(object):
                 os.remove(j.file_name)
 
     def create_samples_file_name(self):
-        return self.output_base + "_parameter_samples_%d.hdf5" % self.step
+        return self.output_base + "pmc_parameter_samples_%d.hdf5" % self.step
 
     def create_job_script(self, sample_input_file, job_info, job_index):
         """
@@ -213,6 +208,7 @@ class PMC_Iterator(object):
             cmd += ' --pmc-calculate-posterior %s %d %d' % (sample_input_file, job_info.min, job_info.max)
             cmd += ' --pmc-final-chunksize 0'
             cmd += ' --pmc-dof %g' % self.dof
+            cmd += ' --pmc-adjust_sample_size %d' % self.adjust_sample_size
             cmd += ' ' + self.analysis
 
         # put every word in double quotes to be sure.
@@ -220,7 +216,7 @@ class PMC_Iterator(object):
         cmd = cmd.split()
         cmd = self.prefix + r'"' + r'" "'.join(cmd) + r'"'
 
-        script_name = self.output_job_base + "_job_%d_%d.sh" % (self.step, job_index)
+        script_name = self.output_job_base + "pmc_job_%d_%d.sh" % (self.step, job_index)
         job_info.script_name = script_name
 
         f = open(script_name, 'w')
@@ -266,7 +262,7 @@ class PMC_Iterator(object):
         cmd = cmd.split()
         cmd = self.prefix + r'"' + r'" "'.join(cmd) + r'"'
 
-        script = self.output_job_base + "_update_%d.sh" % self.step
+        script = self.output_job_base + "pmc_update_%d.sh" % self.step
         self.clean_files.append(script)
 
         f = open(script, 'w')
@@ -329,7 +325,7 @@ class PMC_Iterator(object):
 
     def first_step(self, input_file=None, final=False):
         """
-        Generate first set of samples, with PMC initialized from GlobalLocal or hierarchical clustering.
+        Generate first set of samples, with PMC initialized from hierarchical clustering.
         """
 
         output_file = self.create_samples_file_name() #output_base + "_parameter_samples_%d.hdf5" % self.step
@@ -338,6 +334,8 @@ class PMC_Iterator(object):
         cmd += ' --seed %d' % self.seed
         cmd += ' ' + self.general_options
         cmd += ' ' + self.initialization_options
+        cmd += ' ' + self.ignore_groups
+        cmd += ' --pmc-group-by-r-value %g' % self.group_by_r_value
         cmd += ' --chunks 1'
         cmd += ' --chunk-size %d' % self.chunk_size
         cmd += ' --use-pmc '
@@ -347,14 +345,10 @@ class PMC_Iterator(object):
             cmd += ' --pmc-final-chunksize %d' % self.final_chunk_size
             if final:
                 cmd += ' --pmc-final 1'
-        elif self.initialization_mode == 'GlobalLocal':
-            cmd += ' --pmc-components-per-cluster %d' % self.components_per_cluster
-            cmd += ' --pmc-initialize-from-file ' + self.gl_file_name
-            cmd += ' --pmc-final-chunksize 0'
         elif self.initialization_mode == 'HierarchicalClustering':
             cmd += ' --pmc-initialize-from-file ' + self.prerun_file_name
             cmd += ' --pmc-hierarchical-clusters %d' % self.target_number_of_clusters
-            cmd += ' --global-local-covariance-window %d' % self.sliding_window
+            cmd += ' --global-local-covariance-window %d' % self.patch_length
             cmd += ' --global-local-skip-initial %g' % self.skip_initial
             cmd += ' --pmc-final-chunksize 0'
         else:
@@ -371,7 +365,7 @@ class PMC_Iterator(object):
         print("Running first step with initialization from %s" % self.initialization_mode if input_file is None else input_file)
         status, output = commands.getstatusoutput(cmd)
 
-        log_file_name = self.output_job_base + "_step_%d.log" % self.step
+        log_file_name = self.output_job_base + "pmc_step_%d.log" % self.step
         f = open(log_file_name, 'w')
         f.write(cmd)
         f.write('\n\n')
@@ -396,7 +390,7 @@ class PMC_Iterator(object):
         print("samples_per_job: %d" % samples_per_job)
 
         for i in range(self.number_of_jobs):
-            job_infos[i] = JobInfo(i * samples_per_job, (i + 1) * samples_per_job, self.output_base + "_job_%d_%d.hdf5" % (self.step, i))
+            job_infos[i] = JobInfo(i * samples_per_job, (i + 1) * samples_per_job, self.output_base + "pmc_job_%d_%d.hdf5" % (self.step, i))
 
         job_infos[self.number_of_jobs - 1].max = n_samples
 
@@ -529,7 +523,7 @@ class PMC_Iterator(object):
         import h5py
         #import tables as pytables
 
-        merge_file_name = self.output_base + '_unc.hdf5'
+        merge_file_name = self.output_base + 'unc.hdf5'
 
         # keep track of which weights are to be ignored
         input_file = h5py.File(self.uncertainty_input, 'r')
@@ -755,7 +749,7 @@ class CondorIterator(PMC_Iterator):
         super(CondorIterator, self).__init__()
 
         # somehow need job scripts in home directory?
-        self.output_job_base = os.environ['HOME'] + '/job_scripts/'
+        self.output_job_base = environ['HOME'] + '/job_scripts/'
         self.options = CondorOptions()
 
     def control_jobs(self, cluster_id):
@@ -822,7 +816,7 @@ class CondorIterator(PMC_Iterator):
 
         cmd = ''
         cmd += 'Error        = ' + self.output_job_base + '_merge.log \n'
-        cmd += 'Executable   =  ' + os.environ['HOME'] + '/workspace/Sandbox/eos/jobs/job_manager_merge.sh \n' #todo remove hard coded name
+        cmd += 'Executable   =  ' + environ['HOME'] + '/workspace/Sandbox/eos/jobs/job_manager_merge.sh \n' #todo remove hard coded name
         cmd += 'Getenv       = True \n'
         cmd += 'Log          = %s \n' % condor_log_file_name
         cmd += 'Notification = NEVER \n'
@@ -940,21 +934,9 @@ class SGE_Options(object):
     """
 
     def __init__(self):
-
-        try:
-            self.queue = os.environ['SGE_QUEUE']
-        except KeyError:
-            self.queue = 'standard'
-
-        try:
-            self.final_queue = os.environ['SGE_FINAL_QUEUE']
-        except KeyError:
-            self.final_queue = 'standard'
-
-        try:
-            self.check_error_status = bool(os.environ['SGE_CHECK_ERROR_STATUS'])
-        except KeyError:
-            self.check_error_status = False
+        self.queue = env('SGE_QUEUE', 'standard')
+        self.final_queue = env('SGE_FINAL_QUEUE', 'standard')
+        self.check_error_status = bool(env('SGE_CHECK_ERROR_STATUS', False))
 
 class SGE_Iterator(PMC_Iterator):
 
@@ -963,9 +945,6 @@ class SGE_Iterator(PMC_Iterator):
 
         # somehow need job scripts in home directory?
 
-        self.output_job_base = os.path.join('/afs/ipp/home/f/fdb/JobOutput/',
-                                            os.environ['PMC_DATE'],
-                                            os.environ['PMC_FULL_SCENARIO'])
         if not os.path.isdir(self.output_job_base):
             os.makedirs(self.output_job_base)
 
@@ -1092,9 +1071,9 @@ def restart_jobs():
 
         if i == 481:
             print(cmd)
-    
+
         status, output = commands.getstatusoutput(cmd)
-    
+
         if status != 0 or not output:
             raise Exception("Couldn't submit to SGE queue: \n Tried '%s'\n\n and received:\n\n %s" % (cmd, output))
 
@@ -1195,17 +1174,17 @@ class Slurm_Options(object):
     def __init__(self):
 
         try:
-            self.queue = os.environ['SLURM_QUEUE']
+            self.queue = environ['SLURM_QUEUE']
         except KeyError:
             self.queue = 'default'
 
         try:
-            self.final_queue = os.environ['SLURM_FINAL_QUEUE']
+            self.final_queue = environ['SLURM_FINAL_QUEUE']
         except KeyError:
             self.final_queue = 'default'
 
         try:
-            self.check_error_status = bool(os.environ['SLURM_CHECK_ERROR_STATUS'])
+            self.check_error_status = bool(environ['SLURM_CHECK_ERROR_STATUS'])
         except KeyError:
             self.check_error_status = False
 
@@ -1217,8 +1196,8 @@ class Slurm_Iterator(PMC_Iterator):
         # somehow need job scripts in home directory?
 
         self.output_job_base = os.path.join('/scratch/vandyk/bayes2/JobOutput/',
-                                            os.environ['PMC_DATE'],
-                                            os.environ['PMC_FULL_SCENARIO'])
+                                            environ['PMC_DATE'],
+                                            environ['PMC_FULL_SCENARIO'])
         if not os.path.isdir(self.output_job_base):
             os.makedirs(self.output_job_base)
 
@@ -1336,9 +1315,9 @@ def restart_jobs():
 
         if i == 481:
             print(cmd)
-    
+
         status, output = commands.getstatusoutput(cmd)
-    
+
         if status != 0 or not output:
             raise Exception("Couldn't submit to Slurm queue: \n Tried '%s'\n\n and received:\n\n %s" % (cmd, output))
 
@@ -1346,7 +1325,7 @@ def main():
     import argparse
 
     parser = argparse.ArgumentParser(description='Job manager for PMC')
-    parser.add_argument('--first-step', help='Read info from GlobalLocal, and just initialize PMC', action='store_true')
+    parser.add_argument('--first-step', help='Read info from merged prerun, and just initialize PMC', action='store_true')
     parser.add_argument('--final', help="""Set status to converged, and just perform final step.
                                          Requires input via --input""", action='store_true')
     parser.add_argument('--force-final-step', help='Perform final step, even if PMC did not converge.', action='store_true')
