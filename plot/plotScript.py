@@ -1112,7 +1112,6 @@ class MarginalDistributions:
 
         # read all remaining chains
         for chain in chains[1:]:
-            print(prefix + '/chain #%d/samples' % chain)
             data = hdf5_file[prefix + '/chain #%d/samples' % chain][self.select[0]:self.select[1]]
             merged_chains = concatenate((merged_chains, data), axis=0)
             modes.append(hdf5_file[prefix + '/chain #%d/stats/mode' % chain][-1])
