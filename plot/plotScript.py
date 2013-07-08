@@ -2579,7 +2579,7 @@ def factory(cmd_line=None):
     parser.add_argument('--pmc-proposal', help="Plot PMC proposal function", action='store_true')
     parser.add_argument('--pmc-stats', help="Plot evolution of convergence diagnostics and evidence", action='store_true')
     parser.add_argument('--pmc-step', help="Use a specified step, default: final step", action='store')
-    parser.add_argument('--pmc-no-workaround', help="Treat input as file from population monte carlo, ugly format", action='store_true', default=True)
+    parser.add_argument('--pmc-workaround', help="Treat input as file from population monte carlo, ugly format", action='store_true', default=True)
     parser.add_argument('--prerun', help="Use prerun instead of main", action='store_true')
     parser.add_argument('--gof', help="Determine GoF for a particular point. Specify each coordinate independently as --gof i value, e.g. --gof 0 0.4 --gof 1 0.8 i<j, i,j=0...N-1", action='append', nargs=2)
     parser.add_argument('--use-data-range', help="Determine the parameter ranges from data, instead of from definition in HDF5. ", action='store', default=0.0)
@@ -2610,7 +2610,7 @@ def factory(cmd_line=None):
 
     #had some trouble getting the second argument out-of the namepace, so use the dictionary directly
     marg = MarginalDistributions(args.i, args.__dict__['use_KDE'], output_dir=args.__dict__['output_dir'],
-                                 input_source=input_source, pmc_workaround= not args.__dict__['pmc_no_workaround'],
+                                 input_source=input_source, pmc_workaround=args.pmc_workaround,
                                  pmc_crop_outliers=float(args.__dict__['pmc_crop_outliers']),
                                  pmc_equal_weights=args.__dict__['pmc_equal_weights'] or args.pmc_proposal,
                                  chains=args.chains or args.__dict__['pmc_step'], prerun=args.__dict__['prerun'],
