@@ -111,7 +111,7 @@ hc() {
 }
 
 export PMC_PARALLEL=1
-export PMC_CHUNKS=20
+export PMC_MAX_STEPS=20
 export PMC_CHUNKSIZE=3000
 export PMC_DOF=-1 ## Gaussian
 export PMC_INITIALIZATION="--pmc-patch-around-local-mode 0 --pmc-minimum-overlap 0.05"
@@ -151,7 +151,7 @@ pmc_monolithic() {
         --seed ${seed} \
         --debug \
         --parallel ${PMC_PARALLEL} \
-        --chunks ${PMC_CHUNKS} \
+        --chunks ${PMC_MAX_STEPS} \
         --chunk-size ${PMC_CHUNKSIZE} \
         --use-pmc \
         --pmc-dof ${PMC_DOF} \
