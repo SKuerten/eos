@@ -1189,13 +1189,10 @@ class Slurm_Options(object):
 class Slurm_Iterator(PMC_Iterator):
 
     def __init__(self):
-        super(SGE_Iterator, self).__init__()
+        super(Slurm_Iterator, self).__init__()
 
         # somehow need job scripts in home directory?
 
-        self.output_job_base = os.path.join('/scratch/vandyk/bayes2/JobOutput/',
-                                            environ['PMC_DATE'],
-                                            environ['PMC_FULL_SCENARIO'])
         if not os.path.isdir(self.output_job_base):
             os.makedirs(self.output_job_base)
 
@@ -1238,7 +1235,7 @@ class Slurm_Iterator(PMC_Iterator):
         log_file_name = self.output_job_base + '_update_%d' % self.step + '.log'
 #        self.clean_files.append(log_file_name)
 
-        cmd =  'qsub'
+        cmd =  'sbatch'
         #cmd += ' -q %s' % (self.options.final_queue if final else self.options.queue)
         cmd += ' -J job_update_%d' % self.step #job_indentifier
         cmd += ' -o %s' % log_file_name
@@ -1336,10 +1333,17 @@ def main():
     parser.add_argument('--restart', help="restart jobs to queue", action='store_true')
     parser.add_argument('--step', help='Set step', action='store')
     parser.add_argument('--uncertainty-propagation', help='Run uncertainty propagation on posterior samples', action='store_true')
+    parser.add_argument('--resource-manager', help='Resource manager selection for your cluster: SGE,Slurm', default='SGE')
     args = parser.parse_args()
     print("Initializing with args:")
     print(args.__dict__)
-    pmc_iterator = SGE_Iterator()
+    if args.resource_manager == "SGE":
+        pmc_iterator = SGE_Iterator()
+    elif args.resource_manager == "Slurm":
+        pmc_iterator = Slurm_Iterator()
+    else:
+        raise Exception("Invalid resource manager: %s" % args.resource_manager)
+
     if args.__dict__['uncertainty_propagation']:
         pmc_iterator.run_uncertainty(args.n_samples)
     elif args.restart:

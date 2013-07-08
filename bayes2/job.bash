@@ -175,6 +175,7 @@ pmc_monolithic() {
 
 export PMC_NUMBER_OF_JOBS=200
 export PMC_POLLING_INTERVAL=45
+export PMC_RESOURCE_MANAGER=${PMC_RESOURCE_MANAGER:-SGE}
 export SGE_QUEUE=short
 export SGE_FINAL_QUEUE=standard
 export SGE_CHECK_ERROR_STATUS=0
@@ -205,6 +206,7 @@ pmc_queue() {
     export PMC_MERGE_FILE=$PMC_OUTPUT_BASE_NAME/mcmc_pre_merged.hdf5
 
     $PYTHON $EOS_SCRIPT_PATH/../jobs/job_manager.py  \
+        --resource-manager ${PMC_RESOURCE_MANAGER} \
         $PMC_CLIENT_ARGV \
 	2>&1 | tee ${BASE_NAME}/${scenario}_${data}/manager.log
 }
