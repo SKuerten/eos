@@ -17,9 +17,8 @@ export NUISANCE_CKM="
 # From PDG 2012
 export NUISANCE_QUARK_MASSES="
     --nuisance    mass::c                                        0.0   2.0  ${N_SIGMAS}     --prior    gaussian    1.25      1.275     1.30
-    --nuisance    mass::b(MSbar)                                 4.1   4.4                  --prior    flat
+    --nuisance    mass::b(MSbar)                                            ${N_SIGMAS}     --prior    gaussian    4.15      4.18      4.21
 "
-#    --nuisance    mass::b(MSbar)                                            ${N_SIGMAS}     --prior    gaussian    4.15      4.18      4.21
 
 # From Lattice Averages, June 2013
 export NUISANCE_DECAY_CONSTANTS="
