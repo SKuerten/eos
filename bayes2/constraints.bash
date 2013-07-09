@@ -7,9 +7,10 @@ export CONSTRAINTS_B_TO_XSGAMMA="
     --global-option scan-mode cartesian
 
     --constraint B->X_sgamma::BR[1.8]@BaBar-2012
-    --constraint B->X_sgamma::E_1[1.8]+E_2[1.8]@BaBar-2012
-    --constraint B->X_sgamma::BR[1.8]+E_1[1.8]+E_2[1.8]@Belle-2009B
+    --constraint B->X_sgamma::BR[1.8]@Belle-2009B
 "
+#    --constraint B->X_sgamma::E_1[1.8]+E_2[1.8]@BaBar-2012
+#    --constraint B->X_sgamma::BR[1.8]+E_1[1.8]+E_2[1.8]@Belle-2009B
 
 export CONSTRAINTS_B_TO_KSTARGAMMA="
     --global-option model WilsonScan
