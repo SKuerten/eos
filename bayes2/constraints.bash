@@ -163,7 +163,7 @@ export CONSTRAINTS_B_TO_VLL_LOW_RECOIL="
 export CONSTRAINTS_B_TO_VLL_FF="
     --global-option form-factors KMPW2010
 
-    --kinematics s 0.0 --observable B->K^*::V(s)/A_1(s) 1.0 1.4 1.8
+    --kinematics s 0.0 --observable B->K^*::V(s)/A_1(s) 0.93 1.33 1.73
 "
 
 export CONSTRAINTS_B_MASS_SPLITTING="

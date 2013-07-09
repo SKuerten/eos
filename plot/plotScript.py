@@ -662,7 +662,7 @@ class MarginalDistributions:
     """
 
     def __init__(self, input_file_name, use_KDE=False, output_dir=None, input_source='pmc',
-                 pmc_workaround=False, pmc_equal_weights=False, pmc_crop_outliers=0,
+                 pmc_queue_output=False, pmc_equal_weights=False, pmc_crop_outliers=0,
                  chains=None, prerun=None, nuisance=True, select=(None, None), skip_initial=0,
                  projection=False, hc_comp=None):
 
@@ -748,7 +748,7 @@ class MarginalDistributions:
         #parse the data
         self.select = select
         if self.input_source == 'pmc':
-            self.data, self.par_defs, self.priors, self.stats, self.components = self.read_data_pmc(pmc_workaround, pmc_equal_weights, pmc_crop_outliers, hc_comp)
+            self.data, self.par_defs, self.priors, self.stats, self.components = self.read_data_pmc(pmc_queue_output, pmc_equal_weights, pmc_crop_outliers, hc_comp)
             self.modes = None
             self.global_mode_index = None
         elif self.input_source == 'mcmc':
@@ -883,7 +883,7 @@ class MarginalDistributions:
 
         return samples, weights, par_defs, priors, evidence, evidence_error
 
-    def read_data_pmc(self, workaround, equal_weights, crop_outliers, hc_comp):
+    def read_data_pmc(self, queue_output, equal_weights, crop_outliers, hc_comp):
 
         import h5py
 
@@ -895,7 +895,7 @@ class MarginalDistributions:
             step = str(self.single_chain)
 
         try:
-            if workaround:
+            if queue_output:
                 samples = hdf5_file["/data/samples"][self.select[0]:self.select[1]]
             else:
                 samples = hdf5_file["/data/" + step + "/samples"][self.select[0]:self.select[1]]
@@ -927,7 +927,7 @@ class MarginalDistributions:
                 if self.select[0] and self.select[1]:
                     size = self.select[1] - self.select[0]
                 self.weights = np.ones(size)
-            elif workaround:
+            elif queue_output:
                 self.weights = np.exp(hdf5_file['/data/weights'][self.select[0]:self.select[1]].T['weight'])
                 posterior = hdf5_file['/data/weights'][self.select[0]:self.select[1]].T['posterior']
             else:
@@ -978,7 +978,7 @@ class MarginalDistributions:
         # read statistics
         stats = []
 
-        if workaround:
+        if queue_output:
             try:
                 records = hdf5_file['/data/statistics'][:]
                 for record in records:
@@ -1016,7 +1016,7 @@ class MarginalDistributions:
                 data_set_name = '/hc/input-components'
             elif hc_comp == 'long':
                 data_set_name = '/hc/initial-guess'
-        elif workaround:
+        elif queue_output:
                 data_set_name = '/data/initial/components'
         else:
             if self.single_chain:
@@ -1027,8 +1027,10 @@ class MarginalDistributions:
 
         print("Reading components from %s" % data_set_name)
 
-        components = hdf5_file[data_set_name][:]
-
+        try:
+            components = hdf5_file[data_set_name][:]
+        except KeyError:
+            raise Exception("Incorrect file format: use --pmc-queue-output ?")
 
         try:
             chol = hdf5_file[data_set_name].attrs['chol']
@@ -2579,7 +2581,7 @@ def factory(cmd_line=None):
     parser.add_argument('--pmc-proposal', help="Plot PMC proposal function", action='store_true')
     parser.add_argument('--pmc-stats', help="Plot evolution of convergence diagnostics and evidence", action='store_true')
     parser.add_argument('--pmc-step', help="Use a specified step, default: final step", action='store')
-    parser.add_argument('--pmc-workaround', help="Treat input as file from population monte carlo, ugly format", action='store_true', default=True)
+    parser.add_argument('--pmc-queue-output', help="Treat input as file from PMC queue manager", action='store_true', default=False)
     parser.add_argument('--prerun', help="Use prerun instead of main", action='store_true')
     parser.add_argument('--gof', help="Determine GoF for a particular point. Specify each coordinate independently as --gof i value, e.g. --gof 0 0.4 --gof 1 0.8 i<j, i,j=0...N-1", action='append', nargs=2)
     parser.add_argument('--use-data-range', help="Determine the parameter ranges from data, instead of from definition in HDF5. ", action='store', default=0.0)
@@ -2610,7 +2612,7 @@ def factory(cmd_line=None):
 
     #had some trouble getting the second argument out-of the namepace, so use the dictionary directly
     marg = MarginalDistributions(args.i, args.__dict__['use_KDE'], output_dir=args.__dict__['output_dir'],
-                                 input_source=input_source, pmc_workaround=args.pmc_workaround,
+                                 input_source=input_source, pmc_queue_output=args.pmc_queue_output,
                                  pmc_crop_outliers=float(args.__dict__['pmc_crop_outliers']),
                                  pmc_equal_weights=args.__dict__['pmc_equal_weights'] or args.pmc_proposal,
                                  chains=args.chains or args.__dict__['pmc_step'], prerun=args.__dict__['prerun'],
