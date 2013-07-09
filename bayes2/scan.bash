@@ -30,3 +30,5 @@ export SCAN_scIV="
 export SCAN_scV="
         --scan      Re{c10}    -15.0    +15.0              --prior flat
 "
+
+export SCAN_sm=""
