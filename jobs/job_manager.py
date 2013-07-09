@@ -207,7 +207,6 @@ class PMC_Iterator(object):
             cmd += ' --pmc-calculate-posterior %s %d %d' % (sample_input_file, job_info.min, job_info.max)
             cmd += ' --pmc-final-chunksize 0'
             cmd += ' --pmc-dof %g' % self.dof
-            cmd += ' --pmc-adjust-sample-size %d' % self.adjust_sample_size
             cmd += ' ' + self.analysis
 
         # put every word in double quotes to be sure.
@@ -254,6 +253,7 @@ class PMC_Iterator(object):
             cmd += ' --pmc-crop-highest-weights %d' % n_crop
         cmd += ' --pmc-final-chunksize %d' % self.final_chunk_size
         cmd += ' --pmc-dof %g' % self.dof
+        cmd += ' --pmc-adjust-sample-size %d' % self.adjust_sample_size
         cmd += ' --output ' + output_file
         cmd += ' ' + self.analysis
 
