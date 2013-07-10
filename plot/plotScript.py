@@ -2560,7 +2560,7 @@ def factory(cmd_line=None):
     parser.add_argument('--1D-bins', help="Use fixed number of bins for 1D marginal distributions",action='store')
     parser.add_argument('--2D-bins', help="Use fixed number of bins for 2D marginal distributions",action='store')
     parser.add_argument('--1D-only', help="Plot only 1D marginal distributions",action='store_true')
-    parser.add_argument('--bandwidth', help="Number in [0,1] used as bandwidth for KDE interpolation after rescaling to unit coordinate cube", action='store', default=0.01)
+    parser.add_argument('--bandwidth', help="Number in [0,1] used as bandwidth for KDE interpolation after rescaling to unit coordinate cube", action='store')
     parser.add_argument('--chains', help="Use only the specified chain for plotting, instead of all available chains", type=int, nargs='+')
     parser.add_argument('--contours', help="Add one and two sigma contours",action='store_true')
     parser.add_argument('--compute-stats', help="Compute perplexity and effective sample size (PMC only)", action='store_true')
