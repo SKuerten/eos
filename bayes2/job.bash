@@ -33,7 +33,7 @@ mcmc_pre() {
         echo "No prerun index given!"
         exit -1
     fi
-    seed=$((12345 + ${idx} * 1000))
+    seed=$(expr 12345 "+" ${idx} "*" 1000)
 
     scan=SCAN_${scenario}
     constraints=CONSTRAINTS_${data}
