@@ -535,11 +535,14 @@ class MarginalDistributions:
         # repeat colors n times in proposal plots
         self.fold_color_spectrum = 0
 
+        # nuisance
+        self.use_nuisance = nuisance
+        self.no_nuisance_vs_nuisance = False
+        self.nuisance_2D = False
+
         ###
         #KDE settings
         ###
-        self.use_nuisance = nuisance
-        self.no_nuisance_vs_nuisance = False
 
         #evaluate KDE at fewer points than for histogram
         self.kde_reduction = 1
@@ -1656,7 +1659,7 @@ class MarginalDistributions:
     def two_dimensional(self, par1, par2):
 
         #do nothing if one of the parameters is a nuisance parameter
-        if not self.use_nuisance and (self.par_defs[par1].nuisance or self.par_defs[par2].nuisance):
+        if (not self.use_nuisance or not self.nuisance_2D) and (self.par_defs[par1].nuisance or self.par_defs[par2].nuisance):
             return False
 
         #don't plot one nuisance vs another nuisance parameter
@@ -2405,7 +2408,7 @@ def factory(cmd_line=None):
     parser.add_argument('--hc-initial', help="Read initial guess from long patches for hierarchical clustering",action='store_true')
     parser.add_argument('--hc-patches', help="Read components from short chain patches for hierarchical clustering",action='store_true')
     parser.add_argument('--min-prob', help="Whiten all bins with prob less than this value",action='store')
-    parser.add_argument('--nuisance', help="Plot nuisance parameters",action='store_true', default=False)
+    parser.add_argument('--nuisance', help="Plot nuisance parameters. If =\'1D\', then ignore 2D marginals", action='store', default=False)
     parser.add_argument('--no-nuisance-vs-nuisance', help="Don't produce 2D plots if both are nuisance parameters",action='store_true', default=False)
     parser.add_argument('--prior', help="Plot the prior in 1D distributions.",action='store_true')
     parser.add_argument('--single-1D', help="Plot only the 1D marginal distribution of the ith parameter, i=0...N-1", action='store')
@@ -2477,6 +2480,8 @@ def factory(cmd_line=None):
         marg.minimum_probability = float(args.min_prob)
     if args.nuisance:
         marg.no_nuisance_vs_nuisance = args.no_nuisance_vs_nuisance
+        if args.nuisance == '1D':
+            marg.nuisance_2D = False
     if args.__dict__['contours']:
         marg.use_contours = True
     if args.__dict__['cut']:
