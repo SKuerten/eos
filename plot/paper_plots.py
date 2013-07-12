@@ -5,16 +5,17 @@ Plot several distributions with their contours for paper
 
 import plotScript
 import plotUncertainty
-import pylab as P
 import matplotlib
 import matplotlib.ticker as ticker
 import matplotlib.patches
+import matplotlib.pyplot as P
 from matplotlib.lines import Line2D
 import numpy as np
 import os
 import itertools
 from collections import OrderedDict, defaultdict, namedtuple
 from sets import Set
+import sys
 
 def run_command(com):
     import commands
@@ -40,7 +41,8 @@ def wide_figure(x_size=8, ratio=4/3.0, left=0.08, right=0.95, top=0.95, bottom=0
     return ax
 
 class Scenario(object):
-    def __init__(self, file, color, nbins=150, alpha=0.4, sigma='2 sigma', bandwidth_default=None, two_sigma_color=None):
+    def __init__(self, file, color, nbins=150, alpha=0.4, sigma='2 sigma',
+                 bandwidth_default=None, two_sigma_color=None, queue_output=True):
         self.f = file
         self.c = color
         self.prob = {}
@@ -50,6 +52,7 @@ class Scenario(object):
         self.__bandwidth = {}
         self.__bandwidth_default = bandwidth_default
         self.two_sigma_color = two_sigma_color
+        self.queue_output = queue_output
 
     def get_bandwidth(self, par1, par2):
         try:
@@ -65,6 +68,8 @@ class MarginalContours(object):
     def __init__(self, input_base, output_base, ext='.pdf', max_samples=None, ignore_scenarios=None):
 
         self.output_base = os.path.join(output_base, "contour")
+        if not os.path.isdir(self.output_base):
+            os.mkdir(self.output_base)
         self.ext = ext
 
         self.pars = ['Re{c7}', 'Re{c9}', 'Re{c10}']
@@ -78,6 +83,9 @@ class MarginalContours(object):
         self.input_base = input_base
 
         self.scen = OrderedDict()
+        self.scen['scI_all'] = Scenario(os.path.join(self.input_base, 'pmc_final_scI_all.hdf5'), 'OrangeRed', bandwidth_default=0.005,
+                                    sigma='1+2 sigma', two_sigma_color='LightSalmon', alpha=1, queue_output=True)
+        """ Old scenarios
 
         self.scen['Pll'] = Scenario(self.input_base + 'sc1_BPll.hdf5', 'DarkGoldenRod', bandwidth_default=0.007)
         self.scen['Pll'].set_bandwidth('Re{c9}', 'Re{c10}', 0.01)
@@ -92,10 +100,9 @@ class MarginalContours(object):
 
         # bandwidth tuned for good looking bimodal plot; zoom ins have different bandwidths!
         self.scen['all_wide'] = Scenario(self.input_base + 'sc1_all_wide.hdf5', 'Black', bandwidth_default=0.005, sigma='1+2 sigma')
-#        self.scen['all_2sigma'] = Scenario(self.input_base + 'sc1_all_nuis.hdf5', 'LightSalmon', alpha=1)
         self.scen['all_nuis'] = Scenario(self.input_base + 'sc1_all_nuis.hdf5', 'OrangeRed', bandwidth_default=0.005,
                                     sigma='1+2 sigma', two_sigma_color='LightSalmon', alpha=1)
-
+        """
         # remove some for testing and increasing speed
         if ignore_scenarios:
             for s in ignore_scenarios:
@@ -103,6 +110,7 @@ class MarginalContours(object):
 
         print("Operating on: %s" % str(self.scen.keys()))
 
+        # SM prediction for C7, C9, C10
         self.sm_point = [-0.32741917, +4.27584794, -4.15077942]
         self.sm_point_style = dict(marker = 'D', markersize = 8, color = 'black')
 
@@ -134,15 +142,18 @@ class MarginalContours(object):
     ###
     # template for single plots
     ###
-    def command_template(self, input, nbins):
+    def command_template(self, scenario): #input, nbins, queue=False):
         cmd_template = ''
-        cmd_template += ' %s' % input
+        # input file
+        cmd_template += ' %s' % scenario.f
     #    cmd_template += ' --single-2D %d %d' % (par1, par2)
         cmd_template += ' --pmc-crop-outliers 200'
-        cmd_template += ' --2D-bins %d' % nbins
+        cmd_template += ' --2D-bins %d' % scenario.nbins
         if self.max_samples is not None:
             cmd_template += ' --select 0 %d' % self.max_samples
         cmd_template += ' --contours'
+        if scenario.queue_output:
+            cmd_template += ' --pmc-queue-output'
 
         for p in self.defs.itervalues():
             cmd_template += ' --cut %d %s %s' % (p.i, p.min, p.max)
@@ -154,7 +165,7 @@ class MarginalContours(object):
         nbins = 75
         self.margs = {}
         for k in self.scen.keys():
-            self.margs[k] = plotScript.factory(self.command_template(self.scen[k].f, self.scen[k].nbins))
+            self.margs[k] = plotScript.factory(self.command_template(self.scen[k]))  # self.scen[k].f, self.scen[k].nbins, self))
 
     def single_panel(self, def1, def2, bandwidth=None, SM_point=True, local_mode=True):
         """ Single marginal plot to compare wide with all nuis"""
@@ -305,32 +316,35 @@ class MarginalContours(object):
 
     def one_dim_nuisance_KMPW(self):
         """
-        Plot prior and posterior 1D for two different subscenarios in one plot.
+        Plot prior and posterior 1D of KMPW form factors for different subscenarios in one plot.
         """
         """
         plotScript.py sc1_BPll_parameter_samples_12.hdf5_merge  --nuisance --pmc-crop-outliers 200 --single-1D 12 --use-KDE --bandwidth 0.004
         plotScript.py sc1_BPll_parameter_samples_12.hdf5_merge  --nuisance --pmc-crop-outliers 200 --single-1D 13 --use-KDE --bandwidth 0.04
         """
 
-        scenarios = ('all_nuis', 'Pll')
+        scenarios = ('scI_all',)
 
-        parameters = ("B->K::F^p(0)@KMPW2010", "B->K::b^p_1@KMPW2010")
+        class ParameterProperty(object):
+            "Hold properties for each parameter plot"
+            def __init__(self, p, bandwidth=None, legend_pos='upper right'):
+                self.index = p
+                # None triggers automatic determination of bandwidth
+                self.bandwidth = bandwidth
+                self.legend_pos = legend_pos
 
-        bandwidths = {}
-        bandwidths[('Pll', "B->K::F^p(0)@KMPW2010")] = 0.004
-        bandwidths[('Pll', "B->K::b^p_1@KMPW2010")] = 0.04
-        bandwidths[('all_nuis', "B->K::F^p(0)@KMPW2010")] = 0.003
-        bandwidths[('all_nuis', "B->K::b^p_1@KMPW2010")] = 0.04
-
-        par_indices = {}
-        par_indices[('Pll', "B->K::F^p(0)@KMPW2010")] = 12
-        par_indices[('Pll', "B->K::b^p_1@KMPW2010")] = 13
-        par_indices[('all_nuis', "B->K::F^p(0)@KMPW2010")] = 13
-        par_indices[('all_nuis', "B->K::b^p_1@KMPW2010")] = 14
-
-        marginal_styles = {}
-        marginal_styles['Pll'] = dict(color=self.scen['Pll'].c, linestyle='dashed')
-        marginal_styles['all_nuis'] = dict(color=self.scen['all_nuis'].c, linestyle='solid')
+#        parameters = ("B->K::F^p(0)@KMPW2010", "B->K::b^p_1@KMPW2010")
+        props = {  "B->K^*::F^V(0)@KMPW2010": ParameterProperty(10),
+                   "B->K^*::b^V_1@KMPW2010": ParameterProperty(11),
+                   "B->K^*::F^A1(0)@KMPW2010": ParameterProperty(14),
+                   "B->K^*::b^A1_1@KMPW2010": ParameterProperty(15),
+                   "B->K^*::F^A2(0)@KMPW2010": ParameterProperty(16),
+                   "B->K^*::b^A2_1@KMPW2010": ParameterProperty(17),
+                   "B->K::F^p(0)@KMPW2010": ParameterProperty(25),
+                   "B->K::b^p_1@KMPW2010": ParameterProperty(26, legend_pos='upper left')
+                }
+        
+        marginal_styles = {'scI_all': dict(color=self.scen['scI_all'].c, linestyle='solid')}
 
         line_width = 1.5
         for m in marginal_styles.values():
@@ -338,48 +352,33 @@ class MarginalContours(object):
 
         prior_style = dict(color='black', linestyle='dotted', linewidth=line_width)
 
-        x_labels = {}
-        x_labels["B->K::b^p_1@KMPW2010"] = '$b_1^+$'
-        x_labels["B->K::F^p(0)@KMPW2010"] = '$f_{+}(0)$'
-
         x_size = 8; y_size = 6
 
-        for p in parameters:
+        for k, p in props.iteritems():
+            
+            for s in scenarios:
 
-            fig = P.figure(figsize=(x_size, y_size))
-            ax = fig.add_subplot(111)
-            fig.subplots_adjust(left=0.08)
-            fig.subplots_adjust(right=0.95)
-            fig.subplots_adjust(top=0.95)
-            fig.subplots_adjust(bottom=0.15)
+                fig = P.figure(figsize=(x_size, y_size))
+                ax = fig.add_subplot(111)
 
-            for n_sc, s in enumerate(scenarios):
-                i = par_indices[(s, p)]
-
-                try:
-                    bw = bandwidths[(s, p)]
-                except KeyError:
-                    bw = None
-                if bw is not None:
-                    self.margs[s].use_histogram = False
-                    self.margs[s].kde_bandwidth = bw
-                else:
-                    self.margs[s].use_histogram = True
+                self.margs[s].use_histogram = False
+                self.margs[s].kde_bandwidth = p.bandwidth
 
                 # don't skip this plot
                 self.margs[s].use_nuisance = True
                 self.margs[s].use_contours = False
-                self.margs[s].plot_prior = (n_sc == 0)
-#                self.margs[s].use_histogram = True
+                self.margs[s].plot_prior = True
 
-                self.margs[s].one_dimensional(i, marginal_style=marginal_styles[s], prior_style=prior_style)
+                self.margs[s].one_dimensional(p.index, marginal_style=marginal_styles[s], prior_style=prior_style,
+                                              legend_label='$\mathrm{posterior}$', prior_label='$\mathrm{prior}$')
 
-            P.xlabel(x_labels[p])
-            ax.xaxis.set_minor_locator(matplotlib.ticker.AutoMinorLocator())
-#            ax.yaxis.set_minor_locator(matplotlib.ticker.AutoMinorLocator())
-            P.setp(ax.get_yticklabels(), visible=False)
-
-            P.savefig(self.out('nuis_1D_FF_%s' % p))
+                P.legend(loc=p.legend_pos)
+                P.xlabel(self.margs[s].tr.to_tex(k))
+                ax.xaxis.set_minor_locator(matplotlib.ticker.AutoMinorLocator())
+    #            ax.yaxis.set_minor_locator(matplotlib.ticker.AutoMinorLocator())
+                P.setp(ax.get_yticklabels(), visible=False)
+                P.tight_layout()
+                P.savefig(self.out('nuis_1D_FF_%s' % k))
 
     def one_dim_nuisance_BZ(self):
         """
@@ -455,7 +454,6 @@ class MarginalContours(object):
         """
 
         P.figure(figsize=(8,8))
-        tr = plotScript.Translator()
         for k in self.scen.keys():
             for i, p1 in enumerate(self.pars):
                 for j, p2 in enumerate(self.pars[self.pars.index(p1) + 1:]):
@@ -468,8 +466,8 @@ class MarginalContours(object):
                                **self.best_fit_points_style[n])
 
                     # add axis labels
-                    P.xlabel(tr.to_tex(p1))
-                    P.ylabel(tr.to_tex(p2))
+                    P.xlabel(self.margs[k].tr.to_tex(p1))
+                    P.ylabel(self.margs[k].tr.to_tex(p2))
 
                     # todo move to separate function
                     # plot/store density arrays
@@ -490,7 +488,6 @@ class MarginalContours(object):
         # create overlays
         ###
         P.figure(figsize=(8,8))
-        tr = plotScript.Translator()
 
         for i, p1 in enumerate(self.pars):
             for j, p2 in enumerate(self.pars[self.pars.index(p1) + 1:]):
@@ -498,9 +495,9 @@ class MarginalContours(object):
                 # draw SM point
                 P.plot(self.sm_point[self.defs[p1].i], self.sm_point[self.defs[p2].i], **self.sm_point_style)
 
-                P.xlabel(tr.to_tex(p1))
-                P.ylabel(tr.to_tex(p2))
                 for k in self.scen.keys():
+                    P.xlabel(self.margs[k].tr.to_tex(p1))
+                    P.ylabel(self.margs[k].tr.to_tex(p2))
                     # draw contours
                     CS = self.margs[k].contours_two(self.defs[p1].range, self.defs[p2].range, self.scen[k].prob[(p1,p2)],
                                    desired_levels=self.scen[k].sigma, color=self.scen[k].c, grid=False)
@@ -522,14 +519,13 @@ class MarginalContours(object):
         """
 
         """
-        plotScript.py sc1_all_nuis.hdf5 --single-1D 0 --contours --1D-bins 600 --use-data-range 0.05
-        plotScript.py sc1_all_nuis.hdf5 --single-1D 0 --contours --1D-bins 250 --use-data-range 0.05 --use-KDE --bandwidth 0.005
+        plotScript.py pmc_final_scI_all.hdf5 --single-1D 0 --contours --1D-bins 200 --use-data-range 0.05 --pmc-queue-output --pmc-crop 50
 
-        plotScript.py sc1_all_nuis.hdf5 --single-1D 1 --contours --1D-bins 300 --use-data-range 0.05
-        plotScript.py sc1_all_nuis.hdf5 --single-1D 1 --contours --1D-bins 400 --use-data-range 0.05 --use-KDE --bandwidth 0.015
+        plotScript.py pmc_final_scI_all.hdf5 --single-1D 1 --contours --1D-bins 150 --use-data-range 0.05 --pmc-queue-output --pmc-crop 50
+        plotScript.py pmc_final_scI_all.hdf5 --single-1D 1 --contours --1D-bins 150 --use-data-range 0.05 --pmc-queue-output --pmc-crop 50 --use-KDE --bandwidth 0.08
 
-        plotScript.py sc1_all_nuis.hdf5 --single-1D 2 --contours --1D-bins 300 --use-data-range 0.05
-        plotScript.py sc1_all_nuis.hdf5 --single-1D 2 --contours --1D-bins 400 --use-data-range 0.05 --use-KDE --bandwidth 0.015
+        plotScript.py pmc_final_scI_all.hdf5 --single-1D 2 --contours --1D-bins 150 --use-data-range 0.05 --pmc-queue-output --pmc-crop 50
+        plotScript.py pmc_final_scI_all.hdf5 --single-1D 2 --contours --1D-bins 150 --use-data-range 0.05 --pmc-queue-output --pmc-crop 50 --use-KDE --bandwidth 0.05
 
         same for wide priors for c7. For 9 use bandwidth 0.018
 
@@ -562,7 +558,7 @@ class MarginalContours(object):
         bandwidths[('all_wide', 'Re{c9}')] = 0.06
         bandwidths[('all_wide', 'Re{c10}')] = 0.06
 
-        for s in ('all_nuis',):#'all_nuis',):,
+        for s in ('all_nuis',):
             marg = self.margs[s]
             marg.fixed_1D_binning = True
 
@@ -1054,24 +1050,37 @@ if __name__ == '__main__':
     matplotlib.rcParams['font.size'] = 22
     matplotlib.rcParams['xtick.major.pad'] = 10
     matplotlib.rcParams['ytick.major.pad'] = 10
-#    if os.environ['HOSTNAME'] == 'pcl128c':
-#        matplotlib.rcParams['text.usetex'] = False
 
-    # input_base = '/home/pcl312/beaujean/Data/EOS/bsll-paper/'
-    # output_base = "/.th/pcl128c/scratch/beaujean/EOS/bsll-paper/"
+    try:
+        input_base = os.environ['EOS_RESULTS']
+    except KeyError:
 
-    input_base = '/home/pcl312/beaujean/Data/EOS/proceeding/'
-    output_base = "/.th/pcl128c/scratch/beaujean/EOS/proceeding/"
+        msg = """\
+Set EOS_RESULTS to base directory (e.g. with symlinks)
+that contains the final results
+Example:
+~/data/eos$ ll summer2013/
+total 456K
+lrwxrwxrwx 1 beaujean beaujean   56 Jul 12 13:09 pmc_final_scI_all.hdf5 -> ../2013-07-09/scI_all/pmc_parameter_samples_5.hdf5_merge
+"""
+        print >> sys.stderr, msg
+        raise
+
+    output_base = input_base
 
 #    pull(output_base, mode=0, SM=False)
 
-    marg = MarginalContours(input_base, output_base, max_samples=None,
-                            ignore_scenarios=('all_wide',))#,'Vll_lowRec', 'Vll_largeRec', 'Pll'))
-    # marg.one_dim_nuisance_KMPW()
+    # ##
+    # actions
+    # ##
+    marg = MarginalContours(input_base, output_base, max_samples=None,)
+#                            ignore_scenarios=('all_wide',)),'Vll_lowRec', 'Vll_largeRec', 'Pll'))
+
+    marg.one_dim_nuisance_KMPW()
     # marg.one_dim_nuisance_BZ()
-    marg.single_scenario(); marg.overlays()
+#     marg.single_scenario(); marg.overlays()
 #    marg.all_nuis_vs_wide()
-    marg.credibility_regions()
+#     marg.credibility_regions()
 
 #    unc = UncertaintyMarginals(output_base, scenarios=['NP'], n_samples=None)
 #    unc.plot()
