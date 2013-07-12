@@ -1395,19 +1395,19 @@ class MarginalDistributions:
         # find connected regions
         runs = find_runs(points_95, True)
 
-        """
-        #green band for each interval
-        for run in runs:
-            P.fill_between(x[run[0]:run[1]], 0, prob_density[run[0]:run[1]], facecolor='yellow', alpha=0.6)
-        """
         # print intervals
         intervals_95 = []
+        local_modes = []
         for run in runs:
             print(run)
             intervals_95.append([x[run[0]], x[run[1] - 1]])
             intervals_95[-1].append(intervals_95[-1][1] - intervals_95[-1][0])
+            mode_index = run[0] + np.argmax(prob_density[run[0]:run[1]])
+            local_modes.append((x[mode_index] + x[mode_index + 1]) / 2.0)
         print("Minimal 2 sigma intervals:")
         print(np.array(intervals_95))
+        print("Local marginalized mode(s):")
+        print(np.array(local_modes))
 
         ###
         # one sigma intervals
@@ -1416,24 +1416,15 @@ class MarginalDistributions:
 
         # find connected regions
         runs = find_runs(points_68, True)
-        """
-        #green band for each interval
-        for run in runs:
-            P.fill_between(x[run[0]:run[1]], 0, prob_density[run[0]:run[1]], facecolor='green', alpha=1)
-        """
+
         # print intervals
         intervals_68 = []
-        local_modes = []
         for run in runs:
             intervals_68.append([x[run[0]], x[run[1] - 1]])
             intervals_68[-1].append(intervals_68[-1][1] - intervals_68[-1][0])
-            mode_index = run[0] + np.argmax(prob_density[run[0]:run[1]])
-            local_modes.append((x[mode_index] + x[mode_index + 1]) / 2.0)
 
         print("Minimal 1 sigma intervals:")
         print(np.array(intervals_68))
-        print("Local marginalized mode(s):")
-        print(np.array(local_modes))
 
     def one_dimensional(self, index,
                         prior_style=dict(color='black', linestyle='dashed'),
@@ -1516,7 +1507,7 @@ class MarginalDistributions:
 
                  self.__extract_smallest_intervals(hist_normal[0], probability_array, level_68, level_95)
 
-                 #draw 95% bins in yellow, 68% in green
+                 # draw 95% bins in light blue, 68% in opaque blue
                  self.contours_one(hist_normal[0], hist_normal[1], level_95, 'two_sigma', 'hist', facecolor='blue', alpha=0.4, linewidth=0, edgecolor='none')
                  self.contours_one(hist_normal[0], hist_normal[1], level_68, 'one_sigma', 'hist', facecolor='blue', alpha=1, linewidth=0, edgecolor='none')
 
@@ -1555,6 +1546,7 @@ class MarginalDistributions:
 
             P.plot(finer_mesh, densities_interp, label=legend_label, **marginal_style)
 
+            # todo why is this almost a copy of _extract* ?
             #now add credibility bands
             if self.use_contours:
                 ###
@@ -1573,9 +1565,11 @@ class MarginalDistributions:
 
                 # print intervals
                 intervals_95 = []
+                local_modes = []
                 for run in runs:
                     intervals_95.append([finer_mesh[run[0]], finer_mesh[run[1] - 1]])
                     intervals_95[-1].append(intervals_95[-1][1] - intervals_95[-1][0])
+                    local_modes.append(finer_mesh[run[0] + np.argmax(densities_interp[run[0]:run[1]])])
                 print("Minimal 2 sigma intervals:")
                 print(np.array(intervals_95))
 
@@ -1593,11 +1587,9 @@ class MarginalDistributions:
 
                 # print intervals
                 intervals_68 = []
-                local_modes = []
                 for run in runs:
                     intervals_68.append([finer_mesh[run[0]], finer_mesh[run[1] - 1]])
                     intervals_68[-1].append(intervals_68[-1][1] - intervals_68[-1][0])
-                    local_modes.append(finer_mesh[run[0] + np.argmax(densities_interp[run[0]:run[1]])])
 
                 print("Minimal 1 sigma intervals:")
                 print(np.array(intervals_68))
@@ -2408,7 +2400,7 @@ def factory(cmd_line=None):
     parser.add_argument('--hc-initial', help="Read initial guess from long patches for hierarchical clustering",action='store_true')
     parser.add_argument('--hc-patches', help="Read components from short chain patches for hierarchical clustering",action='store_true')
     parser.add_argument('--min-prob', help="Whiten all bins with prob less than this value",action='store')
-    parser.add_argument('--nuisance', help="Plot nuisance parameters. If =\'1D\', then ignore 2D marginals", action='store', default=False)
+    parser.add_argument('--nuisance', help="Plot nuisance parameters.", action='store_true', default=False)
     parser.add_argument('--no-nuisance-vs-nuisance', help="Don't produce 2D plots if both are nuisance parameters",action='store_true', default=False)
     parser.add_argument('--prior', help="Plot the prior in 1D distributions.",action='store_true')
     parser.add_argument('--single-1D', help="Plot only the 1D marginal distribution of the ith parameter, i=0...N-1", action='store')
