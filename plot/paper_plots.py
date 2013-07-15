@@ -83,8 +83,11 @@ class MarginalContours(object):
         self.input_base = input_base
 
         self.scen = OrderedDict()
-        self.scen['scI_all'] = Scenario(os.path.join(self.input_base, 'pmc_final_scI_all.hdf5'), 'OrangeRed', bandwidth_default=0.005,
-                                    sigma='1+2 sigma', two_sigma_color='LightSalmon', alpha=1, queue_output=True)
+        self.scen['scI_all'] = Scenario(os.path.join(self.input_base, 'pmc_final_scI_all.hdf5'), 'Green', bandwidth_default=0.005,
+                                    sigma='1+2 sigma', two_sigma_color='LightGreen', alpha=1, queue_output=True)
+        self.scen['scI_excl'] = Scenario(os.path.join(self.input_base, 'pmc_monolithic_scI_excl.hdf5'), 'Blue', bandwidth_default=0.005,
+                                        sigma='1+2 sigma', two_sigma_color='LightBlue', alpha=1, queue_output=False)
+
         """ Old scenarios
 
         self.scen['Pll'] = Scenario(self.input_base + 'sc1_BPll.hdf5', 'DarkGoldenRod', bandwidth_default=0.007)
@@ -100,9 +103,10 @@ class MarginalContours(object):
 
         # bandwidth tuned for good looking bimodal plot; zoom ins have different bandwidths!
         self.scen['all_wide'] = Scenario(self.input_base + 'sc1_all_wide.hdf5', 'Black', bandwidth_default=0.005, sigma='1+2 sigma')
-        self.scen['all_nuis'] = Scenario(self.input_base + 'sc1_all_nuis.hdf5', 'OrangeRed', bandwidth_default=0.005,
-                                    sigma='1+2 sigma', two_sigma_color='LightSalmon', alpha=1)
         """
+        self.scen['all_nuis'] = Scenario(os.path.join(self.input_base, 'sc1_all_nuis.hdf5'), 'OrangeRed', bandwidth_default=0.005,
+                                         sigma='1+2 sigma', two_sigma_color='LightSalmon', alpha=1)
+
         # remove some for testing and increasing speed
         if ignore_scenarios:
             for s in ignore_scenarios:
@@ -125,15 +129,43 @@ class MarginalContours(object):
         self.max_samples = max_samples
         self.read_data()
 
-        # store bandwidths
+        # store bandwidths for comparison of two scenarios
         # format: (i, j, par1, par2)
-        self.all_nuis_wide_bandwidths = {}
+        self.comparison_bandwidths = {}
 
-    def __get_bandwidth__(self, i, j, par1, par2):
-        try:
-            return self.all_nuis_wide_bandwidths[(i, j, par1, par2)]
-        except KeyError:
-            return None
+        # define bandwidths for each individual plot
+        bw = 0.005
+        self.comparison_bandwidths[('all_nuis', 1, 0, 'Re{c7}', 'Re{c9}')] = bw * 1.4  # top
+        self.comparison_bandwidths[('all_nuis', 0, 1, 'Re{c7}', 'Re{c9}')] = bw * 1.4  # bottom
+        self.comparison_bandwidths[('all_nuis', 0, 0, 'Re{c7}', 'Re{c10}')] = bw * 1.6  # bottom
+        self.comparison_bandwidths[('all_nuis', 1, 1, 'Re{c7}', 'Re{c10}')] = bw * 1.6  # top
+        self.comparison_bandwidths[('all_nuis', 1, 0, 'Re{c9}', 'Re{c10}')] = bw * 1.5  # bottom
+        self.comparison_bandwidths[('all_nuis', 0, 1, 'Re{c9}', 'Re{c10}')] = bw * 1.4  # top
+
+        self.comparison_bandwidths[('scI_all', 1, 0, 'Re{c7}', 'Re{c9}')] = bw * 1.4  # top
+        self.comparison_bandwidths[('scI_all', 0, 1, 'Re{c7}', 'Re{c9}')] = bw * 1.4  # bottom
+        self.comparison_bandwidths[('scI_all', 0, 0, 'Re{c7}', 'Re{c10}')] = bw * 1.6  # bottom
+        self.comparison_bandwidths[('scI_all', 1, 1, 'Re{c7}', 'Re{c10}')] = bw * 1.6  # top
+        self.comparison_bandwidths[('scI_all', 1, 0, 'Re{c9}', 'Re{c10}')] = bw * 1.5  # bottom
+        self.comparison_bandwidths[('scI_all', 0, 1, 'Re{c9}', 'Re{c10}')] = bw * 1.4  # top
+
+        self.comparison_bandwidths[('scI_excl', 1, 0, 'Re{c7}', 'Re{c9}')] = bw * 1.4  # top
+        self.comparison_bandwidths[('scI_excl', 0, 1, 'Re{c7}', 'Re{c9}')] = bw * 1.4  # bottom
+        self.comparison_bandwidths[('scI_excl', 0, 0, 'Re{c7}', 'Re{c10}')] = bw * 1.6  # bottom
+        self.comparison_bandwidths[('scI_excl', 1, 1, 'Re{c7}', 'Re{c10}')] = bw * 1.6  # top
+        self.comparison_bandwidths[('scI_excl', 1, 0, 'Re{c9}', 'Re{c10}')] = bw * 1.5  # bottom
+        self.comparison_bandwidths[('scI_excl', 0, 1, 'Re{c9}', 'Re{c10}')] = bw * 1.4  # top
+
+        self.comparison_defs = {}
+        self.comparison_defs['Re{c7}'] = (plotScript.ParameterDefinition(name='Re{c7}', min=+0.0, max=+0.7, index=self.pars.index('Re{c7}'), n_major_ticks=3),
+                                plotScript.ParameterDefinition(name='Re{c7}', min=-0.7, max=0.0, index=self.pars.index('Re{c7}'), n_major_ticks=3))
+        self.comparison_defs['Re{c9}'] = (plotScript.ParameterDefinition(name='Re{c9}', min=+1.5, max=+7.5, index=self.pars.index('Re{c9}'), n_major_ticks=3),
+                                plotScript.ParameterDefinition(name='Re{c9}', min=-8, max=-2, index=self.pars.index('Re{c9}'), n_major_ticks=3))
+        self.comparison_defs['Re{c10}'] = (plotScript.ParameterDefinition(name='Re{c10}', min=+1, max=+6, index=self.pars.index('Re{c10}'), n_major_ticks=3),
+                                 plotScript.ParameterDefinition(name='Re{c10}', min=-6, max=-1, index=self.pars.index('Re{c10}'), n_major_ticks=3))
+
+        # store expensive calculation of contours
+        self.__density_cache = {}
 
     def out(self, name):
         """ Create output file name"""
@@ -167,34 +199,41 @@ class MarginalContours(object):
         for k in self.scen.keys():
             self.margs[k] = plotScript.factory(self.command_template(self.scen[k]))  # self.scen[k].f, self.scen[k].nbins, self))
 
-    def single_panel(self, def1, def2, bandwidth=None, SM_point=True, local_mode=True):
-        """ Single marginal plot to compare wide with all nuis"""
+    def single_panel(self, pos1, pos2, def1, def2, SM_point=True, local_mode=False, scenarios=('all_wide', 'all_nuis')):
+        """
+        Single marginal plot to compare two scenarios
+
+        First scenario is plotted with filled colored regions,
+        the second is plotted with contour lines
+        """
+
+        assert(len(scenarios) in (1, 2))
 
         # parameter indices in EOS output file
         i = self.pars.index(def1.name)
         j = self.pars.index(def2.name)
 
-        scenarios = ('all_wide', 'all_nuis')
-
-        prob_density = {}
-
-        # apply range cuts and compute density
+        # compute and cache densities
         for s in scenarios:
-            self.margs[s].cuts[i] = def1.range
-            self.margs[s].cuts[j] = def2.range
-            if bandwidth is not None:
-                self.margs[s].use_histogram = False
-                self.margs[s].kde_bandwidth = bandwidth
-                print("bandwidth = %g " %bandwidth)
-            else:
-                self.margs[s].use_histogram = True
-            prob_density[s] = self.margs[s].two_dimensional(i, j)
+            if not self.__density_cache.has_key((i, j, s)):
+                bandwidth = self.comparison_bandwidths.get((s, pos1, pos2, def1.name, def2.name), None)
+                if bandwidth is not None:
+                    self.margs[s].use_histogram = False
+                    self.margs[s].kde_bandwidth = bandwidth
+                    print("bandwidth = %g " % bandwidth)
+                else:
+                    self.margs[s].use_histogram = True
+                self.__density_cache[(i, j, s)] = self.margs[s].two_dimensional(i, j)
 
         P.cla()
 
-        for s in scenarios:
-            self.margs[s].contours_two(def1.range, def2.range, prob_density[s],
-                                       color=self.scen[s].c, line=True if s == 'all_wide' else False)
+        for k, s in enumerate(scenarios):
+            # retrieve original range used to create prob_density
+            # then zoom will work correctly
+            xrange = (self.defs[def1.name].min, self.defs[def1.name].max)
+            yrange = (self.defs[def2.name].min, self.defs[def2.name].max)
+            artist = self.margs[s].contours_two(xrange, yrange, self.__density_cache[(i, j, s)],
+                                                color=self.scen[s].c, line=bool(k), grid=False)
 
         if SM_point:
             P.plot(self.sm_point[i], self.sm_point[j], **self.sm_point_style)
@@ -210,7 +249,7 @@ class MarginalContours(object):
         ax.yaxis.set_major_locator(ticker.LinearLocator(def2.n_major_ticks))
         ax.set_ylim(def2.range)
 
-    def all_nuis_stack(self, def1, def2, like_sign=False, flip_order=False):
+    def all_nuis_stack(self, def1, def2, like_sign=False, flip_order=False, scenarios=('all_wide', 'all_nuis')):
         """
         Plot two panels, one on top of the other with
         marginal distribution for two parameters.
@@ -231,17 +270,18 @@ class MarginalContours(object):
             ind = ind[::-1]
 
         ax1 = P.subplot(211)
-        self.single_panel(def1[ind[0]], def2[ind[1]], self.__get_bandwidth__(ind[0], ind[1], def1[0].name, def2[0].name))
+        self.single_panel(ind[0], ind[1], def1[ind[0]], def2[ind[1]], scenarios=scenarios)
 
         if like_sign:
             ind = (0, 0)
 
         ax2 = P.subplot(212)
-        self.single_panel(def1[ind[1]], def2[ind[0]], self.__get_bandwidth__(ind[1], ind[0], def1[0].name, def2[0].name))
+        self.single_panel(ind[1], ind[0], def1[ind[1]], def2[ind[0]], scenarios=scenarios)
 
         # Set common labels
-        fig.text(0.52, 0.04, plotScript.Translator.to_tex(def1[0].name), ha='center', va='center')
-        fig.text(0.04, 0.52, plotScript.Translator.to_tex(def2[0].name), ha='center', va='center', rotation='vertical')
+        tr = self.margs[scenarios[0]].tr
+        fig.text(0.52, 0.04, tr.to_tex(def1[0].name), ha='center', va='center')
+        fig.text(0.04, 0.52, tr.to_tex(def2[0].name), ha='center', va='center', rotation='vertical')
 
         fig.subplots_adjust(left=0.2)
 #        fig.subplots_adjust(right=right_adjust)
@@ -253,66 +293,61 @@ class MarginalContours(object):
         compare all_nuis with all_wide
         """
 
-        tight_defs = {}
-        tight_defs['Re{c7}'] = (plotScript.ParameterDefinition(name='Re{c7}', min=+0.0, max=+0.7, index=self.pars.index('Re{c7}'), n_major_ticks=3),
-                                plotScript.ParameterDefinition(name='Re{c7}', min=-0.7, max=0.0, index=self.pars.index('Re{c7}'), n_major_ticks=3))
-        tight_defs['Re{c9}'] = (plotScript.ParameterDefinition(name='Re{c9}', min=+1.5, max=+7.5, index=self.pars.index('Re{c9}'), n_major_ticks=3),
-                                plotScript.ParameterDefinition(name='Re{c9}', min=-8, max=-2, index=self.pars.index('Re{c9}'), n_major_ticks=3))
-        tight_defs['Re{c10}'] = (plotScript.ParameterDefinition(name='Re{c10}', min=+1, max=+6, index=self.pars.index('Re{c10}'), n_major_ticks=3),
-                                 plotScript.ParameterDefinition(name='Re{c10}', min=-6, max=-1, index=self.pars.index('Re{c10}'), n_major_ticks=3))
-
-        # define bandwidths for each individual plot
-        bw = 0.02
-        self.all_nuis_wide_bandwidths[(1, 0, 'Re{c7}', 'Re{c9}')]  = bw * 1.4   # top
-        self.all_nuis_wide_bandwidths[(0, 1, 'Re{c7}', 'Re{c9}')]  = bw * 1.4   # bottom
-        self.all_nuis_wide_bandwidths[(0, 0, 'Re{c7}', 'Re{c10}')] = bw * 1.6   # bottom
-        self.all_nuis_wide_bandwidths[(1, 1, 'Re{c7}', 'Re{c10}')] = bw * 1.6   # top
-        self.all_nuis_wide_bandwidths[(1, 0, 'Re{c9}', 'Re{c10}')] = bw * 1.5   # bottom
-        self.all_nuis_wide_bandwidths[(0, 1, 'Re{c9}', 'Re{c10}')] = bw * 1.4   # top
-
-        self.all_nuis_stack(tight_defs['Re{c7}'], tight_defs['Re{c9}'])
+        self.all_nuis_stack(self.comparison_defs['Re{c7}'], self.comparison_defs['Re{c9}'])
         P.savefig(self.out("all_nuis_wide_0_1"))
 
-        self.all_nuis_stack(tight_defs['Re{c7}'], tight_defs['Re{c10}'], like_sign=True)
+        self.all_nuis_stack(self.comparison_defs['Re{c7}'], self.comparison_defs['Re{c10}'], like_sign=True)
         P.savefig(self.out("all_nuis_wide_0_2"))
 
-        self.all_nuis_stack(tight_defs['Re{c9}'], tight_defs['Re{c10}'], flip_order=True)
+        self.all_nuis_stack(self.comparison_defs['Re{c9}'], self.comparison_defs['Re{c10}'], flip_order=True)
         P.savefig(self.out("all_nuis_wide_1_2"))
 
-        return
-
+    def compare_scenarios(self):
+        """
+        compare multiple scenarios in overlays with filled and contoured regions
         """
 
-        for p1 in self.pars:
-            for p2 in self.pars[i + 1:]:
-                panel = 0
+        combinations = (('all_nuis',),
+                        ('all_nuis', 'scI_all'),
+                        ('all_nuis', 'scI_excl'))
+        
+#         self.comparison_bandwidths = {}
 
-                prob_density = {}
-                # apply range cuts and compute density
-                for s in scenarios:
-                    self.margs[s].cuts[i] = tight_defs[p1][panel].range
-                    self.margs[s].cuts[j] = tight_defs[p2][panel].range
-                    prob_density[s] = self.margs[s].two_dimensional(i, j)
+        for c in combinations:
+            self.all_nuis_stack(self.comparison_defs['Re{c7}'], self.comparison_defs['Re{c9}'], scenarios=c)
+            P.savefig(self.out("%s_0_1" % '_'.join(c)))
 
-                P.clf()
+            self.all_nuis_stack(self.comparison_defs['Re{c7}'], self.comparison_defs['Re{c10}'], like_sign=True, scenarios=c)
+            P.savefig(self.out("%s_0_2" % '_'.join(c)))
 
-                for s in scenarios:
-                    self.margs[s].contours_two(tight_defs[p1][panel].range, tight_defs[p2][panel].range, prob_density[s], color=self.scen[s].c)
+            self.all_nuis_stack(self.comparison_defs['Re{c9}'], self.comparison_defs['Re{c10}'], flip_order=True, scenarios=c)
+            P.savefig(self.out("%s_1_2" % '_'.join(c)))
 
-                P.subplot(212)
-                panel = 1
+    def scI_all_vs_excl(self):
+        """
+        compare scI-all with scI-excl
+        """
 
-
-
-        self.margs['all_wide'].contours_two(tight_defs['c7-'].range, tight_defs['c9+'].range, self.scen['all_wide'].prob[(0, 1)], color=self.scen['all_wide'].c)
-        self.margs['all_2sigma'].contours_two(tight_defs['c7-'].range, tight_defs['c9+'].range, self.scen['all_2sigma'].prob[(0, 1)], color=self.scen['all_2sigma'].c)
-        P.subplot(212)
-        self.margs['all_wide'].cuts[self.pars.index('Re{c7}')] = tight_defs['c7+'].range
-        self.margs['all_wide'].cuts[self.pars.index('Re{c9}')] = tight_defs['c9-'].range
-
-        self.margs['all_wide'].two_dimensional(0, 1)
+        scenarios = ('scI_excl', 'scI_all',)
 
         """
+        # define bandwidths for each individual plot
+        bw = 0.02
+        self.comparison_bandwidths[(1, 0, 'Re{c7}', 'Re{c9}')] = bw * 1.4  # top
+        self.comparison_bandwidths[(0, 1, 'Re{c7}', 'Re{c9}')] = bw * 1.4  # bottom
+        self.comparison_bandwidths[(0, 0, 'Re{c7}', 'Re{c10}')] = bw * 1.6  # bottom
+        self.comparison_bandwidths[(1, 1, 'Re{c7}', 'Re{c10}')] = bw * 1.6  # top
+        self.comparison_bandwidths[(1, 0, 'Re{c9}', 'Re{c10}')] = bw * 1.5  # bottom
+        self.comparison_bandwidths[(0, 1, 'Re{c9}', 'Re{c10}')] = bw * 1.4  # top
+        """
+        self.all_nuis_stack(self.comparison_defs['Re{c7}'], self.comparison_defs['Re{c9}'], scenarios=scenarios)
+        P.savefig(self.out("%s_%s_0_1" % (scenarios)))
+
+        self.all_nuis_stack(self.comparison_defs['Re{c7}'], self.comparison_defs['Re{c10}'], like_sign=True, scenarios=scenarios)
+        P.savefig(self.out("%s_%s_0_2" % (scenarios)))
+
+        self.all_nuis_stack(self.comparison_defs['Re{c9}'], self.comparison_defs['Re{c10}'], flip_order=True, scenarios=scenarios)
+        P.savefig(self.out("%s_%s_1_2" % (scenarios)))
 
     def one_dim_nuisance_KMPW(self):
         """
@@ -1073,12 +1108,14 @@ lrwxrwxrwx 1 beaujean beaujean   56 Jul 12 13:09 pmc_final_scI_all.hdf5 -> ../20
     # ##
     # actions
     # ##
-    marg = MarginalContours(input_base, output_base, max_samples=None,)
+    marg = MarginalContours(input_base, output_base, max_samples=None)
 #                            ignore_scenarios=('all_wide',)),'Vll_lowRec', 'Vll_largeRec', 'Pll'))
 
-    marg.one_dim_nuisance_KMPW()
+#     marg.one_dim_nuisance_KMPW()
     # marg.one_dim_nuisance_BZ()
 #     marg.single_scenario(); marg.overlays()
+#     marg.scI_all_vs_excl()
+    marg.compare_scenarios()
 #    marg.all_nuis_vs_wide()
 #     marg.credibility_regions()
 
