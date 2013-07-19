@@ -88,6 +88,8 @@ export NUISANCE_all="
     ${NUISANCE_B_TO_XS_HQE}
 "
 
+export NUISANCE_allnolhcbfl=${NUISANCE_all}
+
 export NUISANCE_allnobsmumu="
     ${NUISANCE_CKM}
     ${NUISANCE_QUARK_MASSES}
