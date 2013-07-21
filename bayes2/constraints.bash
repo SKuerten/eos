@@ -2,6 +2,10 @@
 
 echo "[constraints loaded]"
 
+##################
+## Our Datasets ##
+##################
+
 export CONSTRAINTS_B_TO_XSGAMMA="
     --global-option model WilsonScan
     --global-option scan-mode cartesian
@@ -297,3 +301,73 @@ export CONSTRAINTS_inclnoxsll="
     ${CONSTRAINTS_B_TO_XSGAMMA}
 "
 
+#####################
+## Quim's Datasets ##
+#####################
+
+# We only exclude the isospin asymmetry in B->K^*ll.
+
+export CONSTRAINTS_QUIMBASE="
+    ${CONSTRAINTS_B_TO_XSGAMMA}
+    ${CONSTRAINTS_B_TO_XSLL}
+    ${CONSTRAINTS_B_TO_KSTARGAMMA}
+    ${CONSTRAINTS_BS_TO_MUMU}
+"
+
+export CONSTRAINTS_quim1="
+    ${CONSTRAINTS_QUIMBASE}
+    --constraint B^0->K^*0mu^+mu^-::A_FB[1.00,6.00]@LHCb-2013
+    --constraint B^0->K^*0mu^+mu^-::A_T^2[1.00,6.00]@LHCb-2013
+    --constraint B^0->K^*0mu^+mu^-::A_T^re[1.00,6.00]@LHCb-2013
+"
+
+export CONSTRAINTS_quim2="
+    ${CONSTRAINTS_QUIMBASE}
+    --constraint B^0->K^*0mu^+mu^-::A_FB[1.00,6.00]@LHCb-2013
+    --constraint B^0->K^*0mu^+mu^-::A_T^2[1.00,6.00]@LHCb-2013
+    --constraint B^0->K^*0mu^+mu^-::A_T^re[1.00,6.00]@LHCb-2013
+
+    --constraint B^0->K^*0mu^+mu^-::A_FB[14.18,16.00]@LHCb-2013
+    --constraint B^0->K^*0mu^+mu^-::A_T^2[14.18,16.00]@LHCb-2013
+    --constraint B^0->K^*0mu^+mu^-::A_T^re[14.18,16.00]@LHCb-2013
+
+    --constraint B^0->K^*0mu^+mu^-::A_FB[16.00,19.00]@LHCb-2013
+    --constraint B^0->K^*0mu^+mu^-::A_T^2[16.00,19.00]@LHCb-2013
+    --constraint B^0->K^*0mu^+mu^-::A_T^re[16.00,19.00]@LHCb-2013
+"
+
+export CONSTRAINTS_quim2="
+    ${CONSTRAINTS_QUIMBASE}
+    --constraint B^0->K^*0mu^+mu^-::A_FB[1.00,6.00]@ATLAS-2013A
+    --constraint B^0->K^*0mu^+mu^-::A_FB[14.18,16.00]@ATLAS-2013A
+    --constraint B^0->K^*0mu^+mu^-::A_FB[16.00,19.21]@ATLAS-2013A
+
+    --constraint B^0->K^*0mu^+mu^-::A_FB[1.00,6.00]@Belle-2009
+    --constraint B^0->K^*0mu^+mu^-::A_FB[14.18,16.00]@Belle-2009
+    --constraint B^0->K^*0mu^+mu^-::A_FB[16.00,19.21]@Belle-2009
+
+    --constraint B^0->K^*0mu^+mu^-::A_FB[1.00,6.00]@BaBar-2012
+    --constraint B^0->K^*0mu^+mu^-::A_FB[14.18,16.00]@BaBar-2012
+    --constraint B^0->K^*0mu^+mu^-::A_FB[16.00,19.21]@BaBar-2012
+
+    --constraint B^0->K^*0mu^+mu^-::A_FB[1.00,6.00]@CDF-2012
+    --constraint B^0->K^*0mu^+mu^-::A_T^2[1.00,6.00]@CDF-2012
+    --constraint B^0->K^*0mu^+mu^-::A_FB[14.18,16.00]@CDF-2012
+    --constraint B^0->K^*0mu^+mu^-::A_T^2[14.18,16.00]@CDF-2012
+    --constraint B^0->K^*0mu^+mu^-::A_FB[16.00,19.00]@CDF-2012
+    --constraint B^0->K^*0mu^+mu^-::A_T^2[16.00,19.00]@CDF-2012
+
+    --constraint B^0->K^*0mu^+mu^-::A_FB[1.00,6.00]@CMS-2013A
+    --constraint B^0->K^*0mu^+mu^-::A_FB[14.18,16.00]@CMS-2013A
+    --constraint B^0->K^*0mu^+mu^-::A_FB[16.00,19.21]@CMS-2013A
+
+    --constraint B^0->K^*0mu^+mu^-::A_FB[1.00,6.00]@LHCb-2013
+    --constraint B^0->K^*0mu^+mu^-::A_T^2[1.00,6.00]@LHCb-2013
+    --constraint B^0->K^*0mu^+mu^-::A_T^re[1.00,6.00]@LHCb-2013
+    --constraint B^0->K^*0mu^+mu^-::A_FB[14.18,16.00]@LHCb-2013
+    --constraint B^0->K^*0mu^+mu^-::A_T^2[14.18,16.00]@LHCb-2013
+    --constraint B^0->K^*0mu^+mu^-::A_T^re[14.18,16.00]@LHCb-2013
+    --constraint B^0->K^*0mu^+mu^-::A_FB[16.00,19.00]@LHCb-2013
+    --constraint B^0->K^*0mu^+mu^-::A_T^2[16.00,19.00]@LHCb-2013
+    --constraint B^0->K^*0mu^+mu^-::A_T^re[16.00,19.00]@LHCb-2013
+"
