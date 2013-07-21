@@ -36,6 +36,14 @@ export CONSTRAINTS_BS_TO_MUMU="
     --constraint B^0_s->mu^+mu^-::BR_limit@LHCb-Nov-2012
 "
 
+export CONSTRAINTS_BS_TO_MUMU_POSTHEP13="
+    --global-option model WilsonScan
+    --global-option scan-mode cartesian
+
+    --constraint B^0_s->mu^+mu^-::BR@CMS-2013B
+    --constraint B^0_s->mu^+mu^-::BR@LHCb-2013D
+"
+
 export CONSTRAINTS_B_TO_XSLL="
     --global-option model WilsonScan
     --global-option scan-mode cartesian
@@ -194,6 +202,25 @@ export CONSTRAINTS_B_TO_VLL_LOW_RECOIL="
     --constraint B^0->K^*0mu^+mu^-::A_T^2[16.00,19.00]@LHCb-2013
 "
 
+export CONSTRAINTS_B_TO_VLL_POSTHEP13="
+    --global-option model WilsonScan
+    --global-option scan-mode cartesian
+
+    --global-option form-factors KMPW2010
+
+    --constraint B^0->K^*0mu^+mu^-::P'_4[1.00,6.00]@LHCb-2013
+    --constraint B^0->K^*0mu^+mu^-::P'_4[14.18,16.00]@LHCb-2013
+    --constraint B^0->K^*0mu^+mu^-::P'_4[16.00,19.00]@LHCb-2013
+
+    --constraint B^0->K^*0mu^+mu^-::P'_5[1.00,6.00]@LHCb-2013
+    --constraint B^0->K^*0mu^+mu^-::P'_5[14.18,16.00]@LHCb-2013
+    --constraint B^0->K^*0mu^+mu^-::P'_5[16.00,19.00]@LHCb-2013
+
+    --constraint B^0->K^*0mu^+mu^-::P'_6[1.00,6.00]@LHCb-2013
+    --constraint B^0->K^*0mu^+mu^-::P'_6[14.18,16.00]@LHCb-2013
+    --constraint B^0->K^*0mu^+mu^-::P'_6[16.00,19.00]@LHCb-2013
+"
+
 export CONSTRAINTS_B_TO_VLL_FF="
     --global-option form-factors KMPW2010
 
@@ -215,6 +242,21 @@ export CONSTRAINTS_all="
     ${CONSTRAINTS_B_TO_PLL_LOW_RECOIL}
     ${CONSTRAINTS_B_TO_VLL_LARGE_RECOIL}
     ${CONSTRAINTS_B_TO_VLL_LOW_RECOIL}
+    ${CONSTRAINTS_B_TO_VLL_FF}
+"
+
+export CONSTRAINTS_posthep13="
+    ${CONSTRAINTS_B_MASS_SPLITTING}
+    ${CONSTRAINTS_B_TO_XSGAMMA}
+    ${CONSTRAINTS_B_TO_KSTARGAMMA}
+    ${CONSTRAINTS_BS_TO_MUMU_POSTHEP13}
+    ${CONSTRAINTS_B_TO_XSLL}
+    ${CONSTRAINTS_B_TO_PLL_FF}
+    ${CONSTRAINTS_B_TO_PLL_LARGE_RECOIL}
+    ${CONSTRAINTS_B_TO_PLL_LOW_RECOIL}
+    ${CONSTRAINTS_B_TO_VLL_LARGE_RECOIL}
+    ${CONSTRAINTS_B_TO_VLL_LOW_RECOIL}
+    ${CONSTRAINTS_B_TO_VLL_POSTHEP13}
     ${CONSTRAINTS_B_TO_VLL_FF}
 "
 
