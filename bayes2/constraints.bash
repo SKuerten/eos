@@ -378,7 +378,7 @@ export CONSTRAINTS_quim2="
     --constraint B^0->K^*0mu^+mu^-::A_T^re[16.00,19.00]@LHCb-2013
 "
 
-export CONSTRAINTS_quim2="
+export CONSTRAINTS_quim3="
     ${CONSTRAINTS_QUIMBASE}
     --constraint B^0->K^*0mu^+mu^-::A_FB[1.00,6.00]@ATLAS-2013A
     --constraint B^0->K^*0mu^+mu^-::A_FB[14.18,16.00]@ATLAS-2013A
