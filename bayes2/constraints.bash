@@ -382,7 +382,7 @@ export CONSTRAINTS_quim3="
     ${CONSTRAINTS_QUIMBASE}
     --constraint B^0->K^*0mu^+mu^-::A_FB[1.00,6.00]@ATLAS-2013A
     --constraint B^0->K^*0mu^+mu^-::A_FB[14.18,16.00]@ATLAS-2013A
-    --constraint B^0->K^*0mu^+mu^-::A_FB[16.00,19.21]@ATLAS-2013A
+    --constraint B^0->K^*0mu^+mu^-::A_FB[16.00,19.00]@ATLAS-2013A
 
     --constraint B^0->K^*0mu^+mu^-::A_FB[1.00,6.00]@Belle-2009
     --constraint B^0->K^*0mu^+mu^-::A_FB[14.18,16.00]@Belle-2009
@@ -396,12 +396,12 @@ export CONSTRAINTS_quim3="
     --constraint B^0->K^*0mu^+mu^-::A_T^2[1.00,6.00]@CDF-2012
     --constraint B^0->K^*0mu^+mu^-::A_FB[14.18,16.00]@CDF-2012
     --constraint B^0->K^*0mu^+mu^-::A_T^2[14.18,16.00]@CDF-2012
-    --constraint B^0->K^*0mu^+mu^-::A_FB[16.00,19.00]@CDF-2012
-    --constraint B^0->K^*0mu^+mu^-::A_T^2[16.00,19.00]@CDF-2012
+    --constraint B^0->K^*0mu^+mu^-::A_FB[16.00,19.21]@CDF-2012
+    --constraint B^0->K^*0mu^+mu^-::A_T^2[16.00,19.21]@CDF-2012
 
     --constraint B^0->K^*0mu^+mu^-::A_FB[1.00,6.00]@CMS-2013A
     --constraint B^0->K^*0mu^+mu^-::A_FB[14.18,16.00]@CMS-2013A
-    --constraint B^0->K^*0mu^+mu^-::A_FB[16.00,19.21]@CMS-2013A
+    --constraint B^0->K^*0mu^+mu^-::A_FB[16.00,19.00]@CMS-2013A
 
     --constraint B^0->K^*0mu^+mu^-::A_FB[1.00,6.00]@LHCb-2013
     --constraint B^0->K^*0mu^+mu^-::A_T^2[1.00,6.00]@LHCb-2013
