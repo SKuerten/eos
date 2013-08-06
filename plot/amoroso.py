@@ -16,7 +16,6 @@ from scipy.stats.distributions import norm as Gaussian
 
 import matplotlib
 from matplotlib import rcParams
-matplotlib.use('QT4Agg')
 rcParams['text.usetex']= True #requires LaTex installation
 rcParams['text.latex.unicode']=True
 import pylab as P
@@ -103,7 +102,7 @@ def constraints_amoroso_boundary(parameters, mode, x_90, x_95):
 def constraints_amoroso_2012(parameters, a, x_10, x_50, x_90):
     """
     Three constraints for theta, alpha, beta from
-    the 05%, 90% and 95% limit.
+    the 10%, 50% and 90% limit.
     """
 
     theta = parameters[0]
@@ -191,6 +190,32 @@ def constraints_amoroso_mode(parameters, a, mode, x_90, x_95):
 
     return [first, second]
 
+def constraints_amoroso_mode68(parameters, a, mode, sigma_plus, sigma_minus):
+    """
+    Use mode, 68% interval [mu - sigma_minus, mu + sigma_plus], and pdf(mu - sigma_minus) = pdf(mu + sigma_plus)
+    Developed for LHCb and CMS July, 2013
+    """
+
+    alpha = parameters[0]
+    beta = parameters[1]
+    theta = mode * (alpha - 1.0 / beta) ** (-1.0 / beta)
+
+    # prevent optimization from getting stuck in invalid param. region, where result is NaN
+    if alpha <= 0:
+        return [1.0, 1.0]
+
+    first = cdf_amoroso(mode + sigma_plus, a, theta, alpha, beta) - \
+            cdf_amoroso(mode - sigma_minus, a, theta, alpha, beta) - 0.680220861154
+    second = pdf_amoroso(mode + sigma_plus, a, theta, alpha, beta) - \
+             pdf_amoroso(mode - sigma_minus, a, theta, alpha, beta)
+
+    if math.isnan(first):
+        first = 0.5
+    if math.isnan(second):
+        second = 0.5
+
+    return [first, second]
+
 def solve_amoroso(a, x_05, x_90, x_95, initial_guess):
 #    initial_guess = np.array([x_90_initial, x_95_initial])
 
@@ -254,7 +279,7 @@ def solve_amoroso(a, x_05, x_90, x_95, initial_guess):
     P.savefig("B_s_limit.pdf")
     P.show()
 
-#solve_amoroso(0.0, 0.077590885823, 0.932149816388, 1.10240011142, [0.6, 0.5, 2])
+# solve_amoroso(0.0, 0.077590885823, 0.932149816388, 1.10240011142, [0.6, 0.5, 2])
 
 def solve_amoroso_mode(a, mode, x_90, x_95, initial_guess):
     """
@@ -314,15 +339,15 @@ def solve_amoroso_mode(a, mode, x_90, x_95, initial_guess):
     P.xlabel(r"BR$(B_s \to \mu \mu)$")
     P.savefig("B_s_limit_2012.pdf")
     P.show()
-    
+
 def solve_amoroso_2012(a, x_10, x_50, x_90, initial_guess):
     """
-    Interpolate results from LHCb Moriond 2012 
+    Interpolate results from LHCb Moriond 2012
     with 10, 50, 90 % limits.
     """
     (x, infodict, ier, mesg) = fsolve(constraints_amoroso_2012, initial_guess, args=(a, x_10, x_50, x_90), full_output=True, maxfev=1500)
     print(mesg)
-    
+
     # values obtainted when fixing mode to 0.8 and using CL_S limits for 90% and 95%
 #    x = (3.0196974712e-0, 5.9770060956e-01, 1.9231744175)
 
@@ -342,7 +367,7 @@ def solve_amoroso_2012(a, x_10, x_50, x_90, initial_guess):
 
     mode = a + theta * (alpha - 1 / beta)**(1 / beta)
     print("Mode at P(%e) = %.15e" % (mode, pdf_amoroso(mode, a, theta, alpha, beta)))
-    
+
     p = cdf_amoroso(4.016344136, a, theta, alpha, beta) - cdf_amoroso(0.062156598126926255, a, theta, alpha, beta)
     print("checking significance: %g vs %g gives p of %g and pull of %g" % (pdf_amoroso(0.062156598126926255, a, theta, alpha, beta),
                                                                          pdf_amoroso(4.016344136, a, theta, alpha, beta),
@@ -351,13 +376,13 @@ def solve_amoroso_2012(a, x_10, x_50, x_90, initial_guess):
     print("checking significance: %g vs %g gives p of %g and pull of %g" % (pdf_amoroso(2.3050479788645215, a, theta, alpha, beta),
                                                                          pdf_amoroso(0.516344136, a, theta, alpha, beta),
                                                                          p, Gaussian.ppf( (p + 1) / 2)))
-    
+
     ###
     # Compare the accuracy of interpolation
     ##
     data = np.loadtxt('LHCb/Beaujean_Bayes_2012_Moriond.dat')
     interpolated_cdf = np.array([cdf_amoroso(x_i, a, theta, alpha, beta) for x_i in data.T[0]])
-    
+
     i = np.argmax(interpolated_cdf - data.T[1])
     print("Biggest deviation at %g: %g rel: %g" % (data[i,0], interpolated_cdf[i] - data[i,1], \
                                                    (interpolated_cdf[i] - data[i,1]) / data[i,1]))
@@ -369,7 +394,7 @@ def solve_amoroso_2012(a, x_10, x_50, x_90, initial_guess):
     x = np.linspace(a, x_max, 1000)
     y1 = [pdf_amoroso(x_i, a, theta, alpha, beta) for x_i in x]
     y2 = [cdf_amoroso(x_i, a, theta, alpha, beta) for x_i in x]
-        
+
     P.plot(x,y1,label='pdf')
     P.plot(x,y2,label='cdf')
 
@@ -391,7 +416,7 @@ def solve_amoroso_2012(a, x_10, x_50, x_90, initial_guess):
     ax = P.gca()
     P.xlim(a, 6.5)
     P.ylim(0, 1.2)
-    
+
     #2011
     P.xlim(a, 20)
     P.ylim(0, 1.2)
@@ -403,6 +428,55 @@ def solve_amoroso_2012(a, x_10, x_50, x_90, initial_guess):
     P.savefig("B_s_limit_2011.pdf")
     P.show()
 #solve_amoroso_2012(0.0, 0.558367940293, 2.03115589965, 4.4528950788,[3.0, 1, 1.5])
+
+def solve_amoroso_mode68(a, mode, sigma_plus, sigma_minus, initial_guess, experiment):
+    """
+    Fit the Amoroso distribution to info from LHCb and CMS July 2013 results
+    """
+    print(constraints_amoroso_mode68(initial_guess, a, mode, sigma_plus, sigma_minus))
+    (x, infodict, ier, mesg) = fsolve(constraints_amoroso_mode68, initial_guess,
+                                      args=(a, mode, sigma_plus, sigma_minus), full_output=True, maxfev=1500)
+    print(mesg)
+
+    # read out solutions
+    alpha = x[0]
+    beta = x[1]
+    theta = mode * (alpha - 1.0 / beta) ** (-1.0 / beta)
+    assert(alpha * beta > 1)
+
+    print("The solution from minpack: theta = %g, alpha = %g, beta = %g" % (theta, alpha, beta))
+    print(infodict)
+
+    print("Checking the solution: do they satisfy the constraints?")
+    print("pdf(mu-sigma-) = %e " % pdf_amoroso(mode - sigma_minus, a, theta, alpha, beta))
+    print("pdf(mu+sigma+) = %e " % pdf_amoroso(mode + sigma_plus, a, theta, alpha, beta))
+    print("prob in %s = %e" % ((mode - sigma_minus, mode + sigma_plus),
+                               cdf_amoroso(mode + sigma_plus, a, theta, alpha, beta) -
+                               cdf_amoroso(mode - sigma_minus, a, theta, alpha, beta),))
+
+    x_max = 7
+    x = np.linspace(a, x_max, 1000)
+    y1 = [pdf_amoroso(x_i, a, theta, alpha, beta) for x_i in x]
+    y2 = [cdf_amoroso(x_i, a, theta, alpha, beta) for x_i in x]
+
+    P.plot(x, y1, label='%s pdf' % experiment)
+    P.plot(x, y2, label='%s cdf' % experiment)
+
+    P.legend()
+    P.title(r"$\theta = " + ("%g" % theta) + r", \alpha = " + ("%g" % alpha) + r", \beta = " + ("%g" % beta) + "$\n"
+            + "mode at $" + "%g" % mode + "$")
+    P.axhline(0.95, 0, 1, linestyle='--', color='black')
+
+    ax = P.gca()
+#     P.xlim(a, 1)
+
+#    ax.xaxis.set_major_locator(MultipleLocator(0.1))
+    ax.xaxis.set_minor_locator(matplotlib.ticker.AutoMinorLocator())
+#    P.xticks(np.linspace(a, a + 2 * x_95, 10))
+#    P.grid()
+    P.xlabel(r"BR$(B_s \to \mu \mu)$")
+    P.savefig("B_s_%s.pdf" % experiment)
+    P.show()
 
 def plot_around():
 
@@ -682,16 +756,16 @@ def solve_amoroso_boundary(mode, x_90, x_95, x_90_initial, x_95_initial):
 #    P.xticks(np.linspace(mode, mode + 2 * x_95, 10))
     P.grid()
     P.show()
-    
+
 def constraints3(parameters, nu, theta, alpha):
     a = parameters[0]
     b = parameters[1]
-    
+
     first = pdf(b, nu, theta, alpha) - pdf(a, nu, theta, alpha)
     second = (cdf(b, nu, theta, alpha) - cdf(a, nu, theta, alpha)) - 0.68268949213708585
 
     return [first, second]
-    
+
 def solve_log_gamma3(nu, theta, alpha, a_initial, b_initial):
     """
     Fix parameters, find a and b.
@@ -719,8 +793,14 @@ if __name__ == '__main__':
 #    solve_amoroso_mode(0.0, 0.08, 0.38, 0.45, [0.6, 2])
 
     # 2012 data
-#    solve_amoroso_2012(0.0, 0.558367940293, 2.03115589965, 4.4528950788,[3.0, 1, 1.5])    
+#    solve_amoroso_2012(0.0, 0.558367940293, 2.03115589965, 4.4528950788,[3.0, 1, 1.5])
     # 2011 data
 #    solve_amoroso_2012(0.0, 0.132749474699 * 10, 0.446663009589 * 10, 0.932149816388 * 10,[3.0, 1, 1.5])
 #    sol = solve_log_gamma2(0.53, 0.53 - 0.19, 0.53 + 0.10, 0.21, 2.55)
-    solve_log_gamma3(nu=0, theta=1, alpha=1, a_initial=-1, b_initial=1)
+#     solve_log_gamma3(nu=0, theta=1, alpha=1, a_initial=-1, b_initial=1)
+
+
+    # CMS 2013
+#     solve_amoroso_mode68(0.0, mode=3.0, sigma_plus=1.0, sigma_minus=0.9, initial_guess=[2.2682156277, 1.7296007586], experiment='CMS 1307.5025')
+    solve_amoroso_mode68(0.0, mode=2.9, sigma_plus=np.sqrt(1.1 ** 2 + 0.3 ** 2), sigma_minus=np.sqrt(1.0 ** 2 + 0.1 ** 2),
+                        initial_guess=[2.2682156277, 1.7296007586], experiment='LHCb 1307.5024')
