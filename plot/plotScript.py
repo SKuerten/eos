@@ -1080,8 +1080,8 @@ class MarginalDistributions:
         A, D.W.S. & B, S.R.S. Multi-dimensional Density Estimation, p. 9 .
         at <http://citeseerx.ist.psu.edu/viewdoc/summary?doi=10.1.1.85.7837>
         """
-        self.sigma[index] = sqrt(var(samples, ddof=1))
-        bandwidth = 5 * self.sigma[index] * power( samples.shape[0], -1/3.)
+        self.sigma[index] = np.sqrt(np.var(samples, ddof=1))
+        bandwidth = 5 * self.sigma[index] * np.power( samples.shape[0], -1/3.)
         self.nBins[index] = int(( self.max[index] - self.min[index])/bandwidth)
         return bandwidth
 
@@ -1294,8 +1294,8 @@ class MarginalDistributions:
 
         if  not self.use_histogram:
             bandwidth = self.__bandwidth(samples, index)
-#            self.sigma[index] = sqrt(var(samples, ddof=1))
-#            bandwidth = 5 * self.sigma[index] * power( samples.shape[0], -1/3.)
+#            self.sigma[index] = np.sqrt(np.var(samples, ddof=1))
+#            bandwidth = 5 * self.sigma[index] * np.power( samples.shape[0], -1/3.)
 #            self.nBins[index] = int(( self.max[index] - self.min[index])/bandwidth)
         if self.fixed_1D_binning:
             self.nBins[index] = self.one_dim_n_bins
@@ -1540,9 +1540,9 @@ class MarginalDistributions:
             y_min = self.cuts[par2][0]
             y_max = self.cuts[par2][1]
 
-        twoD_bins = array((self.nBins[par1], self.nBins[par2]), dtype=int)
+        twoD_bins = np.array((self.nBins[par1], self.nBins[par2]), dtype=int)
         if self.fixed_2D_binning:
-            twoD_bins = array((self.two_dim_n_bins, self.two_dim_n_bins), dtype=int)
+            twoD_bins = np.array((self.two_dim_n_bins, self.two_dim_n_bins), dtype=int)
 
         print("Grid shape %s for parameters %s" % (twoD_bins, [self.par_defs[par1].name, self.par_defs[par2].name]))
 
@@ -1562,12 +1562,12 @@ class MarginalDistributions:
             cmap.set_under('white')
 
         if self.use_histogram:
-            H, xedges, yedges = histogram2d(samples1, samples2 ,
-                                            bins= ( linspace(x_min, x_max , twoD_bins[0] + 1), linspace(y_min, y_max , twoD_bins[1] + 1) ),
+            H, xedges, yedges = np.histogram2d(samples1, samples2 ,
+                                            bins= (np.linspace(x_min, x_max , twoD_bins[0] + 1), np.linspace(y_min, y_max , twoD_bins[1] + 1) ),
                                             weights=self.weights)
 
             #convert to standard display order
-            probability_array = fliplr(rot90(H,k=3))
+            probability_array = np.fliplr(np.rot90(H,k=3))
 
             #Acceptable values are None, ‘nearest’, ‘bilinear’, ‘bicubic’, ‘spline16’, ‘spline36’, ‘hanning’, ‘hamming’, ‘hermite’, ‘kaiser’, ‘quadric’, ‘catrom’, ‘gaussian’, ‘bessel’, ‘mitchell’, ‘sinc’, ‘lanczos’
             interpolation_method = 'nearest'
@@ -1897,7 +1897,7 @@ class MarginalDistributions:
         print("Estimate of Z with rough %g and Gauss %g" % (rough_average, weighted_average))
 
         # rough sample variance vs Gaussian average variance
-        weighted_std_dev = sqrt(1.0 / inverse_var)
+        weighted_std_dev = np.sqrt(1.0 / inverse_var)
         rough_std_dev = np.sqrt(np.var(Z, ddof=1))
 
         # sample mean is an estimator with variance sigma^/N
