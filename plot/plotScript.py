@@ -14,7 +14,6 @@ from matplotlib.backends.backend_pdf import PdfPages
 matplotlib.rcParams['text.usetex'] = False #not bool(commands.getstatusoutput('which latex')[0]) #requires LaTex installation
 matplotlib.rcParams['text.latex.unicode'] = True
 
-from numpy import *
 import numpy as np
 
 import sys
@@ -216,9 +215,9 @@ def filter_duplicates(array_in):
     #add column for multiplicity
     one_dimensional = False
     try:
-        array_out = empty((array_in.shape[0], array_in.shape[1]+1))
+        array_out = np.empty((array_in.shape[0], array_in.shape[1]+1))
     except IndexError:
-        array_out = empty((array_in.shape[0], 2))
+        array_out = np.empty((array_in.shape[0], 2))
         one_dimensional = True
     #count unique entries
     index = 0
@@ -452,8 +451,8 @@ class MarginalDistributions:
 
         self.find_min_max()
 
-        self.sigma = ones((self.data.shape[1]-self.crop_last_columns))
-        self.nBins = empty((self.data.shape[1]-self.crop_last_columns),dtype=int)
+        self.sigma = np.ones((self.data.shape[1]-self.crop_last_columns))
+        self.nBins = np.empty((self.data.shape[1]-self.crop_last_columns),dtype=int)
 
         # Use as relative probability to max. All bins with prob
         # less than this will be whitenen in 2D plots
@@ -804,7 +803,7 @@ class MarginalDistributions:
         # read all remaining chains
         for chain in chains[1:]:
             data = hdf5_file[prefix + '/chain #%d/samples' % chain][self.select[0]:self.select[1]]
-            merged_chains = concatenate((merged_chains, data), axis=0)
+            merged_chains = np.concatenate((merged_chains, data), axis=0)
             modes.append(hdf5_file[prefix + '/chain #%d/stats/mode' % chain][-1])
             n_chains_parsed += 1
 
@@ -898,7 +897,7 @@ class MarginalDistributions:
                     print("mean(%s) = %g" % (par_defs[par_index].name, np.mean(data.T[par_index][0:1000])))
                     print("var(%s) = %g" % (par_defs[par_index].name, np.var(data.T[par_index][0:1000], ddof=1)))
 
-                mergedChains = concatenate((mergedChains, data), axis=0)
+                mergedChains = np.concatenate((mergedChains, data), axis=0)
                 n_chains_parsed += 1
 
             print("Merge (pytables) has a total shape of %s " % str(mergedChains.shape) )
@@ -922,8 +921,8 @@ class MarginalDistributions:
         """
         if self.data is None:
             return
-        self.min = empty((self.data.shape[1]-self.crop_last_columns,))
-        self.max = empty((self.data.shape[1]-self.crop_last_columns,))
+        self.min = np.empty((self.data.shape[1]-self.crop_last_columns,))
+        self.max = np.empty((self.data.shape[1]-self.crop_last_columns,))
 
         for index in range(self.min.shape[0]):
             self.min[index] = min(self.data.T[index])
@@ -1477,7 +1476,7 @@ class MarginalDistributions:
         if self.plot_prior and self.priors[index] is not None:
             prior = self.priors[index]
             integral = 1
-            mesh_points = linspace(x_min, x_max, self.nBins[index] )
+            mesh_points = np.linspace(x_min, x_max, self.nBins[index] )
 
             prior_values = prior.evaluate(mesh_points)
 
