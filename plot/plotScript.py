@@ -2317,8 +2317,7 @@ def factory(cmd_line=None):
         marg.minimum_probability = float(args.min_prob)
     if args.nuisance:
         marg.no_nuisance_vs_nuisance = args.no_nuisance_vs_nuisance
-        if args.nuisance == '1D':
-            marg.nuisance_2D = False
+        marg.nuisance_2D = False if args.nuisance == '1D' else True 
     if args.__dict__['contours']:
         marg.use_contours = True
     if args.__dict__['cut']:
