@@ -521,6 +521,8 @@ class MarginalDistributions:
         Parse multinest data using the pymultinest interface or from HDF5
         """
 
+        par_defs = []
+        priors = []
         if 'hdf5' in self.input_file_name:
             import h5py
 
@@ -538,6 +540,35 @@ class MarginalDistributions:
 
             evidence = hdf5_file["/data/weights"].attrs['log(evidence)']
             evidence_error = hdf5_file["/data/weights"].attrs['log(evidence) error']
+
+        elif '.root' in self.input_file_name:
+            import root_numpy as R
+
+            tree_name = 'MultinestSamples'
+
+            # copy parameters into a structured array
+            struct_array = R.root2array(self.input_file_name, tree_name)
+
+            # parameter name = branch name
+            branches = R.list_branches(self.input_file_name, tree_name)
+
+            # but weight is not a parameter name
+            weights = struct_array['weight']
+            weights = np.ones_like(weights)
+            del branches[branches.index('weight')]
+
+            # convert to a regular array (see http://wiki.scipy.org/Cookbook/Recarray)
+            samples = struct_array[branches].view(float).reshape(len(struct_array), -1)
+
+            print(np.sum(samples))
+
+            # store at least parameter names, though ranges may be inaccessible for now
+            for name in branches:
+                par_defs.append(ParameterDefinition(name, np.min(struct_array[name]), np.max(struct_array[name]), False, False, False))
+                priors.append(None)
+
+            evidence = 0
+            evidence_error = 0
 
         else:
             from pymultinest import Analyzer
@@ -559,11 +590,10 @@ class MarginalDistributions:
         print("resulting in log(Z) = %g +- %g" % (evidence, evidence_error))
 
         # mock up parameters definitions, no priors
-        par_defs = []
-        priors = []
-        for i,x in enumerate(samples.transpose()):
-            par_defs.append(ParameterDefinition('par%d' % i, np.min(x), np.max(x), False, False, False))
-            priors.append(None)
+        if not par_defs:
+            for i,x in enumerate(samples.transpose()):
+                par_defs.append(ParameterDefinition('par%d' % i, np.min(x), np.max(x), False, False, False))
+                priors.append(None)
 
         return samples, weights, par_defs, priors, evidence, evidence_error
 
@@ -2317,7 +2347,7 @@ def factory(cmd_line=None):
         marg.minimum_probability = float(args.min_prob)
     if args.nuisance:
         marg.no_nuisance_vs_nuisance = args.no_nuisance_vs_nuisance
-        marg.nuisance_2D = False if args.nuisance == '1D' else True 
+        marg.nuisance_2D = False if args.nuisance == '1D' else True
     if args.__dict__['contours']:
         marg.use_contours = True
     if args.__dict__['cut']:
