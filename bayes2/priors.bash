@@ -71,7 +71,7 @@ export NUISANCE_B_TO_PLL_SUBLEADING="
 "
 
 export NUISANCE_B_TO_XS_HQE="
-    --nuisance    B->B::mu_pi^2@1GeV                             0.0   2.0  ${N_SIGMAS}     --prior    log-gamma   0.35      0.45      0.55
+    --nuisance    B->B::mu_pi^2@1GeV                             0.0   2.0  ${N_SIGMAS}     --prior    gaussian    0.35      0.45      0.55
     --nuisance    B->B::mu_G^2@1GeV                              0.0   2.0  ${N_SIGMAS}     --prior    log-gamma   0.33      0.35      0.38
 "
 
