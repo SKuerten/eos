@@ -5,6 +5,9 @@ import os
 import commands
 import matplotlib
 
+# Force matplotlib to not use any Xwindows backend.
+matplotlib.use('Agg')
+
 import matplotlib.pyplot as P
 
 from matplotlib.backends.backend_pdf import PdfPages
@@ -76,17 +79,17 @@ def find_hist_level(histo):
 
     #turn 2D histo into flat histo if necessary
     #then sort
-    bin_counts = sort(histo.ravel())
+    bin_counts = np.sort(histo.ravel())
 
     #cumulative sum = cdf
-    cdf = cumsum(bin_counts)
+    cdf = np.cumsum(bin_counts)
 
     #now start at back, the highest value, the full number of samples
     #minus -1 to overcover
-    index = max(0, searchsorted(cdf, (1 - 0.68268949213708585) * cdf[-1]) - 1)
+    index = max(0, np.searchsorted(cdf, (1 - 0.68268949213708585) * cdf[-1]) - 1)
     level_68 = bin_counts[index]
 
-    index = max(0, searchsorted(cdf, (1 - 0.95449973610364158) * cdf[-1]) - 1)
+    index = max(0, np.searchsorted(cdf, (1 - 0.95449973610364158) * cdf[-1]) - 1)
     level_95 = bin_counts[index]
 
     return (level_68, level_95)
@@ -170,7 +173,7 @@ def find_credibility_region(bin_edges, counts, alpha=0.68268):
     """
 
     indices = find_credibility_region_indices(counts, alpha)
-    ind_sorted = sort(indices)
+    ind_sorted = np.sort(indices)
 
     #at bin center
     ind_max = indices[0]
@@ -967,20 +970,20 @@ class MarginalDistributions:
 
             #find multiplicity of multiple events
             #it's in last column
-            order_statistics = filter_duplicates( sort(self.data.T[index]) )
+            order_statistics = filter_duplicates( np.sort(self.data.T[index]) )
 
             #build cdf. normalize to unity
-            ecdf = cumsum(order_statistics.T[-1])
+            ecdf = np.cumsum(order_statistics.T[-1])
             ecdf /= float(ecdf[-1])
 
 
             #binary search for index next to CDF value,
             #then extract physical parameter
             #subtract/add one from index to overcover
-            limit_one_sigma = [order_statistics[max(0,searchsorted(ecdf, 0.15865525393145705)-1),0],
-                               order_statistics[min(ecdf.shape[0]-1,searchsorted(ecdf, 0.84134474606854293)+1),0]]
-            limit_two_sigma = [order_statistics[max(0,searchsorted(ecdf, 0.02275013194817919)-1),0],
-                               order_statistics[min(ecdf.shape[0]-1,searchsorted(ecdf, 0.97724986805182079)+1),0]]
+            limit_one_sigma = [order_statistics[max(0,np.searchsorted(ecdf, 0.15865525393145705)-1),0],
+                               order_statistics[min(ecdf.shape[0]-1,np.searchsorted(ecdf, 0.84134474606854293)+1),0]]
+            limit_two_sigma = [order_statistics[max(0,np.searchsorted(ecdf, 0.02275013194817919)-1),0],
+                               order_statistics[min(ecdf.shape[0]-1,np.searchsorted(ecdf, 0.97724986805182079)+1),0]]
             return (limit_one_sigma, limit_two_sigma)
 
         if method == 'histogram':
@@ -988,17 +991,17 @@ class MarginalDistributions:
             histo, edges = np.histogram(self.data.T[index], self.nBins[index])
 
             #build CDF
-            temp = cumsum(histo)
+            temp = np.cumsum(histo)
             cdf = temp / float(temp[-1])
 
             #binary search for index next to CDF value,
             #then extract physical parameter
             #subtract/add one from index to overcover
-            limit_one_sigma = [edges[max(0,searchsorted(cdf, 0.15865525393145705)-1)],
-                               edges[min(cdf.shape[0]-1, searchsorted(cdf, 0.84134474606854293)+2)]]
+            limit_one_sigma = [edges[max(0,np.searchsorted(cdf, 0.15865525393145705)-1)],
+                               edges[min(cdf.shape[0]-1, np.searchsorted(cdf, 0.84134474606854293)+2)]]
 
-            limit_two_sigma = [edges[max(0,searchsorted(cdf, 0.02275013194817919)-1)],
-                               edges[min(cdf.shape[0]-1, searchsorted(cdf, 0.97724986805182079)+2)]]
+            limit_two_sigma = [edges[max(0,np.searchsorted(cdf, 0.02275013194817919)-1)],
+                               edges[min(cdf.shape[0]-1, np.searchsorted(cdf, 0.97724986805182079)+2)]]
             return (limit_one_sigma, limit_two_sigma)
 
     @staticmethod
@@ -1025,15 +1028,15 @@ class MarginalDistributions:
 
         #turn 2D histo into flat histo if necessary
         #then sort
-        bin_counts = sort(histo.ravel())
+        bin_counts = np.sort(histo.ravel())
 
         #cumulative sum = cdf
-        cdf = cumsum(bin_counts)
+        cdf = np.cumsum(bin_counts)
 
         if density is not None:
             # where was level sorted to?
             # max to avoid negative index, -1 to overcover
-            index = max(0, searchsorted(bin_counts, density) - 1)
+            index = max(0, np.searchsorted(bin_counts, density) - 1)
             # how much is still above? In/exclude the bin with the point
             credibility_level_include = (cdf[-1] - cdf[index]) / cdf[-1]
             credibility_level_above =  (cdf[-1] - cdf[min(len(bin_counts) - 1, index + 1)]) / cdf[-1]
@@ -1043,7 +1046,7 @@ class MarginalDistributions:
         for i,p in enumerate(credibilities):
             #now start at back, the highest value, the full number of samples
             #minus -1 to overcover
-            index = max(0, searchsorted(cdf, (1 - p) * cdf[-1]) - 1)
+            index = max(0, np.searchsorted(cdf, (1 - p) * cdf[-1]) - 1)
             levels[i] = bin_counts[index]
 
         return levels
@@ -1397,18 +1400,18 @@ class MarginalDistributions:
                 """
         else: #use KDE
             print("Using KDE")
-            mesh_points = linspace(x_min, x_max, self.nBins[index] )
+            mesh_points = np.linspace(x_min, x_max, self.nBins[index] )
 
             #setup for figtree
             start_time = time.time()
-            densities = figtree.figtree(ascontiguousarray(samples), mesh_points, weights=self.weights,  bandwidth=bandwidth, eval="auto")
+            densities = figtree.figtree(np.ascontiguousarray(samples), mesh_points, weights=self.weights,  bandwidth=bandwidth, eval="auto")
             end_time = time.time()
             print("figtree used %f s" % (end_time-start_time) )
 
             from scipy import interpolate
             #do a spline interpolation on a finer grid
             tck = interpolate.splrep(mesh_points, densities, s=0)
-            finer_mesh = linspace(x_min, x_max, 5*self.nBins[index] )
+            finer_mesh = np.linspace(x_min, x_max, 5*self.nBins[index] )
             densities_interp = interpolate.splev(finer_mesh, tck, der=0)
 
             # can't use interpolated array, because x_min/x_max for bin index finding won't work
@@ -1619,7 +1622,7 @@ class MarginalDistributions:
         else:
 
             #join samples, 2 rows, N columns. One sample per column
-            samples = c_[samples1, samples2].T
+            samples = np.c_[samples1, samples2].T
 
             #use less points on each axis
             twoD_bins = twoD_bins/ self.kde_reduction
@@ -1629,10 +1632,10 @@ class MarginalDistributions:
             dy = (y_max - y_min)/float(twoD_bins[0])
 
             # create grid of points at which density is estimated
-            X, Y = mgrid[x_min + dx/2.:x_max - dx/2.:complex(0, twoD_bins[0] ), \
+            X, Y = np.mgrid[x_min + dx/2.:x_max - dx/2.:complex(0, twoD_bins[0] ), \
                          y_min + dy/2.:y_max - dy/2.:complex(0, twoD_bins[1])]
 
-            mesh_points = c_[X.ravel(), Y.ravel()].T
+            mesh_points = np.c_[X.ravel(), Y.ravel()].T
 
             mesh_points[0,:] = (mesh_points[0,:] - x_min)/(x_max - x_min)
             mesh_points[1,:] = (mesh_points[1,:] - y_min)/(y_max - y_min)
@@ -1680,7 +1683,7 @@ class MarginalDistributions:
 
             #do the work from the ctypes wrapper to the C-code
             estimated_pdf = figtree.figtree(transformed_samples,
-                                            ascontiguousarray(mesh_points.T[:]),
+                                            np.ascontiguousarray(mesh_points.T[:]),
                                             self.weights,
                                             bandwidth= estimated_bandwidth,
                                             verbose=verbosity)
@@ -1688,10 +1691,10 @@ class MarginalDistributions:
             print("figtree used %f s" % (end_time-start_time) )
 
             #turn density from vector into matrix again
-            probability_array = reshape(estimated_pdf.T, X.shape)
+            probability_array = np.reshape(estimated_pdf.T, X.shape)
 
             # transform such that plot has usual orientation
-            probability_array = fliplr(rot90(probability_array ,k=3))
+            probability_array = np.fliplr(np.rot90(probability_array ,k=3))
 
             # everything below will be whitened
             vmin = self.minimum_probability * np.max(probability_array) if self.minimum_probability is not None else 0.0
@@ -2436,8 +2439,6 @@ def main():
     factory()
 
 if __name__ == '__main__':
-    # Force matplotlib to not use any Xwindows backend.
-    matplotlib.use('Agg')
     np.set_printoptions(precision=6)
     matplotlib.rcParams['text.latex.unicode'] = True
 
