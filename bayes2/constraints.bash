@@ -33,7 +33,8 @@ export CONSTRAINTS_BS_TO_MUMU="
     --global-option model WilsonScan
     --global-option scan-mode cartesian
 
-    --constraint B^0_s->mu^+mu^-::BR_limit@LHCb-Nov-2012
+    --constraint B^0_s->mu^+mu^-::BR@CMS-2013B
+    --constraint B^0_s->mu^+mu^-::BR@LHCb-2013D
 "
 
 export CONSTRAINTS_BS_TO_MUMU_POSTHEP13="
@@ -348,7 +349,6 @@ export CONSTRAINTS_inclnoxsll="
 #####################
 
 # We only exclude the isospin asymmetry in B->K^*ll.
-
 export CONSTRAINTS_QUIMBASE="
     ${CONSTRAINTS_B_TO_XSGAMMA}
     ${CONSTRAINTS_B_TO_XSLL}
@@ -357,6 +357,7 @@ export CONSTRAINTS_QUIMBASE="
     ${CONSTRAINTS_B_TO_VLL_POSTHEP13}
 "
 
+# quim1 = B->K^*ll, large recoil only
 export CONSTRAINTS_quim1="
     ${CONSTRAINTS_QUIMBASE}
     --constraint B^0->K^*0mu^+mu^-::A_FB[1.00,6.00]@LHCb-2013
@@ -364,6 +365,7 @@ export CONSTRAINTS_quim1="
     --constraint B^0->K^*0mu^+mu^-::A_T^re[1.00,6.00]@LHCb-2013
 "
 
+# quim2 = quim1 + low recoil
 export CONSTRAINTS_quim2="
     ${CONSTRAINTS_QUIMBASE}
     --constraint B^0->K^*0mu^+mu^-::A_FB[1.00,6.00]@LHCb-2013
@@ -379,6 +381,7 @@ export CONSTRAINTS_quim2="
     --constraint B^0->K^*0mu^+mu^-::A_T^re[16.00,19.00]@LHCb-2013
 "
 
+# quim3 = quim2 + B->K^*ll from all experiments
 export CONSTRAINTS_quim3="
     ${CONSTRAINTS_QUIMBASE}
     --constraint B^0->K^*0mu^+mu^-::A_FB[1.00,6.00]@ATLAS-2013A
