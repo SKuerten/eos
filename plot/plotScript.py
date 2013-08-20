@@ -4,8 +4,6 @@
 import os
 import commands
 import matplotlib
-# Force matplotlib to not use any Xwindows backend.
-matplotlib.use('Agg')
 
 import matplotlib.pyplot as P
 
@@ -2438,7 +2436,8 @@ def main():
     factory()
 
 if __name__ == '__main__':
-
+    # Force matplotlib to not use any Xwindows backend.
+    matplotlib.use('Agg')
     np.set_printoptions(precision=6)
     matplotlib.rcParams['text.latex.unicode'] = True
 
