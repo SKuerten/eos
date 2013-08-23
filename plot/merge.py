@@ -178,13 +178,18 @@ def main():
         #remove trailing newline
         input_files = [name[:-1] for name in f.readlines()]
 
+    if args.cut_off is not None:
+        cut_off = float(args.cut_off)
+    else:
+        cut_off = None
+
     if args.sm_unc:
         merge_sm_unc(output_file_name=args.output, input_files=input_files)
     else:
         # default: merge mcmc
         merge_preruns(output_file_name=args.output, search=args.search,
                       input_files=input_files,
-                      compression=int(args.compression), cut_off=float(args.cut_off))
+                      compression=int(args.compression), cut_off=cut_off)
 
 if __name__ == '__main__':
 #    merge_preruns(search='scenario2*.hdf5')
