@@ -24,6 +24,7 @@ def invalid_chain(file, chain, cut_off=None):
     if mode > cut_off:
         return False
     else:
+        print('skipping chain %d with mode %g < %g' % (chain, mode, cut_off))
         return True
 
 def merge_preruns(output_file_name, search='*.hdf5', input_files=None,
@@ -99,7 +100,6 @@ def merge_preruns(output_file_name, search='*.hdf5', input_files=None,
                 else:
                     input_file = h5py.File(file_name, 'r')
                     if g == '/prerun' and invalid_chain(input_file, i, cut_off):
-                        print("skipping chain %d in %s" % (i, file_name))
                         continue
 
                     input_file.copy(g + "/chain #%d" % i, output_file, name=g + "/chain #%d" % ((f_i + 1) * chains_per_file + i))
@@ -213,7 +213,7 @@ def main():
         # default: merge mcmc
         merge_preruns(output_file_name=args.output, search=args.search,
                       input_files=input_files, strict=args.strict,
-                      compression=int(args.compression), cut_off=args.cut_off)
+                      compression=int(args.compression), cut_off=float(args.cut_off))
 
 if __name__ == '__main__':
 #    merge_preruns(search='scenario2*.hdf5')
