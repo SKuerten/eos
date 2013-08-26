@@ -625,7 +625,6 @@ class MarginalDistributions:
         descriptions = hdf5_file['descriptions/parameters'][:]
         for row in descriptions:
             par_defs.append(ParameterDefinition(row[0], row[1], row[2], row[3], False))
-            print(row[4])
             try:
                 prior_name, prior = f.create(row[4])
                 assert(prior_name == row[0])
@@ -1964,7 +1963,7 @@ class MarginalDistributions:
             rows2 = np.logical_and.reduce([self.data[:, par] <= cut[1] for par, cut in self.cuts.iteritems()])
             rows = np.logical_and(rows1, rows2)
 
-        N = len(where(self.weights[rows])[0])
+        N = len(np.where(self.weights[rows])[0])
         print("Remaining samples in selected region: %d" % N)
 
         # sum partial weight
@@ -1976,7 +1975,10 @@ class MarginalDistributions:
         if self.input_source == 'pmc':
             # integral = average weight
             integral = partial_weight / len(self.data)
-            error = np.sqrt(np.var(self.weights[rows], ddof=1) / N)
+
+            # normalize weights to avoid overflow if weights are large
+            normalized_weights = self.weights[rows] / partial_weight
+            error = partial_weight * np.sqrt(np.var(normalized_weights, ddof=1) / N)
             print('Partial weight: %g, total weight: %g, ratio: %g' % (partial_weight, total_weight, ratio))
         elif self.input_source == 'multinest':
             print('Ratio: %g' % partial_weight)
