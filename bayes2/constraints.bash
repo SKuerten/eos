@@ -365,55 +365,45 @@ export CONSTRAINTS_quim1="
     --constraint B^0->K^*0mu^+mu^-::A_T^re[1.00,6.00]@LHCb-2013
 "
 
-# quim2 = quim1 + low recoil
-export CONSTRAINTS_quim2="
-    ${CONSTRAINTS_QUIMBASE}
-    --constraint B^0->K^*0mu^+mu^-::A_FB[1.00,6.00]@LHCb-2013
-    --constraint B^0->K^*0mu^+mu^-::A_T^2[1.00,6.00]@LHCb-2013
-    --constraint B^0->K^*0mu^+mu^-::A_T^re[1.00,6.00]@LHCb-2013
+#####################
+## Uncertainty propagation
+#####################
 
-    --constraint B^0->K^*0mu^+mu^-::A_FB[14.18,16.00]@LHCb-2013
-    --constraint B^0->K^*0mu^+mu^-::A_T^2[14.18,16.00]@LHCb-2013
-    --constraint B^0->K^*0mu^+mu^-::A_T^re[14.18,16.00]@LHCb-2013
+KSTAR0_MU_MU_OPT=",q=d,l=mu,form-factors=KMPW2010,model=WilsonScan"
 
-    --constraint B^0->K^*0mu^+mu^-::A_FB[16.00,19.00]@LHCb-2013
-    --constraint B^0->K^*0mu^+mu^-::A_T^2[16.00,19.00]@LHCb-2013
-    --constraint B^0->K^*0mu^+mu^-::A_T^re[16.00,19.00]@LHCb-2013
+# Return string def of large recoil observables for uncertainty propagation
+# expect two parameters: s_min, s_max
+bvll_large_recoil()
+{
+ observables="
+    --kinematics s_min  BIN_MIN  --kinematics s_max  BIN_MAX  --observable B->K^*ll::P'_4@LargeRecoil${KSTAR0_MU_MU_OPT}
+    --kinematics s_min  BIN_MIN  --kinematics s_max  BIN_MAX  --observable B->K^*ll::P'_5@LargeRecoil${KSTAR0_MU_MU_OPT}
+    --kinematics s_min  BIN_MIN  --kinematics s_max  BIN_MAX  --observable B->K^*ll::P'_6@LargeRecoil${KSTAR0_MU_MU_OPT}
 "
+observables=${observables//BIN_MIN/$1}
+observables=${observables//BIN_MAX/$2}
 
-# quim3 = quim2 + B->K^*ll from all experiments
-export CONSTRAINTS_quim3="
-    ${CONSTRAINTS_QUIMBASE}
-    --constraint B^0->K^*0mu^+mu^-::A_FB[1.00,6.00]@ATLAS-2013A
-    --constraint B^0->K^*0mu^+mu^-::A_FB[14.18,16.00]@ATLAS-2013A
-    --constraint B^0->K^*0mu^+mu^-::A_FB[16.00,19.00]@ATLAS-2013A
+echo $observables
+}
 
-    --constraint B^0->K^*0mu^+mu^-::A_FB[1.00,6.00]@Belle-2009
-    --constraint B^0->K^*0mu^+mu^-::A_FB[14.18,16.00]@Belle-2009
-    --constraint B^0->K^*0mu^+mu^-::A_FB[16.00,19.21]@Belle-2009
-
-    --constraint B^0->K^*0mu^+mu^-::A_FB[1.00,6.00]@BaBar-2012
-    --constraint B^0->K^*0mu^+mu^-::A_FB[14.18,16.00]@BaBar-2012
-    --constraint B^0->K^*0mu^+mu^-::A_FB[16.00,19.21]@BaBar-2012
-
-    --constraint B^0->K^*0mu^+mu^-::A_FB[1.00,6.00]@CDF-2012
-    --constraint B^0->K^*0mu^+mu^-::A_T^2[1.00,6.00]@CDF-2012
-    --constraint B^0->K^*0mu^+mu^-::A_FB[14.18,16.00]@CDF-2012
-    --constraint B^0->K^*0mu^+mu^-::A_T^2[14.18,16.00]@CDF-2012
-    --constraint B^0->K^*0mu^+mu^-::A_FB[16.00,19.21]@CDF-2012
-    --constraint B^0->K^*0mu^+mu^-::A_T^2[16.00,19.21]@CDF-2012
-
-    --constraint B^0->K^*0mu^+mu^-::A_FB[1.00,6.00]@CMS-2013A
-    --constraint B^0->K^*0mu^+mu^-::A_FB[14.18,16.00]@CMS-2013A
-    --constraint B^0->K^*0mu^+mu^-::A_FB[16.00,19.00]@CMS-2013A
-
-    --constraint B^0->K^*0mu^+mu^-::A_FB[1.00,6.00]@LHCb-2013
-    --constraint B^0->K^*0mu^+mu^-::A_T^2[1.00,6.00]@LHCb-2013
-    --constraint B^0->K^*0mu^+mu^-::A_T^re[1.00,6.00]@LHCb-2013
-    --constraint B^0->K^*0mu^+mu^-::A_FB[14.18,16.00]@LHCb-2013
-    --constraint B^0->K^*0mu^+mu^-::A_T^2[14.18,16.00]@LHCb-2013
-    --constraint B^0->K^*0mu^+mu^-::A_T^re[14.18,16.00]@LHCb-2013
-    --constraint B^0->K^*0mu^+mu^-::A_FB[16.00,19.00]@LHCb-2013
-    --constraint B^0->K^*0mu^+mu^-::A_T^2[16.00,19.00]@LHCb-2013
-    --constraint B^0->K^*0mu^+mu^-::A_T^re[16.00,19.00]@LHCb-2013
+bvll_low_recoil()
+{
+ observables="
+    --kinematics s_min  BIN_MIN  --kinematics s_max  BIN_MAX  --observable B->K^*ll::P'_4@LowRecoil${KSTAR0_MU_MU_OPT}
+    --kinematics s_min  BIN_MIN  --kinematics s_max  BIN_MAX  --observable B->K^*ll::P'_5@LowRecoil${KSTAR0_MU_MU_OPT}
+    --kinematics s_min  BIN_MIN  --kinematics s_max  BIN_MAX  --observable B->K^*ll::P'_6@LowRecoil${KSTAR0_MU_MU_OPT}
 "
+observables=${observables//BIN_MIN/$1}
+observables=${observables//BIN_MAX/$2}
+
+echo $observables
+}
+
+# stop at q^2=19 because of LHCb arXiv:1307.1707
+export CONSTRAINTS_uncVLL="
+    $(bvll_large_recoil 2 4.3)
+    $(bvll_large_recoil 1 6)
+    $(bvll_low_recoil 14.18 16)
+    $(bvll_low_recoil 16 19.00)
+"
+export CONSTRAINTS_uncVLLnoSL=${CONSTRAINTS_uncVLL}

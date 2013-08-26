@@ -251,6 +251,41 @@ gof() {
         > ${BASE_NAME}/${scenario}_${data}/gof_${idx}.log 2>&1
 }
 
+export UNC_SAMPLES=100000
+export UNC_WORKERS=1 # set equal to number of threads
+
+unc() {
+    scenario=${1}
+    if [[ -z ${scenario} ]] ; then
+        echo "No scenario given!"
+        exit -1
+    fi
+    echo "[scenario = ${scenario}]"
+
+    shift
+    data=${1}
+    if [[ -z ${data} ]] ; then
+        echo "No set of parameters to vary defined!"
+        exit -1
+    fi
+    echo "[parameters = ${data}]"
+
+    observables=CONSTRAINTS_${data}
+    nuisance=NUISANCE_${data}
+
+    : ${UNC_PARALLEL:=$UNC_WORKERS}
+
+    mkdir -p ${BASE_NAME}/${scenario}_${data}
+    eos-propagate-uncertainty \
+        --seed $PMC_SEED \
+        --samples $UNC_SAMPLES \
+        --workers $UNC_WORKERS \
+        --parallel $UNC_PARALLEL \
+        ${!observables} \
+        ${!nuisance} \
+        --output "${BASE_NAME}/${scenario}_${data}/unc.hdf5" \
+#        > ${BASE_NAME}/${scenario}_${data}/unc_${idx}.log 2>&1
+}
 
 ## Job Main Function ##
 main() {
@@ -289,6 +324,9 @@ main() {
             ;;
         gof)
             gof ${scenario} ${data} $@
+            ;;
+        unc)
+            unc ${scenario} ${data} $@
             ;;
         *)
             echo "No command given!"
