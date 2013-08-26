@@ -2,6 +2,7 @@
 # -*- coding: utf-8 -*-
 
 import plotScript as marg
+import translator
 
 import matplotlib
 import matplotlib.ticker as ticker
@@ -122,8 +123,6 @@ class UncertaintyPropagation(object):
         self.single_ext = ".pdf"
 
         self.n_bins = 60
-
-        self.tr = marg.Translator()
 
     def __determine_file_type(self):
         """
@@ -506,7 +505,7 @@ class UncertaintyPropagation(object):
                 precisions.extend((sigma_prec, sigma_prec))
             else:
                 precisions.append(prec)
-            
+
             rescaled_formats = ["%." + str(p) + ("f" if p == prec else "g") for p in precisions]
             """
             rescaled_formats = ['mode', 'sigma+', 'sigma-', 'SM central']
@@ -528,16 +527,16 @@ class UncertaintyPropagation(object):
                     if exponent > -5:
                         # one after the '.'
                         dot_pos = s.find('.')
-                        
+
                         # digits after '.'
                         n_digits = len(s) - dot_pos
-                        
+
                         # number of zeros directly after '.'
                         n_leading_zeros = len(s[dot_pos:]) - len(s[dot_pos:].lstrip('0'))
-                        
+
                         # want to have
                         target = -exponent + precisions[i] - 1 - n_leading_zeros
-                        
+
                         n_missing_zeros = target - n_digits
                         # empty string added if nothing is missing
                         rescaled_strings[i] = s + '0' * n_missing_zeros
@@ -560,7 +559,7 @@ class UncertaintyPropagation(object):
             # replace only once, if there are several fields of the same name, latex will show the error
             output_template = output_template.replace(full_observable_name, table_row, 1)
             output_template = output_template.replace(self.observable_names[obs_index] + "_MAGNITUDE", magnitude, 1)
-            
+
             print("Table row: %s" % table_row)
 
         #add kinematic info if available
@@ -576,7 +575,7 @@ class UncertaintyPropagation(object):
         if matplotlib.rcParams['text.usetex']:
             uncertainty_string = '$' + uncertainty_string + '$'
         if self.print_uncertainty:
-            P.title(self.tr.to_tex(self.observable_names[obs_index]) + kinematic_string + "$) = $" + uncertainty_string)
+            P.title(translator.EOS_Translator().to_tex(self.observable_names[obs_index]) + kinematic_string + "$) = $" + uncertainty_string)
         else:
             P.xlabel(self.tr.to_tex(self.observable_names[obs_index]) + kinematic_string)
         P.xlim(x_min, x_max)
