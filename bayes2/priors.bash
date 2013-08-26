@@ -61,7 +61,7 @@ export NUISANCE_B_TO_VPARALL_SUBLEADING="
 "
 
 export NUISANCE_B_TO_PLL_FORM_FACTORS="
-    --nuisance    B->K::F^p(0)@KMPW2010                          0.28  0.49 ${N_SIGMAS}     --prior    log-gamma   0.32      0.34      0.39
+    --nuisance    B->K::F^p(0)@KMPW2010                          0.10  0.49 ${N_SIGMAS}     --prior    gaussian    0.29      0.34      0.39
     --nuisance    B->K::b^p_1@KMPW2010                          -6.9   0.6  ${N_SIGMAS}     --prior    log-gamma  -3.7      -2.1      -1.2
 "
 
