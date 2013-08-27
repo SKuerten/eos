@@ -591,35 +591,26 @@ class UncertaintyPropagation(object):
 
         return (output_template, mode, intervals)
 
-def uncertainty_propagation():
+def manual_filter(unc):
+    """Apply cuts to an instance of UncertaintyPropagation"""
 
-    return
-    unc_types = ['FF', 'CKM_MASSES_HADRONIC', 'ALL', 'SUBLEADING']
-    i = 1
-    dir_base = "/storage/Programs/eos/results/2011-11-03/uncertainty_" + unc_types[i] + "_1810/"
+    unc.lower_cuts[r"B->K^*ll::P'_4@LargeRecoil,s_min=2,s_max=4.3"] = 0.0
+    unc.lower_cuts[r"B->K^*ll::P'_4@LargeRecoil,s_min=1,s_max=6"] = 0.0
+    unc.upper_cuts[r"B->K^*ll::P'_5@LargeRecoil,s_min=2,s_max=4.3"] = 0.0
+    unc.upper_cuts[r"B->K^*ll::P'_5@LargeRecoil,s_min=1,s_max=6"] = 0.0
+    unc.upper_cuts[r"B->K^*ll::P'_6@LargeRecoil,s_min=2,s_max=4.3"] = 0.0
+    unc.upper_cuts[r"B->K^*ll::P'_6@LargeRecoil,s_min=1,s_max=6"] = 0.0
 
-#    merge_datasets(dir_base + "uncertainty_" + unc_types[i] + "_merge.hdf5", "uncertainty_" + unc_types[i] + "_1105*.hdf5",
-#                   groups=['/samples/observables', '/samples/parameters'])
+    unc.upper_cuts[r"B->K^*ll::P'_5@LowRecoil,s_min=14.18,s_max=16"] = 0.0
+    unc.upper_cuts[r"B->K^*ll::P'_5@LowRecoil,s_min=16,s_max=19"] = 0.0
 
-    prop = UncertaintyPropagation([dir_base + "uncertainty_" + unc_types[i] +"_merge.hdf5"])
-    prop.plot()
-#    prop.parameter_correlations()
-#    prop.parameter_correlations(5, 0.4e-5)
-#    prop = UncertaintyPropagation([dir_base + "9/FF/FF.hdf5"])
 
-#    merge_datasets(dir_base + "9/SL/SL.hdf5", "15*SL*.hdf5")
-#    prop = UncertaintyPropagation([dir_base + "9/SL/SL.hdf5"])
+    unc.lower_cuts[r"B->K^*ll::P'_6@LowRecoil,s_min=14.18,s_max=16"] = -0.01
+    unc.upper_cuts[r"B->K^*ll::P'_6@LowRecoil,s_min=14.18,s_max=16"] = +0.01
+    unc.lower_cuts[r"B->K^*ll::P'_6@LowRecoil,s_min=16,s_max=19"] = -0.003
+    unc.upper_cuts[r"B->K^*ll::P'_6@LowRecoil,s_min=16,s_max=19"] = +0.003
 
-#    merge_datasets(dir_base + "9/CKM+FF+SL/CKM+FF+SL.hdf5", "15*CKM+FF+SL*.hdf5")
-#    prop = UncertaintyPropagation([dir_base + "9/CKM+FF+SL/CKM+FF+SL.hdf5"])
-
-#    prop = UncertaintyPropagation([dir_base + "9/CKM+FF+SL/CKM+FF+SL.hdf5",
-#                                   dir_base + "9/CKM/CKM.hdf5",
-#                                   dir_base + "9/FF/FF.hdf5",
-#                                   dir_base + "9/SL/SL.hdf5"])
-#    prop.plot()
-
-#    prop.parameter_correlations(17, True)
+    return unc
 
 def factory(cmd_line=None):
     """
@@ -636,9 +627,6 @@ def factory(cmd_line=None):
     parser.add_argument('--select', help="Select a range of samples from each chain", action='store',nargs=2)
     parser.add_argument('--table', help="Output uncertainties into table", action='store')
     parser.add_argument('--use-data-range', help="Determine the parameter par_ranges from data, instead of from definition in HDF5. ", action='store', default=0.0)
-#    parser.add_argument('--use-KDE',  help='Use kernel density estimation instead of histograms', action='store_true')
-#    parser.add_argument('--bandwidth', help="Number in [0,1] used as bandwidth for KDE interpolation after rescaling to unit coordinate cube", action='store')
-#    parser.add_argument('--merge', help="Merge all files in cwd that match a partial file name into one merge file",action='store', nargs=2)
 
     args = parser.parse_args(cmd_line)
 
@@ -665,6 +653,8 @@ def factory(cmd_line=None):
         template = f.read()
     else:
         template = None
+
+    uncert = manual_filter(uncert)
 
     ###
     # now come the actions
