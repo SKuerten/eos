@@ -253,6 +253,7 @@ gof() {
 
 export UNC_SAMPLES=100000
 export UNC_WORKERS=1 # set equal to number of threads
+export UNC_STORE_PAR=1
 
 unc() {
     scenario=${1}
@@ -281,10 +282,11 @@ unc() {
         --samples $UNC_SAMPLES \
         --workers $UNC_WORKERS \
         --parallel $UNC_PARALLEL \
+        --store-parameters $UNC_STORE_PAR \
         ${!observables} \
         ${!nuisance} \
         --output "${BASE_NAME}/${scenario}_${data}/unc.hdf5" \
-#        > ${BASE_NAME}/${scenario}_${data}/unc_${idx}.log 2>&1
+        > ${BASE_NAME}/${scenario}_${data}/unc_${idx}.log 2>&1
 }
 
 ## Job Main Function ##
