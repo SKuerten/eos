@@ -44,6 +44,12 @@ def merge_preruns(output_file_name, search='*.hdf5', input_files=None,
     #find hdf5 files to merge
     if input_files is None:
         search_results = natsorted(glob.glob(os.path.join(base_dir, search)))
+        # avoid double merging
+        try:
+            search_results.remove(output_file_name)
+            print("Removed %s from input files" % output_file_name)
+        except ValueError:
+            pass
     else:
         search_results = input_files
 
