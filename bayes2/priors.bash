@@ -166,7 +166,7 @@ export NUISANCE_quim1=${NUISANCE_QUIMBASE}
 export NUISANCE_quim2=${NUISANCE_QUIMBASE}
 export NUISANCE_quim3=${NUISANCE_QUIMBASE}
 
-nuisance_uncvll="
+export NUISANCE_uncVLL="
     ${NUISANCE_CKM}
     ${NUISANCE_QUARK_MASSES}
     ${NUISANCE_B_TO_VPERPLL_FORM_FACTORS}
@@ -174,12 +174,10 @@ nuisance_uncvll="
     ${NUISANCE_B_TO_VPARALL_FORM_FACTORS}
     ${NUISANCE_B_TO_VPARALL_SUBLEADING}
 "
-export NUISANCE_uncVLL=${nuisance_uncvll//--nuisance/--vary}
 
-nuisance_uncvllnosl="
+export NUISANCE_uncPLL="
     ${NUISANCE_CKM}
     ${NUISANCE_QUARK_MASSES}
-    ${NUISANCE_B_TO_VPERPLL_FORM_FACTORS}
-    ${NUISANCE_B_TO_VPARALL_FORM_FACTORS}
+    ${NUISANCE_B_TO_PLL_FORM_FACTORS}
+    ${NUISANCE_B_TO_PLL_SUBLEADING}
 "
-export NUISANCE_uncVLLnoSL=${nuisance_uncvllnosl//--nuisance/--vary}

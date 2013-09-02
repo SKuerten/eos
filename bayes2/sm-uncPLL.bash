@@ -18,7 +18,7 @@ export PMC_INITIALIZATION="$PMC_INITIALIZATION --pmc-r-value-no-nuisance 0"
 export UNC_SAMPLES=100000
 export UNC_WORKERS=8
 export UNC_PMC_INPUT="
-    --pmc-input ${BASE_NAME}/sm_uncVLL/pmc_monolithic.hdf5 0 20
+    --pmc-input ${BASE_NAME}/sm_uncPLL/pmc_monolithic.hdf5 0 20
     --hdf5-sample-directory /data/final
 "
 

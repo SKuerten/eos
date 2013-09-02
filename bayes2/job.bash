@@ -8,6 +8,7 @@ export MCMC_PRERUN_SCALE_REDUCTION=10
 export MCMC_PRERUN_PARALLEL=1
 
 source ${EOS_SCRIPT_PATH}/constraints.bash
+source ${EOS_SCRIPT_PATH}/predictions.bash
 source ${EOS_SCRIPT_PATH}/priors.bash
 source ${EOS_SCRIPT_PATH}/scan.bash
 
@@ -254,6 +255,8 @@ gof() {
 export UNC_SAMPLES=100000
 export UNC_WORKERS=1 # set equal to number of threads
 export UNC_STORE_PAR=1
+# "--pmc-input file.hdf INDEX_MIN INDEX_MAX"
+export UNC_PMC_INPUT=
 
 unc() {
     scenario=${1}
@@ -271,8 +274,11 @@ unc() {
     fi
     echo "[parameters = ${data}]"
 
-    observables=CONSTRAINTS_${data}
+    predictions=PREDICTIONS_${data}
     nuisance=NUISANCE_${data}
+    nuisance=${!nuisance}
+    nuisance=${nuisance//--nuisance/--vary}
+    echo ${nuisance}
 
     : ${UNC_PARALLEL:=$UNC_WORKERS}
 
@@ -283,7 +289,8 @@ unc() {
         --workers $UNC_WORKERS \
         --parallel $UNC_PARALLEL \
         --store-parameters $UNC_STORE_PAR \
-        ${!observables} \
+        ${UNC_PMC_INPUT} \
+        ${!predictions} \
         ${!nuisance} \
         --output "${BASE_NAME}/${scenario}_${data}/unc.hdf5" \
         > ${BASE_NAME}/${scenario}_${data}/unc_${idx}.log 2>&1
