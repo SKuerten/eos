@@ -13,7 +13,7 @@ export PMC_GROUP_BY_RVALUE=2
 export PMC_FINAL_CHUNKSIZE=1000000
 export PMC_CLUSTERS=25
 export PMC_INITIALIZATION="$PMC_INITIALIZATION --pmc-r-value-no-nuisance 0"
-export PMC_CONVERGENCE="$PMC_CONVERGENCE --pmc-crop-highest-weights 20"
+export PMC_CONVERGENCE="$PMC_CONVERGENCE --pmc-crop-highest-weights 50"
 export PMC_SKIP_INITIAL=0.2
 
 # starting points
