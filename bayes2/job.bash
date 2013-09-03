@@ -296,6 +296,44 @@ unc() {
         > ${BASE_NAME}/${scenario}_${data}/unc_${idx}.log 2>&1
 }
 
+unc_queue() {
+    scenario=${1}
+    if [[ -z ${scenario} ]] ; then
+        echo "No scenario given!"
+        exit -1
+    fi
+    echo "[scenario = ${scenario}]"
+
+    shift
+    data=${1}
+    if [[ -z ${data} ]] ; then
+        echo "No set of parameters to vary defined!"
+        exit -1
+    fi
+    echo "[parameters = ${data}]"
+
+    scan=SCAN_${scenario}
+    constraints=CONSTRAINTS_${data}
+    predictions=PREDICTIONS_${data}
+    nuisance=NUISANCE_${data}
+    nuisance=${!nuisance}
+
+    export PMC_ANALYSIS="${!constraints} ${!scan} ${!nuisance}"
+    export PMC_UNCERTAINTY_ANALYSIS="${!predictions}"
+    export PMC_OUTPUT_BASE_NAME=${BASE_NAME}/${scenario}_${data}/
+
+    : ${UNC_PARALLEL:=$UNC_WORKERS}
+
+    mkdir -p ${BASE_NAME}/${scenario}_${data}
+
+    export PMC_INITIALIZATION_MODE="UncertaintyPropagation"
+
+    $PYTHON $EOS_SCRIPT_PATH/../jobs/job_manager.py --uncertainty-propagation \
+        --resource-manager ${PMC_RESOURCE_MANAGER} \
+        $PMC_CLIENT_ARGV \
+	2>&1 | tee ${BASE_NAME}/${scenario}_${data}/manager.log
+}
+
 ## Job Main Function ##
 main() {
     local name=${0}
@@ -315,6 +353,7 @@ main() {
 
     cmd=${1}
     shift
+
     case ${cmd} in
         pre)
             mcmc_pre ${scenario} ${data} $@
@@ -337,9 +376,13 @@ main() {
         unc)
             unc ${scenario} ${data} $@
             ;;
+        unc-queue)
+            unc_queue ${scenario} ${data} $@
+            ;;
         *)
             echo "No command given!"
             exit -1
             ;;
     esac
+
 }

@@ -121,6 +121,22 @@ class PMC_Iterator(object):
         elif self.initialization_mode == 'UncertaintyPropagation':
             self.uncertainty_analysis = environ['PMC_UNCERTAINTY_ANALYSIS']
             self.uncertainty_input = environ['PMC_UNCERTAINTY_INPUT']
+            self.uncertainty_sample_directory = env('PMC_UNCERTAINTY_SAMPLE_DIRECTORY', '')
+
+            # determine default
+            if not self.uncertainty_sample_directory:
+                import h5py
+                f = h5py.File(self.uncertainty_input)
+                allowed_dirs = ('/data', '/data/final')
+                for dir in allowed_dirs:
+                    try:
+                        len(f[dir + '/samples'])
+                        self.uncertainty_sample_directory = dir
+                        break
+                    except KeyError:
+                        continue
+            if not self.uncertainty_sample_directory:
+                raise Exception("Cannot find the samples directory in %s. Please indicate it via PMC_UNCERTAINTY_SAMPLE_DIRECTORY" % str(allowed_dirs))
         else:
             raise Exception("Unknown initialization mode: '%s'" % self.initialization_mode)
 
@@ -197,6 +213,7 @@ class PMC_Iterator(object):
         cmd += ' --output ' +  job_info.file_name
         if self.initialization_mode == 'UncertaintyPropagation':
             cmd += ' --pmc-input %s %d %d' % (self.uncertainty_input, job_info.min, job_info.max)
+            cmd += ' --pmc-sample-directory %s' % self.uncertainty_sample_directory
             cmd += self.uncertainty_analysis
         else:
             cmd += ' --seed %d' % (self.seed + 1000 * self.step  + 100 * job_index)
@@ -288,7 +305,11 @@ class PMC_Iterator(object):
         for i in range(n_steps):
             try:
                 f = h5py.File(file_name, 'r')
-                n_samples = len(f['/data/samples'])
+                if self.initialization_mode == 'UncertaintyPropagation':
+                    dir = self.uncertainty_sample_directory
+                else:
+                    dir = '/data'
+                n_samples = len(f[dir + '/samples'])
                 f.close()
                 return n_samples
             except:
@@ -523,11 +544,14 @@ class PMC_Iterator(object):
 
         merge_file_name = self.output_base + 'unc.hdf5'
 
-        # keep track of which weights are to be ignored
+        # determine file type: monolithic vs queue output
         input_file = h5py.File(self.uncertainty_input, 'r')
-        broken = np.zeros((input_file['/data/samples'].len(),),dtype=np.int8)
 
-        n_samples = len(broken)
+        n_samples = input_file[self.uncertainty_sample_directory + '/samples'].len()
+
+        # keep track of which weights are to be ignored
+
+        broken = np.zeros((n_samples,),dtype=np.int8)
 
         # keep track of first sane file
         found_sane = None
@@ -552,8 +576,12 @@ class PMC_Iterator(object):
         print("Percentage of broken samples: %g out of %d =  %g " % ( n_broken, len(broken), n_broken / len(broken)))
 
         # create data arrays in memory first
-
-        weights_array = np.array(input_file['/data/weights'][:])
+        if self.uncertainty_sample_directory == '/data/final':
+            weights_array = np.zeros(n_samples, dtype=np.dtype([('posterior', float), ('weight', float)]))
+            weights_array.T['posterior'] = input_file['/data/final/samples'][:].T[-2]
+            weights_array.T['weight'] = input_file['/data/final/samples'][:].T[-1]
+        else:
+            weights_array = np.array(input_file['/data/weights'][:])
         assert(len(weights_array) == n_samples)
 
         f = h5py.File(self.job_infos[found_sane].file_name, 'r')
@@ -1316,6 +1344,268 @@ def restart_jobs():
         if status != 0 or not output:
             raise Exception("Couldn't submit to Slurm queue: \n Tried '%s'\n\n and received:\n\n %s" % (cmd, output))
 
+###
+### Classes for "loadleveler"-based clusters
+###
+class LL_Checker(TaskThread):
+
+    def __init__(self, job_ids, interval=15, check_error_status=False):
+        super(LL_Checker, self).__init__()
+        self.job_ids = job_ids
+        self.setInterval(interval) # in seconds
+        self.check_error_status = check_error_status
+
+    def task(self):
+        """
+        Check if all jobs finished yet. Sample output to parse is
+Id                       Owner      Submitted   ST PRI Class        Running On
+------------------------ ---------- ----------- -- --- ------------ -----------
+xcat.163067.0            ru72xaf2    8/29 13:53 R  50  serial       n040
+xcat.163081.0            ru72xaf2    8/29 13:53 I  50  serial
+        """
+
+        # poll status
+        status, output = commands.getstatusoutput('llq -u ru72xaf2')
+
+        # relevant lines ignore first two and last row
+        rel_lines = output.splitlines()[2:-2]
+
+        # split line into words
+        running_job_ids = [int(line.split()[0].split('.')[1]) for line in rel_lines]
+        job_status = [line.split()[4] for line in rel_lines]
+
+        # check all registered jobs for their status
+        job_running = False
+        for job_number, id in self.job_ids.iteritems():
+            try:
+                # is job id still in queue?
+                i = running_job_ids.index(id)
+                status = job_status[i]
+                if status == 'R' or status == 'I':
+                    job_running = True
+                    sys.stdout.write('Job %d still active with status %s. ' % (id, status))
+                    break
+            except ValueError:
+                pass
+
+        # all jobs finished successfully
+        if job_running:
+            return
+
+        print('All jobs seem to be finished;')
+        print("Checking error? %s" % str(self.check_error_status))
+
+        return_value = 0
+
+        if self.check_error_status:
+            print("error status checking not implemented")
+
+        self.shutdown(return_value=return_value)
+
+class LL_Options(object):
+    """
+    Collect all options particular to the LL queue
+    """
+
+    def __init__(self):
+        self.queue = env('LL_QUEUE', 'serial')
+        self.final_queue = env('LL_FINAL_QUEUE', 'serial')
+        self.check_error_status = False
+
+class LL_Iterator(PMC_Iterator):
+
+    def __init__(self):
+        super(LL_Iterator, self).__init__()
+
+        # somehow need job scripts in home directory?
+
+        if not os.path.isdir(self.output_job_base):
+            os.makedirs(self.output_job_base)
+
+        self.output_job_base = os.path.join(self.output_job_base, os.path.split(self.output_base)[1])
+
+        self.options = LL_Options()
+
+    def submit(self, script_name, log_file_name, queue, job_name):
+        """
+        Create a job submission file and submit. Return job id.
+
+        script_name: the script that is run by loadleveler
+        queue: the name of the queue to which the job gets submitted
+
+        """
+        submission = """#! /bin/bash
+
+#@ group =  pr85tu
+#@ job_type = serial
+#@ class = %s
+###                    hh:mm:ss
+##@ wall_clock_limit = 48:15:50
+#@ job_name = eos-%s
+#@ initialdir = $(home)/workspace/eos-scripts/bayes2
+#@ output = %s
+#@ error  = %s
+#@ notification=always
+#@ notify_user=Frederik.Beaujean@lmu.de
+#@ queue
+
+%s
+""" % (queue, job_name, log_file_name, log_file_name, script_name)
+        ###
+        # create file
+        ###
+
+        submit_file_name = self.output_job_base + "eos_ll.cmd"
+        f = open(submit_file_name, 'w')
+        f.write(submission)
+        f.close()
+
+        # make the script executable
+        os.chmod(submit_file_name, 0755)
+
+        ###
+        # submit file
+        ###
+        cmd = 'llsubmit ' + submit_file_name
+        status, output = commands.getstatusoutput(cmd)
+
+        self.clean_files.append(submit_file_name)
+
+        if status != 0 or not output:
+            raise Exception("Couldn't submit to LL queue: \n Tried '%s'\n\n and received:\n\n %s" % (cmd, output))
+
+        # extract job index from a line like
+        # llsubmit: The job "xcat.163140" has been submitted.
+        start = output.find('.')
+        end = output.find('"', start)
+        job_id = int(output[start + 1: end])
+
+        return job_id
+
+    def control_jobs(self, job_ids):
+        """
+        Handle job execution in queue in abstract fashion.
+        Returns once all jobs are finished.
+        """
+
+        print('Polling LL every %d seconds' % self.polling_interval)
+
+        checker = LL_Checker(job_ids, self.polling_interval)
+        ret_value = checker.run()
+
+        if ret_value:
+            sys.stderr.write("Some job did NOT finish alright, but had return code %d\n" % ret_value)
+#            self.start_job(ret_value)
+        else:
+            print('Finished controlling. All jobs returned successfully.')
+
+    def run_single_jobs(self, final=False):
+        """
+        Start jobs in the batch queue.
+        """
+
+        job_ids = {}
+        # submit and store job id
+        for i in self.job_infos.iterkeys():
+            job_ids[i] = self.start_job(i, final=final)
+        print("Running the following jobs:")
+        print(job_ids)
+
+        self.control_jobs(job_ids)
+
+    def run_update_job(self, script_name, final=False):
+        log_file_name = self.output_job_base + 'pmc_update_%d' % self.step + '.log'
+
+        job_id = self.submit(script_name=script_name,
+                         log_file_name=log_file_name,
+                         queue=self.options.final_queue if final else self.options.queue,
+                         job_name='job_%d' % self.step)
+
+        # don't wait for job to finish
+        if final:
+            print("Final update job %d is on its way, I don't wait until it is finished" % job_id)
+            return
+
+        self.control_jobs({0:job_id})
+
+#         cmd = """#! /bin/bash
+
+# #@ group =  pr85tu
+# #@ job_type = serial
+# #@ class = %s
+# ###                    hh:mm:ss
+# ##@ wall_clock_limit = 48:15:50
+# #@ job_name = eos-%d
+# #@ initialdir = $(home)/workspace/eos-scripts/bayes2
+# #@ output = %s
+# #@ error  = %s
+# #@ notification=always
+# #@ notify_user=Frederik.Beaujean@lmu.de
+# #@ queue
+
+# %s
+# """ % ((self.options.final_queue if final else self.options.queue),
+#         self.step, log_file_name, log_file_name, script_name)
+
+#         status, output = commands.getstatusoutput(cmd)
+
+#         if status != 0 or not output:
+#             raise Exception("Couldn't submit to LL queue: \n Tried '%s'\n\n and received:\n\n %s" % (cmd, output))
+
+#         # parse job id from a line like
+#         # llsubmit: The job "xcat.163140" has been submitted.
+#         start = output.find('.')
+#         end = output.find('"', start)
+#         job_id = int(output[start + 1: end])
+
+    def start_job(self, job_index, final=False):
+        """
+        Start a single job with the given index.
+        Return the job id assigned by LL
+        """
+        log_file_name = self.output_job_base + '_%d' % job_index + '.log'
+
+        self.clean_files.append(log_file_name)
+
+        return self.submit(script_name=self.job_infos[job_index].script_name,
+                    log_file_name=log_file_name,
+                    queue=self.options.final_queue if final else self.options.queue,
+                    job_name='job_%d_%d' % (self.step, job_index))
+
+        # cmd =  'qsub'
+        # cmd += ' -q %s' % (self.options.final_queue if final else self.options.queue)
+        # cmd += ' -j y' # what does it mean?
+        # cmd += ' -N job_%d_%d' % (self.step, job_index) #job_indentifier
+        # cmd += ' -e %s' % log_file_name
+        # cmd += ' -o %s' % log_file_name
+        # cmd += ' -V'
+        # cmd += ' -S /bin/bash'
+        # cmd += ' %s' % self.job_infos[job_index].script_name
+
+        # status, output = commands.getstatusoutput(cmd)
+
+        # if status != 0 or not output:
+        #     raise Exception("Couldn't submit to LL queue: \n Tried '%s'\n\n and received:\n\n %s" % (cmd, output))
+
+        # # remove file immediately, sometimes get this error when removing due to incredibly slow file system:
+        # """OSError: [Errno 110] Connection timed out:"""
+        # try:
+        #     if os.path.exists(self.job_infos[job_index].script_name):
+        #         pass
+        #     #                os.remove(self.job_infos[job_index].script_name)
+        # except OSError:
+        #     pass
+
+        # # parse job id from a line like
+        # # 'Your job 2756454 ("empty_job.sh") has been submitted'
+        # start = output.find('job')
+        # end = output.find('("')
+        # return int(output[start + 4: end])
+
+def restart_jobs():
+    """Submit jobs after an OSError has stopped program"""
+    raise NotImplementedError()
+
 def main():
     import argparse
 
@@ -1333,7 +1623,7 @@ def main():
     parser.add_argument('--restart', help="restart jobs to queue", action='store_true')
     parser.add_argument('--step', help='Set step', action='store')
     parser.add_argument('--uncertainty-propagation', help='Run uncertainty propagation on posterior samples', action='store_true')
-    parser.add_argument('--resource-manager', help='Resource manager selection for your cluster: SGE,Slurm', default='SGE')
+    parser.add_argument('--resource-manager', help='Resource manager selection for your cluster: SGE,Slurm, loadleveler', default='SGE')
     args = parser.parse_args()
     print("Initializing with args:")
     print(args.__dict__)
@@ -1341,6 +1631,8 @@ def main():
         pmc_iterator = SGE_Iterator()
     elif args.resource_manager == "Slurm":
         pmc_iterator = Slurm_Iterator()
+    elif args.resource_manager == 'loadleveler':
+        pmc_iterator = LL_Iterator()
     else:
         raise Exception("Invalid resource manager: %s" % args.resource_manager)
 
