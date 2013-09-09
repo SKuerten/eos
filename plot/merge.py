@@ -56,21 +56,17 @@ def merge_preruns(output_file_name, search='*.hdf5', input_files=None,
     if len(search_results) == 0:
         raise Exception("No files matching '%s' in %s were found!" % (search, base_dir))
 
-    # find first valid chain
-    if cut_off is not None:
-        print("Warning: first file %s is merged w/o checking. " % search_results[0] +
-              "If it contains an invalid chain use --input-file-list to reorder manually!")
-    shutil.copy(search_results[0], output_file_name)
-
+    # hdf5 groups
     groups = ['/prerun', '/descriptions/prerun']
 
     # count chains copied
     nchains_copied = 0
 
-    output_file = h5py.File(output_file_name, "r+")
-    nchains_copied = len(output_file[groups[0]].keys())
+    output_file = h5py.File(output_file_name, "w")
+    for g in groups:
+        output_file.create_group(g)
 
-    for f_i, file_name in enumerate(search_results[1:]):
+    for f_i, file_name in enumerate(search_results):
         print("merging %s into %s" % (file_name, output_file_name))
         input_file = h5py.File(file_name, 'r')
         nchains_in_file = len(input_file[groups[0]].keys())
