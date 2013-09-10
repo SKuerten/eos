@@ -1438,6 +1438,7 @@ class LL_Iterator(PMC_Iterator):
 
 #@ group =  pr85tu
 #@ job_type = serial
+#@ resources = ConsumableCpus(1)
 #@ class = %s
 ###                    hh:mm:ss
 ##@ wall_clock_limit = 48:15:50
