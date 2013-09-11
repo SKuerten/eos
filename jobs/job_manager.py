@@ -1446,7 +1446,7 @@ class LL_Iterator(PMC_Iterator):
 #@ initialdir = $(home)/workspace/eos-scripts/bayes2
 #@ output = %s
 #@ error  = %s
-#@ notification=always
+#@ notification=error
 #@ notify_user=Frederik.Beaujean@lmu.de
 #@ queue
 
@@ -1540,7 +1540,7 @@ class LL_Iterator(PMC_Iterator):
 # #@ initialdir = $(home)/workspace/eos-scripts/bayes2
 # #@ output = %s
 # #@ error  = %s
-# #@ notification=always
+# #@ notification=error
 # #@ notify_user=Frederik.Beaujean@lmu.de
 # #@ queue
 
