@@ -50,6 +50,11 @@ export NUISANCE_B_TO_VPERPLL_SUBLEADING="
     --nuisance    B->K^*ll::A_perp^R_uncertainty@LargeRecoil     0.5   1.5  ${N_SIGMAS}     --prior    gaussian    0.85      1.0       1.15
 "
 
+export NUISANCE_B_TO_VPERPLL_SUBLEADING_WIDE="
+    --nuisance    B->K^*ll::A_perp^L_uncertainty@LargeRecoil     0.2   1.8  ${N_SIGMAS}     --prior    gaussian    0.55      1.0       1.45
+    --nuisance    B->K^*ll::A_perp^R_uncertainty@LargeRecoil     0.2   1.8  ${N_SIGMAS}     --prior    gaussian    0.55      1.0       1.45
+"
+
 export NUISANCE_B_TO_VPARALL_SUBLEADING="
     --nuisance    B->Vll::Lambda_0@LowRecoil                    -0.5   0.5  ${N_SIGMAS}     --prior    gaussian   -0.15      0.0       0.15
     --nuisance    B->Vll::Lambda_pa@LowRecoil                   -0.5   0.5  ${N_SIGMAS}     --prior    gaussian   -0.15      0.0       0.15
@@ -58,6 +63,15 @@ export NUISANCE_B_TO_VPARALL_SUBLEADING="
     --nuisance    B->K^*ll::A_0^R_uncertainty@LargeRecoil        0.5   1.5  ${N_SIGMAS}     --prior    gaussian    0.85      1.0       1.15
     --nuisance    B->K^*ll::A_par^L_uncertainty@LargeRecoil      0.5   1.5  ${N_SIGMAS}     --prior    gaussian    0.85      1.0       1.15
     --nuisance    B->K^*ll::A_par^R_uncertainty@LargeRecoil      0.5   1.5  ${N_SIGMAS}     --prior    gaussian    0.85      1.0       1.15
+"
+export NUISANCE_B_TO_VPARALL_SUBLEADING_WIDE="
+    --nuisance    B->Vll::Lambda_0@LowRecoil                    -0.8   0.8  ${N_SIGMAS}     --prior    gaussian   -0.45      0.0       0.45
+    --nuisance    B->Vll::Lambda_pa@LowRecoil                   -0.8   0.8  ${N_SIGMAS}     --prior    gaussian   -0.45      0.0       0.45
+    --nuisance    B->Vll::Lambda_pp@LowRecoil                   -0.8   0.8  ${N_SIGMAS}     --prior    gaussian   -0.45      0.0       0.45
+    --nuisance    B->K^*ll::A_0^L_uncertainty@LargeRecoil        0.2   1.8  ${N_SIGMAS}     --prior    gaussian    0.55      1.0       1.45
+    --nuisance    B->K^*ll::A_0^R_uncertainty@LargeRecoil        0.2   1.8  ${N_SIGMAS}     --prior    gaussian    0.55      1.0       1.45
+    --nuisance    B->K^*ll::A_par^L_uncertainty@LargeRecoil      0.2   1.8  ${N_SIGMAS}     --prior    gaussian    0.55      1.0       1.45
+    --nuisance    B->K^*ll::A_par^R_uncertainty@LargeRecoil      0.2   1.8  ${N_SIGMAS}     --prior    gaussian    0.55      1.0       1.45
 "
 
 export NUISANCE_B_TO_PLL_FORM_FACTORS="
@@ -68,6 +82,11 @@ export NUISANCE_B_TO_PLL_FORM_FACTORS="
 export NUISANCE_B_TO_PLL_SUBLEADING="
     --nuisance    B->Pll::Lambda_pseudo@LowRecoil               -0.5   0.5  ${N_SIGMAS}     --prior    gaussian   -0.15      0.0       0.15
     --nuisance    B->Pll::Lambda_pseudo@LargeRecoil             -1.0   1.0  ${N_SIGMAS}     --prior    gaussian   -0.50      0.0       0.50
+"
+
+export NUISANCE_B_TO_PLL_SUBLEADING_WIDE="
+    --nuisance    B->Pll::Lambda_pseudo@LowRecoil               -0.8   0.8  ${N_SIGMAS}     --prior    gaussian   -0.45      0.0       0.45
+    --nuisance    B->Pll::Lambda_pseudo@LargeRecoil             -2.0   2.0  ${N_SIGMAS}     --prior    gaussian   -1.50      0.0       1.50
 "
 
 export NUISANCE_B_TO_XS_HQE="
@@ -150,6 +169,18 @@ export NUISANCE_bsmumu="
 "
 
 export NUISANCE_posthep13=${NUISANCE_all}
+export NUISANCE_posthep13wide="
+    ${NUISANCE_CKM}
+    ${NUISANCE_QUARK_MASSES}
+    ${NUISANCE_DECAY_CONSTANTS}
+    ${NUISANCE_B_TO_VPERPLL_FORM_FACTORS}
+    ${NUISANCE_B_TO_VPERPLL_SUBLEADING_WIDE}
+    ${NUISANCE_B_TO_VPARALL_FORM_FACTORS}
+    ${NUISANCE_B_TO_VPARALL_SUBLEADING_WIDE}
+    ${NUISANCE_B_TO_PLL_FORM_FACTORS}
+    ${NUISANCE_B_TO_PLL_SUBLEADING_WIDE}
+    ${NUISANCE_B_TO_XS_HQE}
+"
 
 export NUISANCE_QUIMBASE="
     ${NUISANCE_CKM}
@@ -161,10 +192,21 @@ export NUISANCE_QUIMBASE="
     ${NUISANCE_B_TO_VPARALL_SUBLEADING}
     ${NUISANCE_B_TO_XS_HQE}
 "
+export NUISANCE_QUIMBASE_WIDE="
+    ${NUISANCE_CKM}
+    ${NUISANCE_QUARK_MASSES}
+    ${NUISANCE_DECAY_CONSTANTS}
+    ${NUISANCE_B_TO_VPERPLL_FORM_FACTORS}
+    ${NUISANCE_B_TO_VPERPLL_SUBLEADING_WIDE}
+    ${NUISANCE_B_TO_VPARALL_FORM_FACTORS}
+    ${NUISANCE_B_TO_VPARALL_SUBLEADING_WIDE}
+    ${NUISANCE_B_TO_XS_HQE}
+"
 
 export NUISANCE_quim1=${NUISANCE_QUIMBASE}
 export NUISANCE_quim2=${NUISANCE_QUIMBASE}
 export NUISANCE_quim3=${NUISANCE_QUIMBASE}
+export NUISANCE_quim1wide=${NUISANCE_QUIMBASE_WIDE}
 
 export NUISANCE_uncVLL="
     ${NUISANCE_CKM}
