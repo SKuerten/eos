@@ -15,6 +15,12 @@ export PMC_FINAL_CHUNKSIZE=1000000
 export PMC_GROUP_BY_RVALUE=2
 export PMC_INITIALIZATION="$PMC_INITIALIZATION --pmc-r-value-no-nuisance 0"
 
+export PMC_NUMBER_OF_JOBS=100
+export PMC_RESOURCE_MANAGER=loadleveler
+export LL_QUEUE=test
+export LL_FINAL_QUEUE=serial
+export PMC_POLLING_INTERVAL=30
+
 # starting point
 export GOF_MODE_0="{
    8.218807e-01   2.254672e-01   1.210974e-01   3.675468e-01   1.267074e+00
