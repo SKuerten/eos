@@ -43,6 +43,7 @@ export PREDICTIONS_uncVLL="
     $(bvll_low_recoil 14.18 16)
     $(bvll_low_recoil 16 19.00)
 "
+export PREDICTIONS_uncVLLwide=${PREDICTIONS_uncVLL}
 
 export PREDICTIONS_uncINCL="
     --kinematics E_min 1.8 --observable B->X_sgamma::BR(E_min)@NLO,model=WilsonScan
