@@ -278,7 +278,6 @@ unc() {
     nuisance=NUISANCE_${data}
     nuisance=${!nuisance}
     nuisance=${nuisance//--nuisance/--vary}
-    echo ${nuisance}
 
     : ${UNC_PARALLEL:=$UNC_WORKERS}
 
