@@ -367,7 +367,7 @@ export CONSTRAINTS_quim1="
     --constraint B^0->K^*0mu^+mu^-::A_T^2[1.00,6.00]@LHCb-2013
     --constraint B^0->K^*0mu^+mu^-::A_T^re[1.00,6.00]@LHCb-2013
 "
-export CONSTRAINTS_quim1wide=${CONSTRAINTS_quim1wide}
+export CONSTRAINTS_quim1wide=${CONSTRAINTS_quim1}
 
 export CONSTRAINTS_uncVLL="${CONSTRAINTS_B_TO_VLL_FF}"
 export CONSTRAINTS_uncVLLwide="${CONSTRAINTS_B_TO_VLL_FF}"
