@@ -16,18 +16,17 @@ export PMC_GROUP_BY_RVALUE=1.5
 export PMC_INITIALIZATION="$PMC_INITIALIZATION --pmc-r-value-no-nuisance 0"
 
 export UNC_SAMPLES=100000
-export UNC_WORKERS=4
+export UNC_WORKERS=1
 export UNC_PMC_INPUT="
     --pmc-input ${BASE_NAME}/sm_uncVLLwide/pmc_monolithic.hdf5 0 100000
     --pmc-sample-directory /data/final
 "
 
-export PMC_NUMBER_OF_JOBS=500
+export PMC_NUMBER_OF_JOBS=100
 export PMC_UNCERTAINTY_INPUT="${BASE_NAME}/sm_uncVLLwide/pmc_monolithic.hdf5"
 #export PMC_CLIENT_ARGV="--n-samples 500"
-export PMC_RESOURCE_MANAGER=loadleveler
 export LL_QUEUE=test
 export LL_FINAL_QUEUE=${LL_QUEUE}
-export PMC_POLLING_INTERVAL=2
+export PMC_POLLING_INTERVAL=30
 
 main $@
