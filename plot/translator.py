@@ -1,6 +1,9 @@
 def wilson(i):
     return '\\mathcal{C}_{%d}' % i
 
+def subleading(transversity, helicity, particle=r'K^{\ast}'):
+    return r"$\zeta_{%s}^{%s_{%s}}$" % (particle, helicity, transversity)
+
 class EOS_Translator:
     """
     Translate EOS tex_map into LaTex tex_map.
@@ -22,9 +25,9 @@ class EOS_Translator:
                   "Re{c7}":"$%s$" % wilson(7),
                   "Re{c9}":"$%s$" % wilson(9),
                   "Re{c10}":"$%s$"% wilson(10),
-                  "Re{c7'}":r"$\Re\left(%s^{\prime}\right)$" % wilson(7) ,
-                  "Re{c9'}":r"$\Re\left(%s^{\prime}\right)$" % wilson(9) ,
-                  "Re{c10'}":r"$\Re\left(%s^{\prime}\right)$" % wilson(10) ,
+                  "Re{c7'}":"$%s^{\prime}$" % wilson(7),
+                  "Re{c9'}":"$%s^{\prime}$" % wilson(9),
+                  "Re{c10'}":"$%s^{\prime}$"% wilson(10),
                   "Im{c7}":r"$\Im\left(%s\right)$" % wilson(7) ,
                   "Im{c9}":r"$\Im\left(%s\right)$" % wilson(9) ,
                   "Im{c10}":r"$\Im\left(%s\right)$" % wilson(10) ,
@@ -71,12 +74,12 @@ class EOS_Translator:
                   "B->Vll::sl_phase_0@LowRecoil":r"SL$(B \to V l^+ l^- \mathrm{@ low recoil}): \varphi_0$",
                   "B->Vll::sl_phase_pa@LowRecoil":r"SL$(B \to V l^+ l^- \mathrm{@ low recoil}): \varphi_{\parallel}$",
                   "B->Vll::sl_phase_pp@LowRecoil":r"SL$(B \to V l^+ l^- \mathrm{@ low recoil}): \varphi_{\perp}$",
-                  "B->K^*ll::A_0^L_uncertainty@LargeRecoil":r"SL$(B \to V l^+ l^- \mathrm{@ large recoil}): A_0^L$",
-                  "B->K^*ll::A_0^R_uncertainty@LargeRecoil":r"SL$(B \to V l^+ l^- \mathrm{@ large recoil}): A_0^R$",
-                  "B->K^*ll::A_par^L_uncertainty@LargeRecoil":r"SL$(B \to V l^+ l^- \mathrm{@ large recoil}): A_{\parallel}^L$",
-                  "B->K^*ll::A_par^R_uncertainty@LargeRecoil":r"SL$(B \to V l^+ l^- \mathrm{@ large recoil}): A_{\parallel}^R$",
-                  "B->K^*ll::A_perp^L_uncertainty@LargeRecoil":r"SL$(B \to V l^+ l^- \mathrm{@ large recoil}): A_{\perp}^L$",
-                  "B->K^*ll::A_perp^R_uncertainty@LargeRecoil":r"SL$(B \to V l^+ l^- \mathrm{@ large recoil}): A_{\perp}^R$",
+                  "B->K^*ll::A_0^L_uncertainty@LargeRecoil":subleading('0', 'L'),
+                  "B->K^*ll::A_0^R_uncertainty@LargeRecoil":subleading('0', 'R'),
+                  "B->K^*ll::A_par^L_uncertainty@LargeRecoil":subleading(r'\parallel', 'L'),
+                  "B->K^*ll::A_par^R_uncertainty@LargeRecoil":subleading(r'\parallel', 'R'),
+                  "B->K^*ll::A_perp^L_uncertainty@LargeRecoil":subleading(r'\perp', 'L'),
+                  "B->K^*ll::A_perp^R_uncertainty@LargeRecoil":subleading(r'\perp', 'R'),
                   "B->Vll::Lambda@LowRecoil":r"SL$(B \to V l^+ l^- \mathrm{@ low recoil}): \Lambda_{\mathrm{simple}}$",
                   'B->Vll::sl_phase@LowRecoil':r"SL$(B \to V l^+ l^- \mathrm{@ low recoil}): \varphi_{\mathrm{simple}}$",
                   'B->K^*ll::sl_uncertainty@LargeRecoil':r"SL$(B \to V l^+ l^- \mathrm{@ large recoil}): \Lambda_{\mathrm{simple}}$",
@@ -186,7 +189,7 @@ def print_map():
     for i, key in enumerate(sorted(tr.tex_map.iterkeys())):
         col = i / (len(tr.tex_map) / len(columns) + 1)
         columns[col] += '%s: %s\n' % (key, tr.to_tex(key))
-        
+
     for i, c in enumerate(columns):
         P.text(i * 1. / len(columns) + 0.01, 0.99, c,
                transform=fig.transFigure,
