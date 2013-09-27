@@ -169,12 +169,15 @@ class UncertaintyPropagation(object):
 
         self.n_observables = len(self.observable_names)
 
-        for o in np.sort(np.array(list(hdf5_file['/descriptions/parameters']),dtype=int)):
-            dset = hdf5_file['/descriptions/parameters/%d' % o]
-            self.parameter_names[o] = dset.attrs['name']
-            self.par_ranges[o] = (dset[0][0], dset[0][1])
+        try:
+            for o in np.sort(np.array(list(hdf5_file['/descriptions/parameters']),dtype=int)):
+                dset = hdf5_file['/descriptions/parameters/%d' % o]
+                self.parameter_names[o] = dset.attrs['name']
+                self.par_ranges[o] = (dset[0][0], dset[0][1])
 
-        self.n_parameters = len(self.parameter_names)
+            self.n_parameters = len(self.parameter_names)
+        except KeyError:
+            self.n_parameters = 0
 
         ###
         # extract the samples, parameters are optional
