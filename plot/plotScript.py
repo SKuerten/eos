@@ -27,6 +27,7 @@ except:
     print("plotScript: Could not import figtree module")
 
 import priors as priorDistributions
+from samplingOutput import *
 
 def histOutline(dataIn, *args, **kwargs):
     """
@@ -317,33 +318,16 @@ class DefaultTranslator(object):
     def to_tex(name):
         return name
 
-class ParameterDefinition:
-
-    def __init__(self, name, min, max, nuisance=False, discrete=False, index=None, n_major_ticks=None):
-        self.name = name
-        self.min = min
-        self.max = max
-        self.nuisance = nuisance
-        self.discrete = discrete
-        self.range = (min, max)
-        self.i = index
-        self.n_major_ticks = n_major_ticks
-
-    def __repr__(self):
-        return "{Name: %s, min: %g, max: %g, nuisance: %d, discrete: %d}" % \
-                ( self.name, self.min, self.max, self.nuisance, self.discrete)
-
 class MarginalDistributions:
     """
     DOCSTRING
     """
 
-    def __init__(self, input_file_name, use_KDE=False, output_dir=None, input_source='pmc',
-                 pmc_queue_output=False, pmc_equal_weights=False, pmc_crop_outliers=0,
+    def __init__(self, sampling_output, use_KDE=False, output_dir=None,
                  chains=None, prerun=None, nuisance=True, select=(None, None), skip_initial=0,
-                 projection=False, hc_comp=None):
+                 projection=False):
 
-        self.input_file_name = input_file_name
+        self.out = sampling_output
 
         #alternatively use KDE
         self.use_histogram = not use_KDE
@@ -358,18 +342,12 @@ class MarginalDistributions:
         self.use_contours = False
 
         if output_dir is None:
-            self.__output_base_name = os.path.splitext(input_file_name)[0]
+            self.__output_base_name = os.path.splitext(self.out.input_file_name)[0]
         else:
-            self.__output_base_name = os.path.join(output_dir, os.path.split(os.path.splitext(input_file_name)[0])[1])
+            self.__output_base_name = os.path.join(output_dir, os.path.split(os.path.splitext(self.out.input_file_name)[0])[1])
 
         #open a pdf file to hold the plots only when needed
         self.pdf_file = None
-
-         #how many columns to spare (for log posterior or weights etc.)
-        self.crop_last_columns = 1
-
-        #population monte carlo
-        self.input_source = input_source
 
         # plot proposal density instead of marginals, only useful with pmc
         self.proposal = False
@@ -420,6 +398,7 @@ class MarginalDistributions:
         # store modes as determined from the chains or from HDF5 directly if available
         self.modes = []
 
+        # todo remove chains arg
         self.single_chain = None
         if hasattr(chains, '__len__') and len(chains) == 1:
             self.single_chain = str(chains[0])
@@ -429,31 +408,31 @@ class MarginalDistributions:
         # Integration options
         ###
         self.cuts = {}
-
+        """
         #parse the data
         self.select = select
         if self.input_source == 'pmc':
-            self.data, self.par_defs, self.priors, self.stats, self.components = self.read_data_pmc(pmc_queue_output, pmc_equal_weights, pmc_crop_outliers, hc_comp)
+            self.out.samples, self.out.par_defs, self.priors, self.stats, self.components = self.read_data_pmc(pmc_queue_output, pmc_equal_weights, pmc_crop_outliers, hc_comp)
             self.modes = None
             self.global_mode_index = None
         elif self.input_source == 'mcmc':
-            self.data, self.par_defs, self.priors, self.modes = self.read_data_mcmc(chains, prerun, skip_initial)
+            self.out.samples, self.out.par_defs, self.priors, self.modes = self.read_data_mcmc(chains, prerun, skip_initial)
             self.extract_chain_modes()
             self.stats = None
             self.components = None
         elif self.input_source == 'multinest':
-            self.data, self.weights, self.par_defs, self.priors, self.evidence, self.evidence_error = self.read_data_multinest()
+            self.out.samples, self.weights, self.out.par_defs, self.priors, self.evidence, self.evidence_error = self.read_data_multinest()
             self.modes = None
             self.global_mode_index = None
             self.stats = None
             self.components = None
         else:
             raise Exception("Unknown input source '%s'" % self.input_source)
-
+        """
         self.find_min_max()
 
-        self.sigma = np.ones((self.data.shape[1]-self.crop_last_columns))
-        self.nBins = np.empty((self.data.shape[1]-self.crop_last_columns),dtype=int)
+        self.sigma = np.ones((self.out.npar()))
+        self.nBins = np.empty((self.out.npar()), dtype=int)
 
         # Use as relative probability to max. All bins with prob
         # less than this will be whitenen in 2D plots
@@ -471,51 +450,20 @@ class MarginalDistributions:
         Use only the weights.
         """
 
-        levels = find_hist_level(self.weights)
+        levels = find_hist_level(self.out.weights)
 
-        labels = np.array(len(self.weights), dtype=Int)
+        labels = np.array(len(self.out.weights), dtype=Int)
 
         # no contour
         labels = 0
 
         # two sigma
-        labels[np.where(self.weights > levels[1])] = 2
+        labels[np.where(self.out.weights > levels[1])] = 2
 
         # one sigma
-        labels[np.where(self.weights > levels[0])] = 1
+        labels[np.where(self.out.weights > levels[0])] = 1
 
         return labels
-
-    def read_data_txt(self):
-        """
-        read a text file consisting of columns.
-        Initially for reading PMC output.
-        Store weights in last column, where posterior is stored for MCMC
-        """
-
-        data = np.loadtxt(self.input_file_name)
-
-        #define empty par defs
-        par_defs = []
-
-        for i in range(2, data.shape[1]):
-
-            par_defs.append(ParameterDefinition("par_%d" % (i - 2),
-                                np.min(data.T[i]), np.max(data.T[i]),
-                                False, False))
-
-        #reorder parameter columns so the coordinates appear first, and component/weight appear last
-        shuffled_data = np.empty(data.shape)
-        shuffled_data.T[-2:] = data.T[0:2]
-        shuffled_data.T[:-2] = data.T[2:]
-
-        #need to ignore two last columns
-        self.crop_last_columns = 2
-
-        #compute weights exactly once
-        self.weights = np.exp(data.T[0])
-
-        return shuffled_data, par_defs
 
     def read_data_multinest(self):
         """
@@ -524,10 +472,10 @@ class MarginalDistributions:
 
         par_defs = []
         priors = []
-        if 'hdf5' in self.input_file_name:
+        if 'hdf5' in self.out.input_file_name:
             import h5py
 
-            hdf5_file = h5py.File(self.input_file_name, 'r')
+            hdf5_file = h5py.File(self.out.input_file_name, 'r')
 
             try:
                 samples = hdf5_file["/data/samples"][self.select[0]:self.select[1]]
@@ -535,23 +483,22 @@ class MarginalDistributions:
                 samples = None
                 print("No samples found")
 
-
             if samples is not None:
                 weights = hdf5_file["/data/weights"][self.select[0]:self.select[1]]
 
             evidence = hdf5_file["/data/weights"].attrs['log(evidence)']
             evidence_error = hdf5_file["/data/weights"].attrs['log(evidence) error']
 
-        elif '.root' in self.input_file_name:
+        elif '.root' in self.out.input_file_name:
             import root_numpy as R
 
             tree_name = 'MultinestSamples'
 
             # copy parameters into a structured array
-            struct_array = R.root2array(self.input_file_name, tree_name)
+            struct_array = R.root2array(self.out.input_file_name, tree_name)
 
             # parameter name = branch name
-            branches = R.list_branches(self.input_file_name, tree_name)
+            branches = R.list_branches(self.out.input_file_name, tree_name)
 
             # but weight is not a parameter name
             weights = struct_array['weight']
@@ -560,8 +507,6 @@ class MarginalDistributions:
 
             # convert to a regular array (see http://wiki.scipy.org/Cookbook/Recarray)
             samples = struct_array[branches].view(float).reshape(len(struct_array), -1)
-
-            print(np.sum(samples))
 
             # store at least parameter names, though ranges may be inaccessible for now
             for name in branches:
@@ -575,7 +520,7 @@ class MarginalDistributions:
             from pymultinest import Analyzer
 
             # todo Do I need ? Should be parsed automatically
-            a = Analyzer(n_params=2, outputfiles_basename=self.input_file_name)
+            a = Analyzer(n_params=2, outputfiles_basename=self.out.input_file_name)
 
             # remove first two columns, so nothing superfluous
             samples = a.get_data().T[2:].transpose()
@@ -598,365 +543,16 @@ class MarginalDistributions:
 
         return samples, weights, par_defs, priors, evidence, evidence_error
 
-    def read_data_pmc(self, queue_output, equal_weights, crop_outliers, hc_comp):
-
-        import h5py
-
-        hdf5_file = h5py.File(self.input_file_name, 'r')
-
-        # read samples
-        step = 'final'
-        if self.single_chain is not None:
-            step = str(self.single_chain)
-
-        try:
-            if queue_output:
-                samples = hdf5_file["/data/samples"][self.select[0]:self.select[1]]
-            else:
-                samples = hdf5_file["/data/" + step + "/samples"][self.select[0]:self.select[1]]
-        except KeyError:
-            samples = None
-            print("No samples found")
-
-        # read par defs
-        par_defs = []
-        priors = []
-        f = priorDistributions.PriorFactory()
-        descriptions = hdf5_file['descriptions/parameters'][:]
-        for row in descriptions:
-            par_defs.append(ParameterDefinition(row[0], row[1], row[2], row[3], False))
-            try:
-                prior_name, prior = f.create(row[4])
-                assert(prior_name == row[0])
-            except KeyError as e:
-                prior = None
-                print('Warning: in constructing prior for %s: %s' % (row[0], e.message))
-            priors.append(prior)
-
-        self.crop_last_columns = 3
-
-        if samples is not None:
-            #compute weights exactly once
-            posterior = None
-            if equal_weights:
-                size = len(samples.T[-1])
-                if self.select[0] and self.select[1]:
-                    size = self.select[1] - self.select[0]
-                self.weights = np.ones(size)
-            elif queue_output:
-                self.weights = np.exp(hdf5_file['/data/weights'][self.select[0]:self.select[1]].T['weight'])
-                posterior = hdf5_file['/data/weights'][self.select[0]:self.select[1]].T['posterior']
-            else:
-                self.weights = np.exp(samples.T[-1][self.select[0]:self.select[1]])
-                posterior = samples.T[-2][self.select[0]:self.select[1]]
-
-            # find mode
-            if posterior is not None:
-                i_max = np.argmax(posterior)
-                print("Found maximum posterior = %g with weight %g at" % (posterior[i_max], self.weights[i_max]))
-                print(samples[i_max][:-3])
-
-            # plot only a single component
-            if self.single_chain is not None:
-                self.weights[samples.T[-3] != float(self.single_chain)] = 0.0
-                print('\033[91m' + 'WARNING: plotting only component %s' % self.single_chain + '\033[0m')
-
-            # reset highest 'outliers'
-            if crop_outliers > 0:
-                weight_clone = np.array(self.weights)
-                weight_clone.sort()
-                # need additional if counting backwards
-                cut_off = weight_clone[-crop_outliers - 1]
-                filter = self.weights > cut_off
-                """
-                posterior_clone = np.array(posterior)
-                posterior_clone.sort()
-                cut_off = np.log(crop_outliers) + posterior[i_max]
-                print(cut_off)
-                filter = posterior < cut_off
-                print("posterior of crops")
-                print(posterior[filter][0:10])
-                print(self.weights[filter][0:10])
-                """
-
-                if posterior is not None:
-                    print("P_{min} = %g, P_{max} = %g" % (np.min(posterior[filter][0:10]), np.max(posterior[filter][0:10])))
-                    print("mean posterior of all samples = %g " % np.mean(posterior))
-                    print("mean posterior of filtered samples = %g " % np.mean(posterior[filter]))
-                    print(self.weights[filter][0:10])
-
-                self.weights[filter] = 0.0
-                print('\033[91m' + 'WARNING: filtering highest %d points from components' % len(np.where(filter)[0]) + '\033[0m')
-
-            print("Samples have a total shape of %s " % str(samples.shape) )
-            print("Non-zero weights: %d " % len(np.where(self.weights > 0.0)[0]))
-
-        # read statistics
-        stats = []
-
-        if queue_output:
-            try:
-                records = hdf5_file['/data/statistics'][:]
-                for record in records:
-                    stats.append((record[0], record[1], record[2]))
-
-            except KeyError:
-                pass
-        else:
-            step = 0
-            mask = None
-            while(True):
-                try:
-                    record = hdf5_file['/data/' + str(step) + "/statistics"][:]
-                    comp_rec = hdf5_file['/data/' + str(step) + "/components"][:]
-                    mask = comp_rec.T['weight'] > 0.0
-                    stats.append((record[0][0], record[0][1], record[0][2], len(np.where(mask)[0])))
-                except:
-                    break
-                step += 1
-            # add last step
-            try:
-                    record = hdf5_file['/data/final/statistics'][:]
-                    comp_rec = hdf5_file["/data/final/components"][:]
-                    mask = comp_rec.T['weight'] > 0.0
-                    stats.append((record[0][0], record[0][1], record[0][2], len(np.where(mask)[0])))
-            except:
-                pass
-
-        # convert info to usable format
-        usable_stats = np.array(stats)
-
-        # read components
-        if hc_comp is not None:
-            if hc_comp == 'short':
-                data_set_name = '/hc/input-components'
-            elif hc_comp == 'long':
-                data_set_name = '/hc/initial-guess'
-        elif queue_output:
-                data_set_name = '/data/initial/components'
-        else:
-            if self.single_chain:
-                step = self.single_chain
-            else:
-                step = 'final'
-            data_set_name = '/data/' + str(step) + '/components'
-
-        print("Reading components from %s" % data_set_name)
-
-        try:
-            components = hdf5_file[data_set_name][:]
-        except KeyError:
-            raise Exception("Incorrect file format: use --pmc-queue-output ?")
-
-        try:
-            chol = hdf5_file[data_set_name].attrs['chol']
-            if chol:
-                print("Covariance available only in Cholesky decomposition. Converting it back.")
-                n_dim = len(components.T['mean'][0])
-                for i, mat in enumerate(components.T['covariance']):
-                    cov = np.array(mat).reshape(n_dim, n_dim)
-
-                    # filter upper/lower triangular matrix
-                    l = np.tril(cov)
-                    u = np.triu(cov)
-
-                    # reassign flattened array
-                    components.T['covariance'][i] = np.dot(l,u).ravel()
-
-        except KeyError:
-                pass
-
-        print("Live components: %d out of %d" % (len(np.where(components.T['weight'] > 0)[0]), len(components)))
-
-        return samples, par_defs, priors, usable_stats, components
-
-    def read_data_mcmc(self, chains, prerun, skip_initial):
-        """
-        New HDF5 output format since Nov 2011.
-
-        Arguments:
-        chains -- a sequence of integers to select a subset of available chains. None selects all chains
-
-        """
-
-        import h5py
-
-        hdf5_file = h5py.File(self.input_file_name, 'r')
-
-        n_chains_parsed = 0
-
-        # fixme prerun won't work
-        prefix = 'main run'
-        if prerun:
-            prefix = "prerun"
-
-        # select all chains
-        if chains is None:
-            chains = range(len(list(hdf5_file[prefix])))
-
-        first_chain = str(chains[0])
-        self.n_chains = len(chains)
-
-        #read data
-        full_length = len(hdf5_file[prefix + '/chain #' + first_chain + "/samples"])
-
-        #adjust which range is drawn, default: full range
-        if self.select[0] is  None and skip_initial is not None:
-            self.select[0] = int(skip_initial * full_length)
-
-        merged_chains = hdf5_file[prefix + '/chain #' + first_chain + "/samples"][self.select[0]:self.select[1]]
-        n_chains_parsed += 1
-
-        #save shape info
-        self.chain_length = len(merged_chains)
-
-        #read out parameter info
-        par_defs = []
-        priors = []
-        f = priorDistributions.PriorFactory()
-        descriptions = hdf5_file['descriptions/' + prefix + '/chain #' + first_chain + "/parameters"][:]
-        for row in descriptions:
-            par_defs.append(ParameterDefinition(row[0], row[1], row[2], row[3], False))
-            try:
-                prior_name, prior = f.create(row[4])
-                assert(prior_name == row[0])
-            except KeyError as e:
-                prior = None
-                print('Warning: in constructing prior for %s: %s' % (row[0], e.message))
-
-            priors.append(prior)
-
-        # read out mode from stats: always last row
-        stats = hdf5_file[prefix + '/chain #' + first_chain + "/stats/mode"]
-        modes = [stats[-1]] #todo use modes in plot
-
-        # read all remaining chains
-        for chain in chains[1:]:
-            data = hdf5_file[prefix + '/chain #%d/samples' % chain][self.select[0]:self.select[1]]
-            merged_chains = np.concatenate((merged_chains, data), axis=0)
-            modes.append(hdf5_file[prefix + '/chain #%d/stats/mode' % chain][-1])
-            n_chains_parsed += 1
-
-        hdf5_file.close()
-        self.weights = np.ones(len(merged_chains))
-
-        return merged_chains, par_defs, priors, np.array(modes)
-
-    def read_data_hdf5_old(self, chain, prerun):
-        """
-        Use either  h5py [deprecated] or pytables to open the HDF5 file
-        and merge the individual chains into one numpy array of size
-        (nParam+1)*iterations*nChains
-        """
-
-        try:
-            import tables as pytables
-
-            hdf5_file = pytables.openFile(self.input_file_name,"r")
-
-            #determine number of chains
-            self.n_chains = len(hdf5_file.listNodes("/data"))
-
-            n_chains_parsed = 0
-
-            if chain is not None:
-                first_chain = str(chain)
-            else:
-                first_chain = "0"
-
-            prefix = ''
-            if prerun:
-                prefix = "prerun "
-
-            #skip first chain
-            node =  hdf5_file.getNode('/data', prefix + "chain #" + first_chain)
-
-            # read in entire array
-            # could also read in only 10 rows of first column with node[0:10,0]
-            mergedChains = node.read()
-            n_chains_parsed += 1
-            print("Parsed %d chains" % n_chains_parsed)
-
-            #save shape info
-            self.chain_length = mergedChains.shape[0]
-
-            #read out parameter info
-            par_defs = []
-            counter = 0
-            for par_index in range(node.shape[1] - self.crop_last_columns):
-                base_string = "FIELD_"+ str(counter)+"_"
-                try:
-                    par_defs.append(ParameterDefinition(node.attrs[base_string+"NAME"],
-                                                    node.attrs[base_string+"ATTR_min"][0],
-                                                    node.attrs[base_string+"ATTR_max"][0],
-                                                    node.attrs[base_string+"ATTR_nuisance"][0],
-                                                    node.attrs[base_string+"ATTR_discrete"][0]))
-                except KeyError as err:
-                    print("Please check attributes of data sets using h5ls -vr file/group/data_set")
-                    raise err
-
-                print(par_defs[-1])
-                counter += 1
-
-            par_defs.append(ParameterDefinition)
-            self.weights = np.ones(len(mergedChains))
-
-            #statistics
-            for par_index in range(node.shape[1] - self.crop_last_columns):
-                print("mean(%s) = %g" % (par_defs[par_index].name, np.mean(mergedChains.T[par_index][0:1000])))
-                print("var(%s) = %g" % (par_defs[par_index].name, np.var(mergedChains.T[par_index][0:1000], ddof=1)))
-
-
-            # plots based only on a single chain
-            if chain is not None:
-                print("Merge (pytables) has a total shape of %s " % str(mergedChains.shape) )
-                return mergedChains, par_defs
-
-            for chain in hdf5_file.listNodes("/data")[1:]:
-                if chain.name[0:len(prefix) + 7] != prefix + 'chain #':
-                    print("Skipping %s in group %s" % (chain.name, "/data"))
-                    continue
-                if chain.name == prefix + "chain #" + first_chain:
-                    continue
-
-                data = chain.read()
-
-                #statistics
-                print("chain %d" % (n_chains_parsed + 1) )
-                for par_index in range(node.shape[1] - self.crop_last_columns):
-                    print("mean(%s) = %g" % (par_defs[par_index].name, np.mean(data.T[par_index][0:1000])))
-                    print("var(%s) = %g" % (par_defs[par_index].name, np.var(data.T[par_index][0:1000], ddof=1)))
-
-                mergedChains = np.concatenate((mergedChains, data), axis=0)
-                n_chains_parsed += 1
-
-            print("Merge (pytables) has a total shape of %s " % str(mergedChains.shape) )
-            print("Parsed %d chains" % n_chains_parsed)
-
-            hdf5_file.close()
-
-            #trivial weight one for all elements
-            self.weights = np.ones(len(mergedChains))
-
-            return mergedChains, par_defs
-
-
-        except ImportError:
-            print("Neither pytables nor h5py installed")
-
-
     def find_min_max(self):
         """
         Find minimum and maximum values of each parameter and mode of posterior.
         """
-        if self.data is None:
-            return
-        self.min = np.empty((self.data.shape[1]-self.crop_last_columns,))
-        self.max = np.empty((self.data.shape[1]-self.crop_last_columns,))
+        self.min = np.empty((self.out.npar(),))
+        self.max = np.empty((self.out.npar(),))
 
         for index in range(self.min.shape[0]):
-            self.min[index] = min(self.data.T[index])
-            self.max[index] = max(self.data.T[index])
+            self.min[index] = min(self.out.samples.T[index])
+            self.max[index] = max(self.out.samples.T[index])
 
     def find_limits_1D(self, index, method='ECDF'):
         """
@@ -969,7 +565,7 @@ class MarginalDistributions:
 
             #find multiplicity of multiple events
             #it's in last column
-            order_statistics = filter_duplicates( np.sort(self.data.T[index]) )
+            order_statistics = filter_duplicates(np.sort(self.out.samples.T[index]))
 
             #build cdf. normalize to unity
             ecdf = np.cumsum(order_statistics.T[-1])
@@ -987,7 +583,7 @@ class MarginalDistributions:
 
         if method == 'histogram':
             #bin the data
-            histo, edges = np.histogram(self.data.T[index], self.nBins[index])
+            histo, edges = np.histogram(self.out.samples.T[index], self.nBins[index])
 
             #build CDF
             temp = np.cumsum(histo)
@@ -1049,58 +645,6 @@ class MarginalDistributions:
             levels[i] = bin_counts[index]
 
         return levels
-
-    def extract_chain_modes(self):
-        """
-        Find the mode of each chain and display it, ignoring the nuisance parameters.
-
-        Assumes that each chain of same length.
-        """
-        print("There are %d chains, with a merged shape of %s" % (self.n_chains, self.data.shape))
-        for i in range(self.n_chains):
-            mode = []
-            if len(self.modes) > 0:
-                max = self.modes[i][-1]
-                for j in range(self.data.shape[1] - self.crop_last_columns):
-                    mode.append(self.modes[i][j])
-            else:
-                index = np.argmax(self.data.T[-1][i * self.chain_length : (i + 1) * self.chain_length])
-                max = None
-                for j in range(self.data.shape[1] - self.crop_last_columns):
-                    if self.par_defs[j].nuisance and not self.use_nuisance:
-                        continue
-                    mode.append(self.data[i * self.chain_length + index][j])
-                    max = self.data[i * self.chain_length + index][-1]
-
-            #special case: only one chain
-            if self.single_chain is not None:
-                i = int(self.single_chain)
-            print("Mode of chain %d with log posterior = %.7f is at:" % (i, max))
-
-            # print in a format friendly for eos-scan-mc
-            w = sys.stdout.write
-
-            # all on one line
-            w('"{ ')
-            for p in mode:
-                w("%+.5f " % p)
-            w('}"\n')
-
-            # 5 parameters per line
-            """
-            w("{ \n")
-            for j, p in enumerate(mode):
-                w("%+.5f " % p)
-                if (j + 1) % 5 == 0:
-                    w("\n")
-            w("\n}\n")
-            """
-            sys.stdout.flush()
-
-        #global mode
-        self.global_mode_index = np.argmax(self.modes.T[-1])
-        if self.single_chain is None:
-            print("Global mode found in chain %d" % self.global_mode_index)
 
     def __bandwidth(self, samples, index):
         """
@@ -1239,22 +783,23 @@ class MarginalDistributions:
         print("Maxima of 68 %% contours at = %s " % np.array(maxima_68))
         """
 
+    # todo should move to sampleOutput
     def __title(self):
 
         title = ''
 
         if self.single_chain:
-            if self.input_source == 'pmc':
+            if isinstance(self.out, PMC_Output):
                 title = " pmc\;step\; \#" + self.single_chain
-            elif self.input_source == 'mcmc':
-                title = "chain\;\#" + self.single_chain
+            elif isinstance(self.out, MCMC_Output):
+                title = "chain #" + self.single_chain
             else:
                 title = ''
 
             if matplotlib.rcParams['text.usetex']:
                 title = r"${\mathrm " + title + r"}$"
         else:
-            if self.input_source == 'mcmc':
+            if isinstance(self.out, MCMC_Output):
                 title = r"${\mathrm{All}\; \mathrm{chains}}$"
             else:
                 pass
@@ -1305,7 +850,9 @@ class MarginalDistributions:
                         prior_style=dict(color='black', linestyle='dashed'),
                         marginal_style=dict(color='black', linestyle='solid', linewidth=0.5),
                         minor_locator=matplotlib.ticker.AutoMinorLocator(),
-                        legend_label='', prior_label=''):
+                        legend_label='', prior_label='',
+                        one_sigma_style=dict(facecolor='blue', alpha=1),
+                        two_sigma_style=dict(facecolor='blue', alpha=0.4)):
         """
         Expect vector of length 1xN.
         Parameter identified by index (0..n)
@@ -1313,10 +860,10 @@ class MarginalDistributions:
 
 
         #do nothing if one of the parameters is a nuisance parameter
-        if not self.use_nuisance and self.par_defs[index].nuisance:
+        if not self.use_nuisance and self.out.par_defs[index].nuisance:
             return False
 
-        samples = self.data.T[index]
+        samples = self.out.samples.T[index]
 
         #Scott's rule from
         #A, D.W.S. & B, S.R.S. Multi-dimensional Density Estimation, p. 9 .
@@ -1332,8 +879,8 @@ class MarginalDistributions:
         if self.kde_bandwidth is not None:
             bandwidth = self.kde_bandwidth
 
-        x_min = self.par_defs[index].min
-        x_max = self.par_defs[index].max
+        x_min = self.out.par_defs[index].min
+        x_max = self.out.par_defs[index].max
 
         #older files didn't have parameter info
         if x_min == x_max:
@@ -1348,14 +895,14 @@ class MarginalDistributions:
             x_max = self.cuts[index][1]
 
         # extract parameter name
-        parameter_name = self.tr.to_tex(self.par_defs[index].name)
+        parameter_name = self.tr.to_tex(self.out.par_defs[index].name)
         if parameter_name == '':
             parameter_name = "par"+str(index)
 
         print("%s: x_range = [%g, %g], bins = %d" % (parameter_name, x_min, x_max, self.nBins[index]))
 
         #KDE doesn't make sense for discrete parameters
-        if self.par_defs[index].discrete:
+        if self.out.par_defs[index].discrete:
             print("found a discrete parameter")
             print(self.use_histogram)
             histogram_state = self.use_histogram
@@ -1366,7 +913,7 @@ class MarginalDistributions:
 
         if self.use_histogram:
              print("Using histogram")
-             (hist_outline, hist_normal) = histOutline(samples, bins=self.nBins[index],  weights=self.weights,
+             (hist_outline, hist_normal) = histOutline(samples, bins=self.nBins[index], weights=self.out.weights,
                                                        normed=True, range=(x_min, x_max))
              P.plot(hist_outline[0], hist_outline[1], label=legend_label, **marginal_style)
 
@@ -1383,8 +930,10 @@ class MarginalDistributions:
                  self.__extract_smallest_intervals(hist_normal[0], probability_array, level_68, level_95)
 
                  # draw 95% bins in light blue, 68% in opaque blue
-                 self.contours_one(hist_normal[0], hist_normal[1], level_95, 'two_sigma', 'hist', facecolor='blue', alpha=0.4, linewidth=0, edgecolor='none')
-                 self.contours_one(hist_normal[0], hist_normal[1], level_68, 'one_sigma', 'hist', facecolor='blue', alpha=1, linewidth=0, edgecolor='none')
+                 self.contours_one(hist_normal[0], hist_normal[1], level_95, 'two_sigma', 'hist',
+                                   linewidth=0, edgecolor='none', **two_sigma_style)
+                 self.contours_one(hist_normal[0], hist_normal[1], level_68, 'one_sigma', 'hist',
+                                   linewidth=0, edgecolor='none', **one_sigma_style)
 
                  """
                  for i in range(len(hist_normal[0])-1):
@@ -1398,12 +947,12 @@ class MarginalDistributions:
                         continue
                 """
         else: #use KDE
-            print("Using KDE")
+            print("Using KDE with bandwidth %g" % bandwidth)
             mesh_points = np.linspace(x_min, x_max, self.nBins[index] )
 
             #setup for figtree
             start_time = time.time()
-            densities = figtree.figtree(np.ascontiguousarray(samples), mesh_points, weights=self.weights,  bandwidth=bandwidth, eval="auto")
+            densities = figtree.figtree(np.ascontiguousarray(samples), mesh_points, weights=self.out.weights, bandwidth=bandwidth, eval="auto")
             end_time = time.time()
             print("figtree used %f s" % (end_time-start_time) )
 
@@ -1436,7 +985,7 @@ class MarginalDistributions:
 
                 #green band for each interval
                 for run in runs:
-                    P.fill_between(finer_mesh[run[0]:run[1]], 0, densities_interp[run[0]:run[1]], facecolor='yellow', alpha=0.6)
+                    P.fill_between(finer_mesh[run[0]:run[1]], 0, densities_interp[run[0]:run[1]], **two_sigma_style)
 
                 # print intervals
                 intervals_95 = []
@@ -1458,7 +1007,7 @@ class MarginalDistributions:
 
                 #green band for each interval
                 for run in runs:
-                    P.fill_between(finer_mesh[run[0]:run[1]], 0, densities_interp[run[0]:run[1]], facecolor='green', alpha=1)
+                    P.fill_between(finer_mesh[run[0]:run[1]], 0, densities_interp[run[0]:run[1]], **one_sigma_style)
 
                 # print intervals
                 intervals_68 = []
@@ -1495,16 +1044,17 @@ class MarginalDistributions:
             except KeyError:
                 pass
 
-        if self.par_defs[index].discrete:
+        if self.out.par_defs[index].discrete:
             self.use_histogram = histogram_state
 
         # plot global mode for single chains
-        if self.global_mode_index is not None:
-            P.scatter(self.modes[self.global_mode_index][index], 0, marker='^', s=200)
+        global_mode_index = self.out.get('global_mode_index')
+        if global_mode_index is not None:
+            P.scatter(self.out._modes[global_mode_index][index], 0, marker='^', s=200)
 
         # plot the prior in the same plot
-        if self.plot_prior and self.priors[index] is not None:
-            prior = self.priors[index]
+        if self.plot_prior and self.out.priors[index] is not None:
+            prior = self.out.priors[index]
             integral = 1
             mesh_points = np.linspace(x_min, x_max, self.nBins[index] )
 
@@ -1526,16 +1076,16 @@ class MarginalDistributions:
     def two_dimensional(self, par1, par2):
 
         #do nothing if one of the parameters is a nuisance parameter
-        if (not self.use_nuisance or not self.nuisance_2D) and (self.par_defs[par1].nuisance or self.par_defs[par2].nuisance):
+        if (not self.use_nuisance or not self.nuisance_2D) and (self.out.par_defs[par1].nuisance or self.out.par_defs[par2].nuisance):
             return False
 
         #don't plot one nuisance vs another nuisance parameter
-        if self.no_nuisance_vs_nuisance and (self.par_defs[par1].nuisance and self.par_defs[par2].nuisance):
+        if self.no_nuisance_vs_nuisance and (self.out.par_defs[par1].nuisance and self.out.par_defs[par2].nuisance):
             return False
 
         #2D histogram
-        samples1 = self.data.T[par1]
-        samples2 = self.data.T[par2]
+        samples1 = self.out.samples.T[par1]
+        samples2 = self.out.samples.T[par2]
 
         # determine bandwidths
         self.__bandwidth(samples1, par1)
@@ -1544,10 +1094,10 @@ class MarginalDistributions:
         ###
         #plotting range
         ###
-        x_min = self.par_defs[par1].min
-        x_max = self.par_defs[par1].max
-        y_min = self.par_defs[par2].min
-        y_max = self.par_defs[par2].max
+        x_min = self.out.par_defs[par1].min
+        x_max = self.out.par_defs[par1].max
+        y_min = self.out.par_defs[par2].min
+        y_max = self.out.par_defs[par2].max
 
         #old files don't have range in HDF5
         if x_min == x_max:
@@ -1574,10 +1124,10 @@ class MarginalDistributions:
         if self.fixed_2D_binning:
             twoD_bins = np.array((self.two_dim_n_bins, self.two_dim_n_bins), dtype=int)
 
-        print("Grid shape %s for parameters %s" % (twoD_bins, [self.par_defs[par1].name, self.par_defs[par2].name]))
+        print("Grid shape %s for parameters %s" % (twoD_bins, [self.out.par_defs[par1].name, self.out.par_defs[par2].name]))
 
         #KDE doesn't make sense for discrete parameters
-        if self.par_defs[par1].discrete or self.par_defs[par2].discrete:
+        if self.out.par_defs[par1].discrete or self.out.par_defs[par2].discrete:
             histogram_state = self.use_histogram
             self.use_histogram = True
             contour_state = self.use_contours
@@ -1594,7 +1144,7 @@ class MarginalDistributions:
         if self.use_histogram:
             H, xedges, yedges = np.histogram2d(samples1, samples2 ,
                                             bins= (np.linspace(x_min, x_max , twoD_bins[0] + 1), np.linspace(y_min, y_max , twoD_bins[1] + 1) ),
-                                            weights=self.weights)
+                                            weights=self.out.weights)
 
             #convert to standard display order
             probability_array = np.fliplr(np.rot90(H,k=3))
@@ -1683,7 +1233,7 @@ class MarginalDistributions:
             #do the work from the ctypes wrapper to the C-code
             estimated_pdf = figtree.figtree(transformed_samples,
                                             np.ascontiguousarray(mesh_points.T[:]),
-                                            self.weights,
+                                            self.out.weights,
                                             bandwidth= estimated_bandwidth,
                                             verbose=verbosity)
             end_time = time.time()
@@ -1719,7 +1269,7 @@ class MarginalDistributions:
                     extent=[x_min, x_max, y_min, y_max])
             P.setp(CS.collections[1], alpha=0.0)
         """
-        if self.par_defs[par1].discrete or self.par_defs[par2].discrete:
+        if self.out.par_defs[par1].discrete or self.out.par_defs[par2].discrete:
             self.use_histogram = histogram_state
             self.use_contours = contour_state
 
@@ -1749,8 +1299,8 @@ class MarginalDistributions:
                 pass
 
         #set labels, avoid empty parameter names
-        x_label = self.tr.to_tex(self.par_defs[par1].name)
-        y_label = self.tr.to_tex(self.par_defs[par2].name)
+        x_label = self.tr.to_tex(self.out.par_defs[par1].name)
+        y_label = self.tr.to_tex(self.out.par_defs[par2].name)
 
         if x_label =="":
             x_label = "par"+str(par1)
@@ -1768,7 +1318,7 @@ class MarginalDistributions:
 
         return probability_array
 
-    def evolution(self, scale='log', posterior=False):
+    def evolution(self, scale='log'):
         """
         Plot evolution of single chains in 1D
         """
@@ -1779,17 +1329,11 @@ class MarginalDistributions:
 
         self.pdf_file = PdfPages(self.__output_base_name + "_evol.pdf")
 
-        if posterior:
-            max_posterior = max(self.data.T[-1])
-            min_posterior = min(self.data.T[-1][0.05*len(self.data):])
-
-
-
         #print out mode info
-        for par in range(self.data.shape[1]-self.crop_last_columns):
+        for par in xrange(self.out.npar()):
 
             #set labels, avoid empty parameter names
-            y_label = self.tr.to_tex(self.par_defs[par].name)
+            y_label = self.tr.to_tex(self.out.par_defs[par].name)
 
             if y_label == "":
                 y_label = "par"+str(par)
@@ -1797,16 +1341,13 @@ class MarginalDistributions:
             fig = P.figure(figsize=(16,9))
             ax1 = fig.add_subplot(111)
 
-            x_min = self.select[0] if self.select[0] is not None else 0
-            x_max = self.select[1] if self.select[1] is not None else self.chain_length
-
-            for n in range(self.n_chains):
-                l1 = ax1.plot(np.arange(x_min, x_max),
-                              self.data.T[par][n * self.chain_length:(n + 1) * self.chain_length], label=r"chain \#" + str(n))
+            x_min = 0
+            x_max = len(self.out.samples)
+            print('Plotting %s' % y_label)
+            l1 = ax1.plot(np.arange(x_min, x_max), self.out.samples.T[par])
 
             ax1.set_xscale(scale)
             ax1.set_xlim(x_min, x_max)
-
 
             ax1.set_xlabel("Iterations")
             ax1.set_ylabel(y_label)
@@ -1814,34 +1355,19 @@ class MarginalDistributions:
             ###
             #plotting range
             ###
-            y_min = self.par_defs[par].min
-            y_max = self.par_defs[par].max
-
-            #old files don't have range in HDF5
-            if y_min == y_max:
-                y_min = self.min[par]
-                y_max = self.max[par]
             if self.use_data_range:
-                y_range = self.max[par] - self.min[par]
-                y_min = self.min[par] - self.scale_data_range * y_range / 2.0
-                y_max = self.max[par] + self.scale_data_range * y_range / 2.0
+                range = self.max[par] - self.min[par]
+                y_min = self.min[par] - self.scale_data_range * range / 2.0
+                y_max = self.max[par] + self.scale_data_range * range / 2.0
+            else:
+                y_min = self.out.par_defs[par].min
+                y_max = self.out.par_defs[par].max
 
             ax1.set_ylim(y_min, y_max)
-            if self.single_chain is None:
-                P.legend(loc='upper left')
-
-            #rescale to coordinate range
-            if posterior and (self.single_chain is not None):
-                ax2 = ax1.twinx()
-                l2 = ax2.plot(self.data.T[-1], label='$\log P$', color='black')
-                ax2.set_ylabel('$\log P$')
-                ax2.set_ylim(min_posterior, max_posterior)
-                P.legend(loc='upper left')
 
             P.title(title)
-
             self.pdf_file.savefig()
-            P.close()
+        self.pdf_file.close()
 
     def convergence(self):
         """
@@ -1880,67 +1406,7 @@ class MarginalDistributions:
     def comp_integrate(self):
         """Compute total evidence and estimate uncertainty from combination of individual components"""
 
-        assert(self.input_source is 'pmc')
-
-        # find nonzero component weights
-        comp = np.where(self.components.T['weight'] > 0.0)[0]
-        p = self.components.T['weight'][comp]
-        N_total = len(self.data)
-
-        # initialization
-        K = len(comp)
-        Z = np.zeros((K,))
-        var_Z = np.zeros((K,))
-        inverse_var = 0.0
-
-        # formulae and symbols in labbook, 28.02.2013
-        # j is the component, and j_i its index
-        # j_i != j if components are dead
-        for j_i, j in enumerate(comp):
-            # filter samples from each component
-            # component index in column npar
-            comp_indices = np.where(self.data.T[len(self.par_defs)] == float(j))[0]
-            weights = self.weights[comp_indices]
-
-            # weight mean and aver
-            E_w = np.mean(weights)
-            var_w = np.var(weights, ddof=1)
-
-            Z[j_i] = E_w
-
-            # binomial variance
-            N = len(weights)
-            E_N = N_total * p[j_i]
-            var_N = E_N * (1 - p[j_i])
-
-            # variance of evidence
-            var_Z[j_i] = E_N * var_w + E_w**2 * var_N
-            var_Z[j_i] /= N**2
-
-            #
-            inverse_var += 1.0 / var_Z[j_i]
-
-        # assume each Z[i] independent and normally distributed, but with diff. variance
-        weighted_average = np.sum(Z / var_Z) / inverse_var
-
-        rough_average = np.mean(Z)
-        print("Estimate of Z with rough %g and Gauss %g" % (rough_average, weighted_average))
-
-        # rough sample variance vs Gaussian average variance
-        weighted_std_dev = np.sqrt(1.0 / inverse_var)
-        rough_std_dev = np.sqrt(np.var(Z, ddof=1))
-
-        # sample mean is an estimator with variance sigma^/N
-        plain_std_dev = np.sqrt(np.var(self.weights, ddof=1) / len(self.weights))
-
-        print("Std. deviation: rough sample %g vs Gauss weighted average %g vs plain weight variance %g" %
-               (rough_std_dev, weighted_std_dev, plain_std_dev))
-        print("Relative uncertainty estimate rough: %g" % (rough_std_dev / rough_average))
-        print("Relative uncertainty estimate Gauss: %g" % (weighted_std_dev / weighted_average))
-        print("One sigma interval Gauss: %s" %
-               np.array(( weighted_average - weighted_std_dev, weighted_average + weighted_std_dev)))
-
-        return (weighted_average, weighted_std_dev), (rough_average, rough_std_dev)
+        return self.out.component_integrate(self.cuts)
 
     def integrate(self):
         """
@@ -1948,82 +1414,37 @@ class MarginalDistributions:
         Doesn't work with MCMC, only with PMC or multinest.
         """
 
-        assert(self.input_source is not 'mcmc')
-
-        # samples inside of integration region
-        rows = range(len(self.data))
-        if self.cuts:
-            # apply each cut
-            print("Using the following cuts to define the integration region: " % self.cuts)
-            for par, cut in self.cuts.iteritems():
-                print("--par: %s, min: %g, max: %g" % (self.par_defs[par].name, cut[0], cut[1]))
-
-             # first apply lower, then upper cuts
-            rows1 = np.logical_and.reduce([self.data[:, par] >= cut[0] for par, cut in self.cuts.iteritems()])
-            rows2 = np.logical_and.reduce([self.data[:, par] <= cut[1] for par, cut in self.cuts.iteritems()])
-            rows = np.logical_and(rows1, rows2)
-
-        N = len(np.where(self.weights[rows])[0])
-        print("Remaining samples in selected region: %d" % N)
-
-        # sum partial weight
-        partial_weight = np.sum(self.weights[rows])
-        total_weight = np.sum(self.weights)
-        ratio = partial_weight / total_weight
-        error = None
-
-        if self.input_source == 'pmc':
-            # integral = average weight
-            integral = partial_weight / len(self.data)
-
-            # normalize weights to avoid overflow if weights are large
-            normalized_weights = self.weights[rows] / partial_weight
-            error = partial_weight * np.sqrt(np.var(normalized_weights, ddof=1) / N)
-            print('Partial weight: %g, total weight: %g, ratio: %g' % (partial_weight, total_weight, ratio))
-        elif self.input_source == 'multinest':
-            print('Ratio: %g' % partial_weight)
-            # evidence precomputed by multinest
-            integral = ratio * np.exp(self.evidence)
-            # symmetric error becomes asymmetric after exp
-            # return larger of the two
-            error = np.sqrt(np.max( np.exp(ratio * (self.evidence + self.evidence_error)) - integral,
-                            integral - np.exp(ratio * (self.evidence - self.evidence_error))))
-
-        print('Integral of the selected region is: %g +- %g' % (integral, error))
-
-        return (integral, ratio, total_weight, error)
+        return self.out.integrate(self.cuts)
 
     def proposal_2D(self, par1, par2, centers=False, solid_edge=False, **kwargs):
         """
         Plot the proposal distribution (PMC).
         """
 
-        assert(self.input_source is 'pmc')
-
         from numpy import linalg
         from matplotlib.patches import Ellipse
         from matplotlib.cm import get_cmap
 
-        mask = self.components.T['weight'] > 0.0
+        mask = self.out.components.T['weight'] > 0.0
 
         # positions
 
-        nCols =  len(self.par_defs)
+        nCols = len(self.out.par_defs)
 
         cmap = get_cmap(name='spectral')
-        colors = [cmap(i) for i in np.linspace(0, 0.9, len(self.components.T['covariance']))]
+        colors = [cmap(i) for i in np.linspace(0, 0.9, len(self.out.components.T['covariance']))]
 
-        if (self.par_defs[par1].nuisance or  self.par_defs[par2].nuisance) and not self.use_nuisance:
+        if (self.out.par_defs[par1].nuisance or self.out.par_defs[par2].nuisance) and not self.use_nuisance:
             return False
-        if (self.par_defs[par1].nuisance and self.par_defs[par2].nuisance) and self.no_nuisance_vs_nuisance:
+        if (self.out.par_defs[par1].nuisance and self.out.par_defs[par2].nuisance) and self.no_nuisance_vs_nuisance:
             return False
 
         #plotting range
         ###
-        x_min = self.par_defs[par1].min
-        x_max = self.par_defs[par1].max
-        y_min = self.par_defs[par2].min
-        y_max = self.par_defs[par2].max
+        x_min = self.out.par_defs[par1].min
+        x_max = self.out.par_defs[par1].max
+        y_min = self.out.par_defs[par2].min
+        y_max = self.out.par_defs[par2].max
 
         if par1 in self.cuts:
             x_min = self.cuts[par1][0]
@@ -2035,13 +1456,13 @@ class MarginalDistributions:
         ax = P.gca()
 
         # plot component means
-        x_values = self.components.T['mean'].T[par1]
-        y_values = self.components.T['mean'].T[par2]
+        x_values = self.out.components.T['mean'].T[par1]
+        y_values = self.out.components.T['mean'].T[par2]
         if centers:
             P.scatter(x_values[mask], y_values[mask], s=0.15)
 
-        x_label = self.tr.to_tex(self.par_defs[par1].name)
-        y_label = self.tr.to_tex(self.par_defs[par2].name)
+        x_label = self.tr.to_tex(self.out.par_defs[par1].name)
+        y_label = self.tr.to_tex(self.out.par_defs[par2].name)
 
         if x_label =="":
             x_label = "par"+str(par1)
@@ -2051,13 +1472,13 @@ class MarginalDistributions:
         P.xlabel(x_label)
         P.ylabel(y_label)
 
-        for i, c in enumerate(self.components.T['covariance']):
+        for i, c in enumerate(self.out.components.T['covariance']):
             #skip components by hand to retain consistent coloring
-            if self.components.T['weight'][i] == 0.0: # or (self.single_chain is not None and i != int(self.single_chain)):
+            if self.out.components.T['weight'][i] == 0.0: # or (self.single_chain is not None and i != int(self.single_chain)):
                 continue
 
             # select a subrange of components
-            if any(self.select) and (i < self.select[0] or i >= self.select[1]):
+            if any(self.out.select) and (i < self.out.select[0] or i >= self.out.select[1]):
                 continue
 
             cov = c.reshape((nCols, nCols))
@@ -2093,7 +1514,7 @@ class MarginalDistributions:
 
             # repeat spectrum multiple times
             if self.fold_color_spectrum > 0:
-                color = colors[(i * self.fold_color_spectrum) % len(self.components.T['covariance'])]
+                color = colors[(i * self.fold_color_spectrum) % len(self.out.components.T['covariance'])]
             else:
                 color = colors[i]
 
@@ -2120,7 +1541,7 @@ class MarginalDistributions:
          Plot component weights
         """
         P.figure(figsize=(8,8))
-        P.plot(self.components.T['weight'])
+        P.plot(self.out.components.T['weight'])
         P.xlabel('components')
         P.ylabel('weight')
         self.pdf_file.savefig()
@@ -2133,8 +1554,8 @@ class MarginalDistributions:
         ###
         # normalize samples. Mask zero weights
         ###
-        n = len(self.weights)
-        w = self.weights / np.sum(self.weights)
+        n = len(self.out.weights)
+        w = self.out.weights / np.sum(self.out.weights)
         w = np.ma.MaskedArray(w, copy=False, mask=(w == 0))
 
         ###
@@ -2157,7 +1578,7 @@ class MarginalDistributions:
         Plot histogram of sample weights
         """
         P.figure(figsize=(8,8))
-        P.hist(self.weights, self.one_dim_n_bins)
+        P.hist(self.out.weights, self.one_dim_n_bins)
         P.xlabel('weight')
         self.pdf_file.savefig()
 
@@ -2179,37 +1600,39 @@ class MarginalDistributions:
         epilog = lambda : 0 #self.weight_distribution
 
         # optionally draw pmc proposal instead
-        if self.proposal and self.input_source == 'pmc':
+        if self.proposal:
             one_dim = lambda par : False
             two_dim = self.proposal_2D
             epilog = self.proposal_weights
-            mask = self.components.T['weight'] > 0.0
-            print("%d out of %d components still alive" % (len(np.where(mask)[0]), len(mask)))
             ext = '_prop'
+
+        self.pdf_file_name = self.__output_base_name + ext + self.single_ext
 
         # plot only a few distributions if desired
         if self.single_1D is not None or self.single_2D is not None:
+            pdf_file = PdfPages(self.pdf_file_name)
             if self.single_1D is not None:
-                P.figure()
-                one_dim(self.single_1D)
-                name = self.__output_base_name + ext + "_par%d" % self.single_1D
-                P.savefig(name + self.single_ext)
+                for x in self.single_1D:
+                    P.figure()
+                    one_dim(x)
+                    pdf_file.savefig()
+                    P.close()
 
             if self.single_2D is not None:
-                P.figure(figsize=(8,8))
-                two_dim(self.single_2D[0], self.single_2D[1])
-                name = self.__output_base_name + ext + "_par%d-par%d" % (self.single_2D[0], self.single_2D[1])
-                P.savefig(name +  self.single_ext)
-
+                for x, y in self.single_2D:
+                    P.figure(figsize=(8,8))
+                    two_dim(x, y)
+                    pdf_file.savefig()
+                    P.close()
+            pdf_file.close()
             return
 
         # default mode: plot all
 
-        self.pdf_file_name = self.__output_base_name + ext + self.single_ext
         print("saving output to %s" % self.pdf_file_name)
         self.pdf_file = PdfPages(self.pdf_file_name)
 
-        nCols =  len(self.par_defs)
+        nCols = len(self.out.par_defs)
 
         #take indices only from this list
         index_list = np.arange(nCols, dtype='int')
@@ -2218,7 +1641,7 @@ class MarginalDistributions:
         if not self.use_nuisance:
             scan_indices = []
             for i in index_list:
-                if not self.par_defs[i].nuisance:
+                if not self.out.par_defs[i].nuisance:
                     scan_indices.append(i)
             index_list = np.array(scan_indices)
 
@@ -2272,6 +1695,7 @@ def factory(cmd_line=None):
     parser.add_argument('--contours', help="Add one and two sigma contours",action='store_true')
     parser.add_argument('--compute-stats', help="Compute perplexity and effective sample size (PMC only)", action='store_true')
     parser.add_argument('--cut', help="Add a cut for computing the integral: PAR MIN MAX",nargs=3, action='append')
+    parser.add_argument('--emcee', help="Read emcee input file", action='store_true', default=False)
     parser.add_argument('--evolution', help="Plot the evolution  of individual chains, either on the 'log' or 'linear' scale", action='store', default='harr')
     parser.add_argument('--integrate', help="Compute integral over hyperrectangle, use with --cut",action='store_true')
     parser.add_argument('--comp-integrate', help="Compute evidence from individual components",action='store_true')
@@ -2281,8 +1705,8 @@ def factory(cmd_line=None):
     parser.add_argument('--nuisance', help="Plot nuisance parameters.", action='store_true', default=False)
     parser.add_argument('--no-nuisance-vs-nuisance', help="Don't produce 2D plots if both are nuisance parameters",action='store_true', default=False)
     parser.add_argument('--prior', help="Plot the prior in 1D distributions.",action='store_true')
-    parser.add_argument('--single-1D', help="Plot only the 1D marginal distribution of the ith parameter, i=0...N-1", action='store')
-    parser.add_argument('--single-2D', help="Plot only the 2D marginal distribution of parameters i,j, i<j, i,j=0...N-1", nargs=2)
+    parser.add_argument('--single-1D', help="Plot only the 1D marginal distribution of the ith parameter, i=0...N-1", type=int, nargs='+')
+    parser.add_argument('--single-2D', help="Plot only the 2D marginal distribution of parameters i,j, i<j, i,j=0...N-1", nargs=2, type=int, action='append')
     parser.add_argument('--single-ext', help="File extension for single plots, e.g 'pdf'[default] or 'png'", action='store')
     parser.add_argument('--select', help="Select a range of samples from each chain", action='store',nargs=2, default=(None, None))
     parser.add_argument('--skip-initial', help="Allows to skip the first fraction of iterations", action='store', default=0)
@@ -2294,7 +1718,7 @@ def factory(cmd_line=None):
     parser.add_argument('--pmc-proposal', help="Plot PMC proposal function", action='store_true')
     parser.add_argument('--pmc-stats', help="Plot evolution of convergence diagnostics and evidence", action='store_true')
     parser.add_argument('--pmc-step', help="Use a specified step, default: final step", action='store')
-    parser.add_argument('--pmc-queue-output', help="Treat input as file from PMC queue manager", action='store_true', default=False)
+    parser.add_argument('--pmc-queue-output', help="Treat input as file from PMC queue manager", action='store_true', default=None)
     parser.add_argument('--prerun', help="Use prerun instead of main", action='store_true')
     parser.add_argument('--gof', help="Determine GoF for a particular point. Specify each coordinate independently as --gof i value, e.g. --gof 0 0.4 --gof 1 0.8 i<j, i,j=0...N-1", action='append', nargs=2)
     parser.add_argument('--use-data-range', help="Determine the parameter ranges from data, instead of from definition in HDF5. ", action='store', default=0.0)
@@ -2307,7 +1731,35 @@ def factory(cmd_line=None):
     # setup the object
     ###
 
-    # determine input mode
+    if args.hc_initial:
+        hc_comp = 'long'
+    elif args.hc_patches:
+        hc_comp = 'short'
+    else:
+        hc_comp = None
+
+    # determine input
+    kwargs = dict(
+                  # general
+                  select=[int(x) if x is not None else x for x in args.select],
+                  # mcmc
+                  chains=args.chains, prerun=args.prerun, skip_initial=float(args.skip_initial),
+                  # pmc
+                  queue_output=args.pmc_queue_output, crop_outliers=int(args.pmc_crop_outliers),
+                  equal_weights=args.pmc_equal_weights or args.pmc_proposal,
+                  step=args.pmc_step, hc_comp=hc_comp)
+
+    OutputClass = None
+    if args.mcmc:
+        OutputClass = MCMC_Output
+    elif args.emcee:
+        OutputClass = EmceeOutput
+    elif args.nest:
+        OutputClass = MultinestOutput
+    else:
+        OutputClass = PMC_Output
+
+    output = OutputClass(args.i, **kwargs)
     input_source_default = 'pmc'
     input_source = input_source_default
     if args.mcmc:
@@ -2316,21 +1768,10 @@ def factory(cmd_line=None):
        assert(input_source == input_source_default)
        input_source = 'multinest'
 
-    if args.hc_initial:
-        hc_comp = 'long'
-    elif args.hc_patches:
-        hc_comp = 'short'
-    else:
-        hc_comp = None
-
     #had some trouble getting the second argument out-of the namepace, so use the dictionary directly
-    marg = MarginalDistributions(args.i, args.__dict__['use_KDE'], output_dir=args.__dict__['output_dir'],
-                                 input_source=input_source, pmc_queue_output=args.pmc_queue_output,
-                                 pmc_crop_outliers=float(args.__dict__['pmc_crop_outliers']),
-                                 pmc_equal_weights=args.__dict__['pmc_equal_weights'] or args.pmc_proposal,
-                                 chains=args.chains or args.__dict__['pmc_step'], prerun=args.__dict__['prerun'],
-                                 nuisance=args.nuisance, select=[int(x) if x is not None else x for x in args.__dict__['select']],
-                                 skip_initial=float(args.__dict__['skip_initial']), hc_comp=hc_comp)
+    marg = MarginalDistributions(output, args.__dict__['use_KDE'], output_dir=args.__dict__['output_dir'],
+                                 chains=args.chains or args.__dict__['pmc_step'], nuisance=args.nuisance)
+
     if  args.__dict__['use_KDE']:
         marg.kde_reduction = 1
     if  args.__dict__['use_data_range'] > 0:
@@ -2358,19 +1799,19 @@ def factory(cmd_line=None):
         for cut in args.__dict__['cut']:
             cut[0] = int(cut[0])
             if cut[1] == 'MIN':
-                cut[1] = marg.par_defs[cut[0]].min
+                cut[1] = marg.out.par_defs[cut[0]].min
             if cut[2] == 'MAX':
-                cut[2] = marg.par_defs[cut[0]].max
+                cut[2] = marg.out.par_defs[cut[0]].max
             marg.cuts[cut[0]] = (float(cut[1]), float(cut[2]))
     if args.__dict__['prior']:
         marg.plot_prior = True
     if args.__dict__['pmc_proposal']:
         marg.proposal = True
     if args.__dict__['single_1D'] is not None:
-        marg.single_1D = int(args.__dict__['single_1D'])
+        marg.single_1D = args.single_1D
         marg.use_nuisance = True
     if args.__dict__['single_2D'] is not None:
-        marg.single_2D = [int(x) for x in args.__dict__['single_2D']]
+        marg.single_2D = args.single_2D #[int(x) for x in args.__dict__['single_2D']]
         marg.no_nuisance_vs_nuisance = False
     if args.__dict__['single_ext']:
         marg.single_ext = "." + args.__dict__['single_ext']
@@ -2385,18 +1826,23 @@ def factory(cmd_line=None):
         return marg
 
     ### do the mutually exclusive work
+    done = False
     if args.__dict__['evolution'] is not 'harr':
-        print("Plotting evolution")
         marg.evolution(args.__dict__['evolution'])
-    elif args.__dict__['integrate']:
+        done = True
+    if args.__dict__['integrate']:
         marg.integrate()
-    elif args.__dict__['comp_integrate']:
+        done = True
+    if args.__dict__['comp_integrate']:
         marg.comp_integrate()
-    elif args.__dict__['compute_stats']:
+        done = True
+    if args.__dict__['compute_stats']:
         marg.compute_stats()
-    elif args.__dict__['pmc_stats']:
+        done = True
+    if args.__dict__['pmc_stats']:
         marg.convergence()
-    else:
+        done = True
+    if not done:
         marg.plot()
 
 def test_ellipse():
