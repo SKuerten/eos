@@ -4,6 +4,7 @@ Plot several distributions with their contours for paper
 """
 
 import plotScript
+from plotScript import ParameterDefinition
 import plotUncertainty
 import matplotlib
 import matplotlib.ticker as ticker
@@ -41,8 +42,9 @@ def wide_figure(x_size=8, ratio=4/3.0, left=0.08, right=0.95, top=0.95, bottom=0
     return ax
 
 class Scenario(object):
-    def __init__(self, file, color, nbins=150, alpha=0.4, sigma='2 sigma',
-                 bandwidth_default=None, two_sigma_color=None, queue_output=True):
+    def __init__(self, file, color, nbins=200, alpha=0.4, sigma='2 sigma',
+                 bandwidth_default=None, two_sigma_color=None, queue_output=True,
+                 crop_outliers=200, local_mode=None):
         self.f = file
         self.c = color
         self.prob = {}
@@ -53,6 +55,8 @@ class Scenario(object):
         self.__bandwidth_default = bandwidth_default
         self.two_sigma_color = two_sigma_color
         self.queue_output = queue_output
+        self.crop_outliers = crop_outliers
+        self.local_mode = local_mode
 
     def get_bandwidth(self, par1, par2):
         try:
@@ -76,36 +80,13 @@ class MarginalContours(object):
 
         self.defs = OrderedDict()
         #(index, (min, max))
-        self.defs['Re{c7}'] = plotScript.ParameterDefinition(index=0, name='Re{c7}', min=-1, max=+1)
-        self.defs['Re{c9}'] = plotScript.ParameterDefinition(index=1, name='Re{c9}', min=-15, max=15)
-        self.defs['Re{c10}'] = plotScript.ParameterDefinition(index=2, name='Re{c10}', min=-15, max=15)
+        self.defs['Re{c7}'] = ParameterDefinition(index=0, name='Re{c7}', min=-1, max=+1)
+        self.defs['Re{c9}'] = ParameterDefinition(index=1, name='Re{c9}', min=-15, max=15)
+        self.defs['Re{c10}'] = ParameterDefinition(index=2, name='Re{c10}', min=-15, max=15)
 
         self.input_base = input_base
 
         self.scen = OrderedDict()
-        self.scen['scI_all'] = Scenario(os.path.join(self.input_base, 'pmc_final_scI_all.hdf5'), 'Green', bandwidth_default=0.005,
-                                    sigma='1+2 sigma', two_sigma_color='LightGreen', alpha=1, queue_output=True)
-        self.scen['scI_excl'] = Scenario(os.path.join(self.input_base, 'pmc_monolithic_scI_excl.hdf5'), 'Blue', bandwidth_default=0.005,
-                                        sigma='1+2 sigma', two_sigma_color='LightBlue', alpha=1, queue_output=False)
-
-        """ Old scenarios
-
-        self.scen['Pll'] = Scenario(self.input_base + 'sc1_BPll.hdf5', 'DarkGoldenRod', bandwidth_default=0.007)
-        self.scen['Pll'].set_bandwidth('Re{c9}', 'Re{c10}', 0.01)
-
-        # bw=0.01 is slighly enlarging the regions, but ensures smooth contours, and no freckles
-        self.scen['Vll_largeRec'] = Scenario(self.input_base + 'sc1_BVll_largeRec.hdf5', 'blue', bandwidth_default=0.01)
-#        self.scen['Vll_largeRec'].set_bandwidth('Re{c7}', 'Re{c9}', 0.003)
-#        self.scen['Vll_largeRec'].set_bandwidth('Re{c7}', 'Re{c10}', 0.003)
-#        self.scen['Vll_largeRec'].set_bandwidth('Re{c9}', 'Re{c10}', 0.005)
-
-        self.scen['Vll_lowRec'] = Scenario(self.input_base + 'sc1_BVll_lowRec.hdf5', 'LimeGreen', alpha=0.7, bandwidth_default=0.01)
-
-        # bandwidth tuned for good looking bimodal plot; zoom ins have different bandwidths!
-        self.scen['all_wide'] = Scenario(self.input_base + 'sc1_all_wide.hdf5', 'Black', bandwidth_default=0.005, sigma='1+2 sigma')
-        """
-        self.scen['all_nuis'] = Scenario(os.path.join(self.input_base, 'sc1_all_nuis.hdf5'), 'OrangeRed', bandwidth_default=0.005,
-                                         sigma='1+2 sigma', two_sigma_color='LightSalmon', alpha=1)
 
         # remove some for testing and increasing speed
         if ignore_scenarios:
@@ -118,8 +99,6 @@ class MarginalContours(object):
         self.sm_point = [-0.32741917, +4.27584794, -4.15077942]
         self.sm_point_style = dict(marker = 'D', markersize = 8, color = 'black')
 
-        self.best_fit_points = [[-0.294991910838,    3.731820480717,  -4.140554057902],
-                                [ 0.41787049285,  -4.639111764728,  3.994616452063]]
         best_fit_point_style = dict(self.sm_point_style)
         best_fit_point_style['marker'] = 'x'
         best_fit_point_style['markeredgewidth'] = 3.0
@@ -130,39 +109,23 @@ class MarginalContours(object):
         self.read_data()
 
         # store bandwidths for comparison of two scenarios
-        # format: (i, j, par1, par2)
+        # format: (scenario, i, j, par1, par2)
         self.comparison_bandwidths = {}
 
-        # define bandwidths for each individual plot
-        bw = 0.005
-        self.comparison_bandwidths[('all_nuis', 1, 0, 'Re{c7}', 'Re{c9}')] = bw * 1.4  # top
-        self.comparison_bandwidths[('all_nuis', 0, 1, 'Re{c7}', 'Re{c9}')] = bw * 1.4  # bottom
-        self.comparison_bandwidths[('all_nuis', 0, 0, 'Re{c7}', 'Re{c10}')] = bw * 1.6  # bottom
-        self.comparison_bandwidths[('all_nuis', 1, 1, 'Re{c7}', 'Re{c10}')] = bw * 1.6  # top
-        self.comparison_bandwidths[('all_nuis', 1, 0, 'Re{c9}', 'Re{c10}')] = bw * 1.5  # bottom
-        self.comparison_bandwidths[('all_nuis', 0, 1, 'Re{c9}', 'Re{c10}')] = bw * 1.4  # top
-
-        self.comparison_bandwidths[('scI_all', 1, 0, 'Re{c7}', 'Re{c9}')] = bw * 1.4  # top
-        self.comparison_bandwidths[('scI_all', 0, 1, 'Re{c7}', 'Re{c9}')] = bw * 1.4  # bottom
-        self.comparison_bandwidths[('scI_all', 0, 0, 'Re{c7}', 'Re{c10}')] = bw * 1.6  # bottom
-        self.comparison_bandwidths[('scI_all', 1, 1, 'Re{c7}', 'Re{c10}')] = bw * 1.6  # top
-        self.comparison_bandwidths[('scI_all', 1, 0, 'Re{c9}', 'Re{c10}')] = bw * 1.5  # bottom
-        self.comparison_bandwidths[('scI_all', 0, 1, 'Re{c9}', 'Re{c10}')] = bw * 1.4  # top
-
-        self.comparison_bandwidths[('scI_excl', 1, 0, 'Re{c7}', 'Re{c9}')] = bw * 1.4  # top
-        self.comparison_bandwidths[('scI_excl', 0, 1, 'Re{c7}', 'Re{c9}')] = bw * 1.4  # bottom
-        self.comparison_bandwidths[('scI_excl', 0, 0, 'Re{c7}', 'Re{c10}')] = bw * 1.6  # bottom
-        self.comparison_bandwidths[('scI_excl', 1, 1, 'Re{c7}', 'Re{c10}')] = bw * 1.6  # top
-        self.comparison_bandwidths[('scI_excl', 1, 0, 'Re{c9}', 'Re{c10}')] = bw * 1.5  # bottom
-        self.comparison_bandwidths[('scI_excl', 0, 1, 'Re{c9}', 'Re{c10}')] = bw * 1.4  # top
-
         self.comparison_defs = {}
-        self.comparison_defs['Re{c7}'] = (plotScript.ParameterDefinition(name='Re{c7}', min=+0.0, max=+0.7, index=self.pars.index('Re{c7}'), n_major_ticks=3),
-                                plotScript.ParameterDefinition(name='Re{c7}', min=-0.7, max=0.0, index=self.pars.index('Re{c7}'), n_major_ticks=3))
-        self.comparison_defs['Re{c9}'] = (plotScript.ParameterDefinition(name='Re{c9}', min=+1.5, max=+7.5, index=self.pars.index('Re{c9}'), n_major_ticks=3),
-                                plotScript.ParameterDefinition(name='Re{c9}', min=-8, max=-2, index=self.pars.index('Re{c9}'), n_major_ticks=3))
-        self.comparison_defs['Re{c10}'] = (plotScript.ParameterDefinition(name='Re{c10}', min=+1, max=+6, index=self.pars.index('Re{c10}'), n_major_ticks=3),
-                                 plotScript.ParameterDefinition(name='Re{c10}', min=-6, max=-1, index=self.pars.index('Re{c10}'), n_major_ticks=3))
+
+        name = 'Re{c7}'
+        nticks = 5
+        par_def1 = ParameterDefinition(name=name, min=0.2, max=0.6, index=self.pars.index(name))
+        par_def1.major_locator = ticker.FixedLocator(np.linspace(par_def1.min, par_def1.max, nticks))
+        par_def2 = ParameterDefinition(name=name, min=-0.5, max=-0.1, index=self.pars.index(name))
+        par_def2.major_locator = ticker.FixedLocator(np.linspace(par_def2.min, par_def2.max, nticks))
+        self.comparison_defs[name] = (par_def1, par_def2)
+
+        self.comparison_defs['Re{c9}'] = (ParameterDefinition(name='Re{c9}', min=+1, max=+6, index=self.pars.index('Re{c9}')),
+                                ParameterDefinition(name='Re{c9}', min=-7, max=-2, index=self.pars.index('Re{c9}')))
+        self.comparison_defs['Re{c10}'] = (ParameterDefinition(name='Re{c10}', min=+1.5, max=+6.5, index=self.pars.index('Re{c10}')),
+                                 ParameterDefinition(name='Re{c10}', min=-6.5, max=-1.5, index=self.pars.index('Re{c10}')))
 
         # store expensive calculation of contours
         self.__density_cache = {}
@@ -174,12 +137,11 @@ class MarginalContours(object):
     ###
     # template for single plots
     ###
-    def command_template(self, scenario): #input, nbins, queue=False):
+    def command_template(self, scenario):
         cmd_template = ''
         # input file
         cmd_template += ' %s' % scenario.f
-    #    cmd_template += ' --single-2D %d %d' % (par1, par2)
-        cmd_template += ' --pmc-crop-outliers 200'
+        cmd_template += ' --pmc-crop-outliers %d' % scenario.crop_outliers
         cmd_template += ' --2D-bins %d' % scenario.nbins
         if self.max_samples is not None:
             cmd_template += ' --select 0 %d' % self.max_samples
@@ -194,12 +156,11 @@ class MarginalContours(object):
 
     def read_data(self):
 
-        nbins = 75
         self.margs = {}
         for k in self.scen.keys():
-            self.margs[k] = plotScript.factory(self.command_template(self.scen[k]))  # self.scen[k].f, self.scen[k].nbins, self))
+            self.margs[k] = plotScript.factory(self.command_template(self.scen[k]))
 
-    def single_panel(self, pos1, pos2, def1, def2, SM_point=True, local_mode=False, scenarios=('all_wide', 'all_nuis')):
+    def single_panel(self, pos1, pos2, def1, def2, SM_point=True, local_mode=True, scenarios=('all_wide', 'all_nuis')):
         """
         Single marginal plot to compare two scenarios
 
@@ -233,21 +194,30 @@ class MarginalContours(object):
             xrange = (self.defs[def1.name].min, self.defs[def1.name].max)
             yrange = (self.defs[def2.name].min, self.defs[def2.name].max)
             artist = self.margs[s].contours_two(xrange, yrange, self.__density_cache[(i, j, s)],
-                                                color=self.scen[s].c, line=bool(k), grid=False)
+                                                color=self.scen[s].c, line=bool(k), grid=True)
 
         if SM_point:
             P.plot(self.sm_point[i], self.sm_point[j], **self.sm_point_style)
         if local_mode:
-            for style, p in zip(self.best_fit_points_style, self.best_fit_points):
+            for style, p in zip(self.best_fit_points_style, self.scen[scenarios[0]].local_mode):
                 P.plot(p[i], p[j], **style)
 
         ax = P.gca()
 
-        ax.xaxis.set_major_locator(ticker.LinearLocator(def1.n_major_ticks))
+        # some doesn't work in contours_two
+        # so turn on manually
+        ax.grid()
+
+        if hasattr(def1, 'major_locator'):
+            ax.xaxis.set_major_locator(def1.major_locator)
         ax.set_xlim(def1.range)
 
-        ax.yaxis.set_major_locator(ticker.LinearLocator(def2.n_major_ticks))
+        if hasattr(def2, 'major_locator'):
+            ax.yaxis.set_major_locator(def2.major_locator)
         ax.set_ylim(def2.range)
+#         ax.set_aspect('auto', adjustable='box')
+#         ax.set_aspect('equal')
+#         P.axis('equal')
 
     def all_nuis_stack(self, def1, def2, like_sign=False, flip_order=False, scenarios=('all_wide', 'all_nuis')):
         """
@@ -259,8 +229,10 @@ class MarginalContours(object):
         like_sign -- If true, use +,+ and -,-. Default: false, then use -+, +-.
         """
 
+        # choose x_size such that fonts are readible
+        # y size manually adjusted so actual plot frame (not the figure!) has 1:1 aspect ratio
         x_size = 5
-        fig = P.figure(figsize=(x_size, 2 * x_size))
+        fig = P.figure(figsize=(x_size, 1.8 * x_size))
 
         # use -+ or +-?
         ind = (1, 0)
@@ -283,10 +255,7 @@ class MarginalContours(object):
         fig.text(0.52, 0.04, tr.to_tex(def1[0].name), ha='center', va='center')
         fig.text(0.04, 0.52, tr.to_tex(def2[0].name), ha='center', va='center', rotation='vertical')
 
-        fig.subplots_adjust(left=0.2)
-#        fig.subplots_adjust(right=right_adjust)
-        fig.subplots_adjust(top=0.96)
-        fig.subplots_adjust(bottom=0.1)
+        fig.subplots_adjust(left=0.2, right=0.92, bottom=0.1, top=0.98)
 
     def all_nuis_vs_wide(self):
         """
@@ -302,15 +271,12 @@ class MarginalContours(object):
         self.all_nuis_stack(self.comparison_defs['Re{c9}'], self.comparison_defs['Re{c10}'], flip_order=True)
         P.savefig(self.out("all_nuis_wide_1_2"))
 
-    def compare_scenarios(self):
+    def compare_scenarios(self, combinations):
         """
         compare multiple scenarios in overlays with filled and contoured regions
         """
 
-        combinations = (('all_nuis',),
-                        ('all_nuis', 'scI_all'),
-                        ('all_nuis', 'scI_excl'))
-        
+
 #         self.comparison_bandwidths = {}
 
         for c in combinations:
@@ -378,7 +344,7 @@ class MarginalContours(object):
                    "B->K::F^p(0)@KMPW2010": ParameterProperty(25),
                    "B->K::b^p_1@KMPW2010": ParameterProperty(26, legend_pos='upper left')
                 }
-        
+
         marginal_styles = {'scI_all': dict(color=self.scen['scI_all'].c, linestyle='solid')}
 
         line_width = 1.5
@@ -390,7 +356,7 @@ class MarginalContours(object):
         x_size = 8; y_size = 6
 
         for k, p in props.iteritems():
-            
+
             for s in scenarios:
 
                 fig = P.figure(figsize=(x_size, y_size))
@@ -483,6 +449,54 @@ class MarginalContours(object):
 
         P.savefig(self.out('nuis_1D_FF_BZ'))
 
+    def subleading(self):
+        """Plot 1D marginals to subleading corrections"""
+
+        scenario = 'scI_posthep13'
+        marg = self.margs[scenario]
+
+        marg.use_nuisance = True
+        marg.use_histogram = False
+        marg.use_contours = True
+
+        class Prop(object):
+            """properties of each figure"""
+            def __init__(self, i, bandwidth=None):
+                # index of parameter in hdf5
+                self.i = i
+                # kde bandwidth
+                self.bandwidth = bandwidth
+
+
+        temp_font_size = matplotlib.rcParams['font.size']
+        matplotlib.rcParams['font.size'] = 16
+
+        props = (Prop(12, 0.005), Prop(13, 0.015))
+
+        prior_style=dict(color='black', linestyle='dashed', dashes=[4, 3])
+        one_sigma_style = dict(facecolor='blue', alpha=0.7)
+        two_sigma_style = dict(facecolor='blue', alpha=0.4)
+
+        # patches for the legend
+        rect_one = matplotlib.patches.Rectangle((0,0), 1, 1, **one_sigma_style)
+        rect_two = matplotlib.patches.Rectangle((0,0), 1, 1, **two_sigma_style)
+        rect_prior = matplotlib.lines.Line2D((0,0), (1, 1), **prior_style)
+
+        for p in props:
+            P.figure(figsize=(6,5))
+            marg.kde_bandwidth = p.bandwidth
+            marg.one_dimensional(p.i, prior_label=r"$\mathrm{prior}$", prior_style=prior_style,
+                                 one_sigma_style=one_sigma_style, two_sigma_style=two_sigma_style)
+
+            P.setp(P.gca().get_yticklabels(), visible=False)
+            if p.i == 12:
+                P.legend([rect_one, rect_two, rect_prior], [r'$1 \sigma$', r'$2 \sigma$', r'$\mathrm{prior}$'])
+            P.tight_layout()
+            P.savefig(self.out('%s_%d' % (scenario, p.i)))
+
+        # restore
+        matplotlib.rcParams['font.size'] = temp_font_size
+
     def single_scenario(self):
         """
         Plot one scenario by itself at a time.
@@ -496,7 +510,7 @@ class MarginalContours(object):
                     P.plot(self.sm_point[self.defs[p1].i], self.sm_point[self.defs[p2].i], **self.sm_point_style)
 
                     # draw best fit points
-                    for n, point in enumerate(self.best_fit_points):
+                    for n, point in enumerate(self.scen[k].local_mode):
                         P.plot(point[self.defs[p1].i], point[self.defs[p2].i], \
                                **self.best_fit_points_style[n])
 
@@ -610,6 +624,71 @@ class MarginalContours(object):
 
                     P.savefig(self.out('%s_one_dim_%d_%d' % (s, d.i, histo)))
                     P.clf()
+
+    def primed(self):
+        """Scenario III marginals for C_i vs C'_i"""
+
+        # overwrite ranges as they changed!
+        self.defs['Re{c7}'] = ParameterDefinition(index=0, name='Re{c7}', min=-0.5, max=0.7)
+        self.defs['Re{c9}'] = ParameterDefinition(index=1, name='Re{c9}', min=-6.5, max=5.5)
+        self.defs['Re{c10}'] = ParameterDefinition(index=2, name='Re{c10}', min=-6, max=6)
+
+        s = Scenario(os.path.join(self.input_base, 'pmc_scIII_posthep13.hdf5'), 'OrangeRed', bandwidth_default=0.005,
+                                  sigma='1+2 sigma', two_sigma_color='LightSalmon', alpha=1, queue_output=False, crop_outliers=50,
+                                  local_mode=[[ -0.337899, 3.30393, -4.48358, -0.0861297, 0.0512656, -0.837369],
+                                              [0.502549, -4.1695, 3.52083, 0.0500648, -2.70563, -0.822219],
+                                              [0.0115065, 3.28042, -1.57617, -0.424717, 3.38051, 2.46494],
+                                              [0.119822, -3.94822, 1.98214, 0.431466, -3.46372, -2.24401]])
+        m = plotScript.factory(self.command_template(s))
+
+
+        # predictions in the SM
+        primed_defs = (ParameterDefinition(index=3, name="Re{c7'}" , min=-0.6, max=0.6),
+                       ParameterDefinition(index=4, name="Re{c9'}" , min=-6, max=6),
+                       ParameterDefinition(index=5, name="Re{c10'}", min=-6, max=6),)
+        for d in primed_defs:
+            m.cuts[d.i] = d.range
+        primed_predictions = (0, 0, 0)
+        bandwidths = (0.01, 0.018, 0.013)
+        mode_labels = (('A', ((-0.275, -0.1), (2.05, -1.25), (-3.5, -1.2))),
+                       ('B', ((0.34, 0.02),  (-3.5, -2.6),   (4.2, -1.5))),
+                       ('C', ((0.01, -0.37), (2.05, 2.5),   (-0.85, 2.25))),
+                       ('D', ((0.1, 0.3), (-4.9, -5),  (2.3, -3.5))))
+
+        fig = P.figure(figsize=(6, 6))
+
+        for i in range(3):
+            m.use_histogram = False
+            m.kde_bandwidth = bandwidths[i]
+            density = m.two_dimensional(i, i + len(self.pars))
+
+            # draw contours
+            P.clf()
+
+            P.plot(self.sm_point[i], primed_predictions[i], **self.sm_point_style)
+            xrange = (self.defs[primed_defs[i].name.replace("'",'')].min, self.defs[primed_defs[i].name.replace("'",'')].max)
+            CS = m.contours_two(xrange, primed_defs[i].range, density, color=s.c)
+            P.setp(CS.collections[1], alpha=s.alpha)
+
+            P.setp(CS.collections[1], color=s.two_sigma_color)
+
+            # indicate SM prediction
+            P.plot(self.sm_point[i], primed_predictions[i], **self.sm_point_style)
+            for p, (lab, loc) in zip(s.local_mode, mode_labels):
+                P.plot(p[i], p[i+3], **self.best_fit_points_style[0])
+                P.text(loc[i][0], loc[i][1], '$'+lab+'^{\prime}$')
+
+            # don't whiten beyond 2 sigma, so ignore lowest contour fill
+            #P.setp(CS.collections[0], alpha=0.0)
+            CS.collections[0].remove()
+            P.xlabel(m.tr.to_tex(self.pars[i]))
+            P.ylabel(m.tr.to_tex(primed_defs[i].name))
+
+
+            # 1:1 aspect ratio, but only if called before adjusting edges
+            P.gca().set_aspect('equal')
+            fig.subplots_adjust(left=0.2, right=0.95, bottom=0.15)
+            P.savefig(self.out('scIII_%d' % i))
 
 class ObservableProperties(object):
 
@@ -1079,13 +1158,7 @@ def pull(input_base, output_base, ext='.pdf', mode=0, SM=False):
 #              left_adjust=0.12, top_adjust=0.86, bottom_adjust=0.15)
     P.savefig(out("pull_gamma"))
 
-if __name__ == '__main__':
-    matplotlib.rcParams['text.usetex'] = True
-    matplotlib.rcParams['text.latex.unicode'] = True
-    matplotlib.rcParams['font.size'] = 22
-    matplotlib.rcParams['xtick.major.pad'] = 10
-    matplotlib.rcParams['ytick.major.pad'] = 10
-
+def input_output():
     try:
         input_base = os.environ['EOS_RESULTS']
     except KeyError:
@@ -1103,21 +1176,95 @@ lrwxrwxrwx 1 beaujean beaujean   56 Jul 12 13:09 pmc_final_scI_all.hdf5 -> ../20
 
     output_base = input_base
 
-#    pull(output_base, mode=0, SM=False)
+    return (input_base, output_base)
+
+def fall2013():
+
+    # set up object
+    input_base, output_base = input_output()
+    marg = MarginalContours(input_base, output_base, max_samples=None)
+
+    marg.scen['scI_posthep13'] = Scenario(os.path.join(input_base, 'pmc_scI_posthep13.hdf5'), 'OrangeRed', bandwidth_default=0.005,
+                                    sigma='1+2 sigma', two_sigma_color='LightSalmon', alpha=1, queue_output=False, crop_outliers=50,
+                                    local_mode=[[-0.342938, 3.94893, -4.61573],
+                                                [0.505892, -5.00182, 4.50871]])
+    marg.scen['scI_quim1'] = Scenario(os.path.join(input_base, 'pmc_scI_quim1.hdf5'), 'Blue', bandwidth_default=0.005,
+                                      sigma='1+2 sigma', two_sigma_color='LightBlue', alpha=1, queue_output=False, crop_outliers=50,
+                                      local_mode=[[-0.345514, 2.99263, -4.16734],
+                                                  [ 0.509072, -4.02532, 4.22568]])
+    marg.scen['scI_all_nuis'] = Scenario(os.path.join(input_base, 'pmc_scI_all_nuis.hdf5'), 'Grey', bandwidth_default=0.005,
+                                         sigma='1+2 sigma', two_sigma_color='LightGrey', alpha=1, crop_outliers=200,
+                                      local_mode=[[-0.294991910838,    3.731820480717,  -4.140554057902],
+                                                  [ 0.41787049285,  -4.639111764728,  3.994616452063]])
+    marg.read_data()
+
+    # define bandwidths for each individual plot
+    bw = 0.0045
+    marg.comparison_bandwidths[('scI_posthep13', 1, 0, 'Re{c7}', 'Re{c9}')] = bw * 1.4  # top
+    marg.comparison_bandwidths[('scI_posthep13', 0, 1, 'Re{c7}', 'Re{c9}')] = bw * 1.4  # bottom
+    marg.comparison_bandwidths[('scI_posthep13', 0, 0, 'Re{c7}', 'Re{c10}')] = bw * 1.6  # bottom
+    marg.comparison_bandwidths[('scI_posthep13', 1, 1, 'Re{c7}', 'Re{c10}')] = bw * 1.6  # top
+    marg.comparison_bandwidths[('scI_posthep13', 1, 0, 'Re{c9}', 'Re{c10}')] = bw * 1.7  # bottom
+    marg.comparison_bandwidths[('scI_posthep13', 0, 1, 'Re{c9}', 'Re{c10}')] = bw * 1.4  # top
+
+    marg.comparison_bandwidths[('scI_quim1', 1, 0, 'Re{c7}', 'Re{c9}')] = bw * 1.4  # top
+    marg.comparison_bandwidths[('scI_quim1', 0, 1, 'Re{c7}', 'Re{c9}')] = bw * 1.4  # bottom
+    marg.comparison_bandwidths[('scI_quim1', 0, 0, 'Re{c7}', 'Re{c10}')] = bw * 1.6  # bottom
+    marg.comparison_bandwidths[('scI_quim1', 1, 1, 'Re{c7}', 'Re{c10}')] = bw * 1.6  # top
+    marg.comparison_bandwidths[('scI_quim1', 1, 0, 'Re{c9}', 'Re{c10}')] = bw * 1.5  # bottom
+    marg.comparison_bandwidths[('scI_quim1', 0, 1, 'Re{c9}', 'Re{c10}')] = bw * 1.4  # top
+
+    marg.comparison_bandwidths[('scI_all_nuis', 1, 0, 'Re{c7}', 'Re{c9}')] = bw * 1.4  # top
+    marg.comparison_bandwidths[('scI_all_nuis', 0, 1, 'Re{c7}', 'Re{c9}')] = bw * 1.4  # bottom
+    marg.comparison_bandwidths[('scI_all_nuis', 0, 0, 'Re{c7}', 'Re{c10}')] = bw * 1.6  # bottom
+    marg.comparison_bandwidths[('scI_all_nuis', 1, 1, 'Re{c7}', 'Re{c10}')] = bw * 1.6  # top
+    marg.comparison_bandwidths[('scI_all_nuis', 1, 0, 'Re{c9}', 'Re{c10}')] = bw * 1.5  # bottom
+    marg.comparison_bandwidths[('scI_all_nuis', 0, 1, 'Re{c9}', 'Re{c10}')] = bw * 1.4  # top
 
     # ##
-    # actions
+    # ACTIONS
     # ##
-    marg = MarginalContours(input_base, output_base, max_samples=None)
+    marg.single_scenario()
+    combinations = (('scI_all_nuis',), ('scI_quim1',), ('scI_posthep13',),
+                    ('scI_all_nuis', 'scI_posthep13'), ('scI_all_nuis', 'scI_quim1'),
+                    ('scI_posthep13', 'scI_quim1'))
+    marg.compare_scenarios(combinations)
+    marg.subleading()
+
+    # scIII plot
+    marg.primed()
+
+if __name__ == '__main__':
+    matplotlib.rcParams['text.usetex'] = True
+    matplotlib.rcParams['text.latex.unicode'] = True
+    matplotlib.rcParams['font.size'] = 22
+
+    # enlarge ticks
+    major = dict(size=8, width=1.4, pad=10)
+    minor = dict(size=4, width=1.)
+    matplotlib.rc('xtick.major', **major)
+    matplotlib.rc('xtick.minor', **minor)
+    matplotlib.rc('ytick.major', **major)
+    matplotlib.rc('ytick.minor', **minor)
+    matplotlib.rcParams['axes.linewidth'] = major['width']
+
+    fall2013()
+    # ##
+    # ACTIONS
+    # ##
+
+
 #                            ignore_scenarios=('all_wide',)),'Vll_lowRec', 'Vll_largeRec', 'Pll'))
 
 #     marg.one_dim_nuisance_KMPW()
     # marg.one_dim_nuisance_BZ()
 #     marg.single_scenario(); marg.overlays()
 #     marg.scI_all_vs_excl()
-    marg.compare_scenarios()
+#     marg.compare_scenarios()
 #    marg.all_nuis_vs_wide()
 #     marg.credibility_regions()
+
+#    pull(output_base, mode=0, SM=False)
 
 #    unc = UncertaintyMarginals(output_base, scenarios=['NP'], n_samples=None)
 #    unc.plot()
