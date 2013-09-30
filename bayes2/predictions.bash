@@ -49,3 +49,8 @@ export PREDICTIONS_uncINCL="
     --kinematics E_min 1.8 --observable B->X_sgamma::BR(E_min)@NLO,model=WilsonScan
     --kinematics s_min 1 --kinematics s_max 6 --observable B->X_sll::BR@HLMW2005,model=WilsonScan
 "
+
+export PREDICTIONS_uncFF="
+    --kinematics s 0.0 --observable B->K^*::V(s)/A_1(s),form-factors=KMPW2010
+    --kinematics s 0.0 --observable B->K^*::A_2(s)/A_1(s),form-factors=KMPW2010
+"
