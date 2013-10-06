@@ -50,6 +50,11 @@ export NUISANCE_B_TO_VPERPLL_SUBLEADING="
     --nuisance    B->K^*ll::A_perp^R_uncertainty@LargeRecoil     0.5   1.5  ${N_SIGMAS}     --prior    gaussian    0.85      1.0       1.15
 "
 
+export NUISANCE_B_TO_VPERPLL_SUBLEADING_FLAT="
+    --nuisance    B->K^*ll::A_perp^L_uncertainty@LargeRecoil     0.55  1.45 --prior flat
+    --nuisance    B->K^*ll::A_perp^R_uncertainty@LargeRecoil     0.55  1.45 --prior flat
+"
+
 export NUISANCE_B_TO_VPERPLL_SUBLEADING_WIDE="
     --nuisance    B->K^*ll::A_perp^L_uncertainty@LargeRecoil     0.2   1.8  ${N_SIGMAS}     --prior    gaussian    0.55      1.0       1.45
     --nuisance    B->K^*ll::A_perp^R_uncertainty@LargeRecoil     0.2   1.8  ${N_SIGMAS}     --prior    gaussian    0.55      1.0       1.45
@@ -72,6 +77,16 @@ export NUISANCE_B_TO_VPARALL_SUBLEADING_WIDE="
     --nuisance    B->K^*ll::A_0^R_uncertainty@LargeRecoil        0.2   1.8  ${N_SIGMAS}     --prior    gaussian    0.55      1.0       1.45
     --nuisance    B->K^*ll::A_par^L_uncertainty@LargeRecoil      0.2   1.8  ${N_SIGMAS}     --prior    gaussian    0.55      1.0       1.45
     --nuisance    B->K^*ll::A_par^R_uncertainty@LargeRecoil      0.2   1.8  ${N_SIGMAS}     --prior    gaussian    0.55      1.0       1.45
+"
+
+export NUISANCE_B_TO_VPARALL_SUBLEADING_FLAT="
+    --nuisance    B->Vll::Lambda_0@LowRecoil                    -0.45  0.45 --prior    flat
+    --nuisance    B->Vll::Lambda_pa@LowRecoil                   -0.45  0.45 --prior    flat
+    --nuisance    B->Vll::Lambda_pp@LowRecoil                   -0.45  0.45 --prior    flat
+    --nuisance    B->K^*ll::A_0^L_uncertainty@LargeRecoil        0.55  1.45 --prior    flat
+    --nuisance    B->K^*ll::A_0^R_uncertainty@LargeRecoil        0.55  1.45 --prior    flat
+    --nuisance    B->K^*ll::A_par^L_uncertainty@LargeRecoil      0.55  1.45 --prior    flat
+    --nuisance    B->K^*ll::A_par^R_uncertainty@LargeRecoil      0.55  1.45 --prior    flat
 "
 
 export NUISANCE_B_TO_PLL_FORM_FACTORS="
@@ -222,6 +237,15 @@ export NUISANCE_uncPLL="
     ${NUISANCE_QUARK_MASSES}
     ${NUISANCE_B_TO_PLL_FORM_FACTORS}
     ${NUISANCE_B_TO_PLL_SUBLEADING}
+"
+
+export NUISANCE_uncVLLflat="
+    ${NUISANCE_CKM}
+    ${NUISANCE_QUARK_MASSES}
+    ${NUISANCE_B_TO_VPERPLL_FORM_FACTORS}
+    ${NUISANCE_B_TO_VPERPLL_SUBLEADING_FLAT}
+    ${NUISANCE_B_TO_VPARALL_FORM_FACTORS}
+    ${NUISANCE_B_TO_VPARALL_SUBLEADING_FLAT}
 "
 
 export NUISANCE_uncVLLwide="
