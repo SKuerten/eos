@@ -1135,7 +1135,7 @@ class Slurm_Checker(TaskThread):
                 # is job id still in queue?
                 i = running_job_ids.index(id)
                 status = job_status[i]
-                if status == 'R' or status == 'CG' or status == 'CF':
+                if status == 'R' or status == 'CG' or status == 'CF' or status == 'PD':
                     job_running = True
                     sys.stdout.write('Job %d still active with status %s. ' % (id, status))
                     break
