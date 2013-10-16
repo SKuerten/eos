@@ -1202,12 +1202,12 @@ class Slurm_Options(object):
         try:
             self.queue = environ['SLURM_QUEUE']
         except KeyError:
-            self.queue = 'default'
+            self.queue = 'medium'
 
         try:
             self.final_queue = environ['SLURM_FINAL_QUEUE']
         except KeyError:
-            self.final_queue = 'default'
+            self.final_queue = 'defq'
 
         try:
             self.check_error_status = bool(environ['SLURM_CHECK_ERROR_STATUS'])
@@ -1264,7 +1264,8 @@ class Slurm_Iterator(PMC_Iterator):
 #        self.clean_files.append(log_file_name)
 
         cmd =  'sbatch'
-        #cmd += ' -q %s' % (self.options.final_queue if final else self.options.queue)
+        cmd += ' --partition=%s' % (self.options.final_queue if final else self.options.queue)
+        cmd += ' --time=%s' % ('10:00:00' if final else '4:00:00')
         cmd += ' -J job_update_%d' % self.step #job_indentifier
         cmd += ' -o %s' % log_file_name
         cmd += ' -e %s.err' % log_file_name
