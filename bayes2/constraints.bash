@@ -227,6 +227,10 @@ export CONSTRAINTS_B_TO_VLL_FF="
 
     --kinematics s 0.0 --observable B->K^*::V(s)/A_1(s) 0.93 1.33 1.73
     --kinematics s 0.0 --observable B->K^*ll::xi_para(s)@LargeRecoil 0.08 0.10 0.13
+
+    --constraint B->K^*::V@HPQCD-2013B
+    --constraint B->K^*::A_1@HPQCD-2013B
+    --constraint B->K^*::A_12@HPQCD-2013B
 "
 
 export CONSTRAINTS_B_MASS_SPLITTING="
