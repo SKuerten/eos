@@ -578,7 +578,7 @@ class UncertaintyPropagation(object):
         if matplotlib.rcParams['text.usetex']:
             uncertainty_string = '$' + uncertainty_string + '$'
         if self.print_uncertainty:
-            P.title(translator.EOS_Translator().to_tex(self.observable_names[obs_index]) + kinematic_string + "$) = $" + uncertainty_string)
+            P.title('$' + translator.EOS_Translator().to_tex(self.observable_names[obs_index]) + '$' + kinematic_string + "$) = $" + uncertainty_string)
         else:
             P.xlabel(self.tr.to_tex(self.observable_names[obs_index]) + kinematic_string)
         P.xlim(x_min, x_max)
@@ -677,5 +677,5 @@ def factory(cmd_line=None):
 
 if __name__ == '__main__':
     np.set_printoptions(precision=4)
-
+    matplotlib.rcParams['text.usetex'] = True
     factory()
