@@ -160,18 +160,29 @@ class MCMC_Output(SamplingOutput):
         #read out parameter info
         par_defs = []
         priors = []
-        f = priorDistributions.PriorFactory()
-        descriptions = hdf5_file['descriptions/' + prefix + '/chain #' + first_chain + "/parameters"][:]
-        for row in descriptions:
-            par_defs.append(ParameterDefinition(row[0], row[1], row[2], row[3], False))
-            try:
-                prior_name, prior = f.create(row[4])
-                assert(prior_name == row[0])
-            except KeyError as e:
-                prior = None
-                print('Warning: in constructing prior for %s: %s' % (row[0], e.message))
+        try:
+            descriptions = hdf5_file['descriptions/' + prefix + '/chain #' + first_chain + "/parameters"][:]
+        # plain output may not include parameter information
+        except KeyError:
+            npar = merged_chains.shape[1] - 1
+            for i in range(npar):
+                priors.append(None)
+                par_defs.append(ParameterDefinition('par%d' % i,
+                                                    np.min(merged_chains.T[i]),
+                                                    np.max(merged_chains.T[i])))
+        # output from an Analysis includes parameters and their priors
+        else:
+            f = priorDistributions.PriorFactory()
+            for row in descriptions:
+                par_defs.append(ParameterDefinition(row[0], row[1], row[2], row[3], False))
+                try:
+                    prior_name, prior = f.create(row[4])
+                    assert(prior_name == row[0])
+                except KeyError as e:
+                    prior = None
+                    print('Warning: in constructing prior for %s: %s' % (row[0], e.message))
 
-            priors.append(prior)
+                priors.append(prior)
 
         # read out mode from stats: always last row
         stats = hdf5_file[prefix + '/chain #' + first_chain + "/stats/mode"]
