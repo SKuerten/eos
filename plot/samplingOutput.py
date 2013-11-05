@@ -298,22 +298,34 @@ class PMC_Output(SamplingOutput):
             samples = None
             print("No samples found")
 
+        self.crop_last_columns = 3
+
         # read par defs
         par_defs = []
         priors = []
-        f = priorDistributions.PriorFactory()
+        try:
+            descriptions = hdf5_file['descriptions/parameters'][:]
+        # plain output may not include parameter information
+        except KeyError:
+            npar = samples.shape[1] - self.crop_last_columns
+            for i in range(npar):
+                priors.append(None)
+                par_defs.append(ParameterDefinition('par%d' % i,
+                                                    np.min(samples.T[i]),
+                                                    np.max(samples.T[i])))
+        # output from an Analysis includes parameters and their priors
+        else:
+            f = priorDistributions.PriorFactory()
+            for row in descriptions:
+                par_defs.append(ParameterDefinition(row[0], row[1], row[2], row[3], False))
+                try:
+                    prior_name, prior = f.create(row[4])
+                    assert(prior_name == row[0])
+                except KeyError as e:
+                    prior = None
+                    print('Warning: in constructing prior for %s: %s' % (row[0], e.message))
 
-        for row in hdf5_file['descriptions/parameters'][:]:
-            par_defs.append(ParameterDefinition(row[0], row[1], row[2], row[3], False))
-            try:
-                prior_name, prior = f.create(row[4])
-                assert(prior_name == row[0])
-            except KeyError as e:
-                prior = None
-                print('Warning: in constructing prior for %s: %s' % (row[0], e.message))
-            priors.append(prior)
-
-        self.crop_last_columns = 3
+                priors.append(prior)
 
         if samples is not None:
             # compute weights exactly once
