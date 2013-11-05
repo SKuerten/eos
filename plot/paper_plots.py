@@ -381,31 +381,46 @@ class MarginalContours(object):
                 P.tight_layout()
                 P.savefig(self.out('nuis_1D_FF_%s' % k))
 
-    def one_dim_nuisance_BZ(self):
+    def subleading_together(self):
         """
-        Plot prior and posterior 1D for all three BZ form factors and one scenario with common prior
+        Plot prior and posterior 1D for three subleading parameters with common prior
         """
-        scenario = 'all_nuis'
+        scenario = 'scI_posthep13'
+        marg = self.margs[scenario]
+
+        marg.use_nuisance = True
+        marg.use_histogram = False
+        marg.use_contours = False
+
+        temp_font_size = matplotlib.rcParams['font.size']
+        matplotlib.rcParams['font.size'] = 16
 
         class Prop(object):
-            def __init__(self, par_name, par_index, bandwidth=None, legend_label="",
+            """properties of each figure"""
+            def __init__(self, name, i, bandwidth=None, legend_label="",
                          style=dict(color=self.scen[scenario].c, linestyle='solid')):
-                self.par_name = par_name
-                self.par_index = par_index
+                self.name = name
+                # index of parameter in hdf5
+                self.i = i
+                # kde bandwidth
                 self.bandwidth = bandwidth
                 self.legend_label = legend_label
                 self.style = style
 
+        props = (Prop(12, 0.005), Prop(13, 0.015))
 
-        props = (Prop("B->K^*::a1_uncertainty@BZ2004", 10, bandwidth=0.01,
-                      legend_label=r"$\zeta_{A_1}$",
+        prior_style=dict(color='black', linestyle='dashed', dashes=[4, 3])
+
+
+        props = (Prop("B->K^*ll::A_perp^L_uncertainty@LargeRecoil",
+                      12, bandwidth=0.005, legend_label=r"$\chi=\perp$",
                       style=dict(color='blue', marker='', linestyle='dashed')),
-                 Prop("B->K^*::a2_uncertainty@BZ2004", 11, bandwidth=0.01,
-                      legend_label=r"$\zeta_{A_2}$",
-                      style=dict(color='green', linestyle='solid')),
-                 Prop("B->K^*::v_uncertainty@BZ2004", 12,  bandwidth=0.01,
-                      legend_label=r"$\zeta_{V}$",
-                      style=dict(color=self.scen[scenario].c, marker='', linestyle='-.')))
+                 Prop("B->K^*ll::A_par^L_uncertainty@LargeRecoil", 23,  bandwidth=0.01,
+                      legend_label=r"$\chi=\,\parallel$",
+                      style=dict(color=self.scen[scenario].c, marker='', linestyle='-.')),
+                 Prop("B->K^*ll::A_0^L_uncertainty@LargeRecoil", 21, bandwidth=0.015,
+                      legend_label=r"$\chi=0$",
+                      style=dict(color='green', linestyle='solid')))
 
         line_width = 1.5
         for p in props:
@@ -416,10 +431,7 @@ class MarginalContours(object):
 
         wide_figure()
 
-        marg = self.margs[scenario]
-
         for i,p in enumerate(props):
-
             if p.bandwidth is not None:
                 marg.use_histogram = False
                 marg.kde_bandwidth = p.bandwidth
@@ -427,14 +439,12 @@ class MarginalContours(object):
                 marg.use_histogram = True
 
             # don't skip this plot
-            marg.use_nuisance = True
-            marg.use_contours = False
             marg.plot_prior = (i == 0)
 
-            marg.one_dimensional(p.par_index, marginal_style=p.style, prior_style=prior_style,
+            marg.one_dimensional(p.i, marginal_style=p.style, prior_style=prior_style,
                                  legend_label=p.legend_label, prior_label=prior_label)
 
-        P.xlabel(r"$\zeta_i$")
+        P.xlabel(r"$\zeta_{K^{\ast}}^{L\chi}$")
         ax = P.gca()
         ax.xaxis.set_minor_locator(matplotlib.ticker.AutoMinorLocator())
         P.setp(ax.get_yticklabels(), visible=False)
@@ -442,15 +452,15 @@ class MarginalContours(object):
         # sort entries by label to push prior at the end
         handles, labels = ax.get_legend_handles_labels()
         import operator
-        hl = sorted(zip(handles, labels), key=operator.itemgetter(1), reverse=True)
+        hl = sorted(zip(handles, labels), key=operator.itemgetter(1), reverse=False)
         handles2, labels2 = zip(*hl)
         ax.legend(handles2, labels2)
-        P.legend(handles2, labels2, loc='upper left')
+        P.legend(handles2, labels2, loc='upper right')
+        P.tight_layout()
+        P.savefig(self.out('scI_subleading'))
 
-        P.savefig(self.out('nuis_1D_FF_BZ'))
-
-    def subleading(self):
-        """Plot 1D marginals to subleading corrections"""
+    def subleading_separate(self):
+        """Plot subleading_separate 1D marginals separately with 1- and 2-sigma regions"""
 
         scenario = 'scI_posthep13'
         marg = self.margs[scenario]
@@ -1188,6 +1198,9 @@ def fall2013():
                                     sigma='1+2 sigma', two_sigma_color='LightSalmon', alpha=1, queue_output=False, crop_outliers=50,
                                     local_mode=[[-0.342938, 3.94893, -4.61573],
                                                 [0.505892, -5.00182, 4.50871]])
+    marg.read_data()
+    marg.subleading_together()
+    return
     marg.scen['scI_quim1'] = Scenario(os.path.join(input_base, 'pmc_scI_quim1.hdf5'), 'Blue', bandwidth_default=0.005,
                                       sigma='1+2 sigma', two_sigma_color='LightBlue', alpha=1, queue_output=False, crop_outliers=50,
                                       local_mode=[[-0.345514, 2.99263, -4.16734],
@@ -1229,7 +1242,7 @@ def fall2013():
                     ('scI_all_nuis', 'scI_posthep13'), ('scI_all_nuis', 'scI_quim1'),
                     ('scI_posthep13', 'scI_quim1'))
     marg.compare_scenarios(combinations)
-    marg.subleading()
+    marg.subleading_separate()
 
     # scIII plot
     marg.primed()
@@ -1257,7 +1270,7 @@ if __name__ == '__main__':
 #                            ignore_scenarios=('all_wide',)),'Vll_lowRec', 'Vll_largeRec', 'Pll'))
 
 #     marg.one_dim_nuisance_KMPW()
-    # marg.one_dim_nuisance_BZ()
+    # marg.subleading_together()
 #     marg.single_scenario(); marg.overlays()
 #     marg.scI_all_vs_excl()
 #     marg.compare_scenarios()
