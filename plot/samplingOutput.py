@@ -115,6 +115,50 @@ class SamplingOutput(object):
 
         return rows
 
+def read_descriptions(file, data_set, npar=None, samples=None):
+    """Read parameter descriptions from an HDF5 file
+
+    Required arguments:
+    file -- the h5py HDF5 file object
+    data_set -- the name of the data set containing the descriptions
+
+    Keyword arguments:
+    npar -- the number of parameters (guide if it can't be extracted from the file)
+    samples -- the array of samples, one per row (needed only if ranges can't be extracted from the file)
+
+    """
+    # read out parameter info
+    par_defs = []
+    priors = []
+    try:
+        descriptions = file[data_set][:]
+    # plain output may not include parameter information
+    except KeyError:
+        for i in range(npar):
+            priors.append(None)
+            par_defs.append(ParameterDefinition('par%d' % i,
+                                                np.min(samples.T[i]),
+                                                np.max(samples.T[i])))
+    # output from an Analysis includes parameters and their priors
+    else:
+        f = priorDistributions.PriorFactory()
+        for row in descriptions:
+            par_defs.append(ParameterDefinition(row[0], row[1], row[2], row[3], False))
+
+            try:
+                prior_name, prior = f.create(row[4])
+                assert(prior_name == row[0])
+            except KeyError as e:
+                prior = None
+                print('Warning: in constructing prior for %s: %s' % (row[0], e.message))
+            # if it not an analysis, there is no prior
+            except IndexError:
+                prior = None
+
+            priors.append(prior)
+
+    return par_defs, priors
+
 class MCMC_Output(SamplingOutput):
 
     def _read(self, *args, **kwargs):
@@ -157,32 +201,10 @@ class MCMC_Output(SamplingOutput):
         #save shape info
         self.chain_length = len(merged_chains)
 
-        #read out parameter info
-        par_defs = []
-        priors = []
-        try:
-            descriptions = hdf5_file['descriptions/' + prefix + '/chain #' + first_chain + "/parameters"][:]
-        # plain output may not include parameter information
-        except KeyError:
-            npar = merged_chains.shape[1] - 1
-            for i in range(npar):
-                priors.append(None)
-                par_defs.append(ParameterDefinition('par%d' % i,
-                                                    np.min(merged_chains.T[i]),
-                                                    np.max(merged_chains.T[i])))
-        # output from an Analysis includes parameters and their priors
-        else:
-            f = priorDistributions.PriorFactory()
-            for row in descriptions:
-                par_defs.append(ParameterDefinition(row[0], row[1], row[2], row[3], False))
-                try:
-                    prior_name, prior = f.create(row[4])
-                    assert(prior_name == row[0])
-                except KeyError as e:
-                    prior = None
-                    print('Warning: in constructing prior for %s: %s' % (row[0], e.message))
-
-                priors.append(prior)
+        par_defs, priors = read_descriptions(hdf5_file,
+                                             data_set='descriptions/' + prefix + '/chain #' + first_chain + "/parameters",
+                                             npar=merged_chains.shape[1] - 1,
+                                             samples=merged_chains)
 
         # read out mode from stats: always last row
         stats = hdf5_file[prefix + '/chain #' + first_chain + "/stats/mode"]
@@ -301,31 +323,10 @@ class PMC_Output(SamplingOutput):
         self.crop_last_columns = 3
 
         # read par defs
-        par_defs = []
-        priors = []
-        try:
-            descriptions = hdf5_file['descriptions/parameters'][:]
-        # plain output may not include parameter information
-        except KeyError:
-            npar = samples.shape[1] - self.crop_last_columns
-            for i in range(npar):
-                priors.append(None)
-                par_defs.append(ParameterDefinition('par%d' % i,
-                                                    np.min(samples.T[i]),
-                                                    np.max(samples.T[i])))
-        # output from an Analysis includes parameters and their priors
-        else:
-            f = priorDistributions.PriorFactory()
-            for row in descriptions:
-                par_defs.append(ParameterDefinition(row[0], row[1], row[2], row[3], False))
-                try:
-                    prior_name, prior = f.create(row[4])
-                    assert(prior_name == row[0])
-                except KeyError as e:
-                    prior = None
-                    print('Warning: in constructing prior for %s: %s' % (row[0], e.message))
-
-                priors.append(prior)
+        par_defs, priors = read_descriptions(hdf5_file,
+                                             data_set='descriptions/parameters',
+                                             npar=samples.shape[1] - self.crop_last_columns,
+                                             samples=samples)
 
         if samples is not None:
             # compute weights exactly once
