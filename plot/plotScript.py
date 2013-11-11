@@ -1373,35 +1373,31 @@ class MarginalDistributions:
         """
         Plot evolution of convergence diagnostics
         """
-        if not self.stats.any():
-            print("No convergence statistitics available")
-            return
-
         print("Stats:")
         print("perplexity\t\tESS\t\tevidence\t\tlive comp.")
-        print(self.stats.__repr__())
+        print(self.out.stats.__repr__())
 
         self.pdf_file = PdfPages(self.__output_base_name + "_stats.pdf")
 
-        if True:
-            P.figure(figsize=(8,8))
-            P.plot(self.stats.T[0], label='perplexity')
-            P.plot(self.stats.T[1], label='eff. sample size')
-            P.ylim((0,1))
-            P.legend(loc='upper left')
-            P.title("convergence diagnostics")
-            P.xlabel("steps")
-            self.pdf_file.savefig()
 
-            P.figure(figsize=(8,8))
-            P.plot(self.stats.T[2], label='evidence')
-            P.title('evidence')
-            P.xlabel("steps")
+        P.figure(figsize=(8,8))
+        P.plot(self.out.stats.T[0], label='perplexity')
+        P.plot(self.out.stats.T[1], label='eff. sample size')
+        P.ylim((0,1))
+        P.legend(loc='upper left')
+        P.title("convergence diagnostics")
+        P.xlabel("steps")
+        self.pdf_file.savefig()
 
-            self.pdf_file.savefig()
+        P.figure(figsize=(8,8))
+        P.plot(self.out.stats.T[2], label='evidence')
+        P.title('evidence')
+        P.xlabel("step")
 
-            self.pdf_file.close()
-            P.close()
+        self.pdf_file.savefig()
+
+        self.pdf_file.close()
+        P.close()
 
     def comp_integrate(self):
         """Compute total evidence and estimate uncertainty from combination of individual components"""
