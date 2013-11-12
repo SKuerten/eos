@@ -1022,6 +1022,7 @@ class MarginalDistributions:
 
         # determine goodness-of-fit
         if self.gof_point is not None:
+            from scipy.stats.distributions import norm as Gaussian
             try:
                 # read out value in this this dimension
                 value = self.gof_point[index]
@@ -1039,7 +1040,8 @@ class MarginalDistributions:
                 print("GoF: point (%g) at %g%% level (w/o overcovering: at %g%% level). On the Gaussian scale, that's at %g [%g] sigmas" %
                       (value, prob_greater_equal * 100, prob_greater_than * 100, sigmas_ge, sigmas_gt))
 
-                P.plot([value, value], [0.0, posterior_level], linestyle='dashed', linewidth=0.8)
+                # deactivate: not useful with KDE
+#                 P.plot([value, value], [0.0, posterior_level], linestyle='dashed', linewidth=0.8)
 
             except KeyError:
                 pass
@@ -1142,12 +1144,12 @@ class MarginalDistributions:
             cmap.set_under('white')
 
         if self.use_histogram:
-            H, xedges, yedges = np.histogram2d(samples1, samples2 ,
+            orig_probability_array, xedges, yedges = np.histogram2d(samples1, samples2 ,
                                             bins= (np.linspace(x_min, x_max , twoD_bins[0] + 1), np.linspace(y_min, y_max , twoD_bins[1] + 1) ),
                                             weights=self.out.weights)
 
             #convert to standard display order
-            probability_array = np.fliplr(np.rot90(H,k=3))
+            probability_array = np.fliplr(np.rot90(orig_probability_array, k=3))
 
             #Acceptable values are None, ‘nearest’, ‘bilinear’, ‘bicubic’, ‘spline16’, ‘spline36’, ‘hanning’, ‘hamming’, ‘hermite’, ‘kaiser’, ‘quadric’, ‘catrom’, ‘gaussian’, ‘bessel’, ‘mitchell’, ‘sinc’, ‘lanczos’
             interpolation_method = 'nearest'
@@ -1231,7 +1233,7 @@ class MarginalDistributions:
             verbosity=False
 
             #do the work from the ctypes wrapper to the C-code
-            estimated_pdf = figtree.figtree(transformed_samples,
+            orig_probability_array = figtree.figtree(transformed_samples,
                                             np.ascontiguousarray(mesh_points.T[:]),
                                             self.out.weights,
                                             bandwidth= estimated_bandwidth,
@@ -1240,10 +1242,10 @@ class MarginalDistributions:
             print("figtree used %f s" % (end_time-start_time) )
 
             #turn density from vector into matrix again
-            probability_array = np.reshape(estimated_pdf.T, X.shape)
+            orig_probability_array = np.reshape(orig_probability_array.T, X.shape)
 
             # transform such that plot has usual orientation
-            probability_array = np.fliplr(np.rot90(probability_array ,k=3))
+            probability_array = np.fliplr(np.rot90(orig_probability_array ,k=3))
 
             # everything below will be whitened
             vmin = self.minimum_probability * np.max(probability_array) if self.minimum_probability is not None else 0.0
@@ -1259,33 +1261,26 @@ class MarginalDistributions:
                         origin='lower',
                         interpolation = self.kde_interpolation)
 
-        # whiten part with extremely low probability
-        """
-        if self.minimum_probability is not None:
-            CS = P.contourf(probability_array,
-                    [self.minimum_probability * np.max(probability_array), np.max(probability_array)],
-                    colors='white',
-                    extend='both',
-                    extent=[x_min, x_max, y_min, y_max])
-            P.setp(CS.collections[1], alpha=0.0)
-        """
         if self.out.par_defs[par1].discrete or self.out.par_defs[par2].discrete:
             self.use_histogram = histogram_state
             self.use_contours = contour_state
 
         # determine goodness-of-fit
         if self.gof_point is not None:
+            from scipy.stats.distributions import norm as Gaussian
             try:
                 # read out value in this this dimension
                 value = (self.gof_point[par1], self.gof_point[par2])
-
+            except KeyError:
+                pass
+            else:
                 # calculate index of bin containing the point
                 # special case: value at right edge
                 # subtract one extra because we use one bin less. Why actually?
                 bin_index = (min(int((value[0] - x_min) / (x_max - x_min) * twoD_bins[0]), twoD_bins[0] - 1),
                              min(int((value[1] - y_min) / (y_max - y_min) * twoD_bins[1]), twoD_bins[1] - 1))
 
-                posterior_level = probability_array[bin_index]
+                posterior_level = orig_probability_array[bin_index]
 
                 (prob_greater_equal, prob_greater_than) = self.find_hist_limits(probability_array, density=posterior_level)
 
@@ -1294,9 +1289,7 @@ class MarginalDistributions:
                 print("GoF: point %s at %g%% level (w/o overcovering: at %g%% level). On the Gaussian scale, that's at %g [%g] sigmas" %
                       (str(value), prob_greater_equal * 100, prob_greater_than * 100, sigmas_ge, sigmas_gt))
 
-                P.scatter(value[0], value[1], marker='+', color='k')
-            except KeyError:
-                pass
+                P.plot(value[0], value[1], marker='+', color='salmon', markersize=15, markeredgewidth=3)
 
         #set labels, avoid empty parameter names
         x_label = self.tr.to_tex(self.out.par_defs[par1].name)
@@ -1688,27 +1681,22 @@ def factory(cmd_line=None):
     parser.add_argument('--1D-only', help="Plot only 1D marginal distributions",action='store_true')
     parser.add_argument('--bandwidth', help="Number in [0,1] used as bandwidth for KDE interpolation after rescaling to unit coordinate cube", action='store')
     parser.add_argument('--chains', help="Use only the specified chain for plotting, instead of all available chains", type=int, nargs='+')
+    parser.add_argument('--comp-integrate', help="Compute evidence from individual components",action='store_true')
     parser.add_argument('--contours', help="Add one and two sigma contours",action='store_true')
     parser.add_argument('--compute-stats', help="Compute perplexity and effective sample size (PMC only)", action='store_true')
     parser.add_argument('--cut', help="Add a cut for computing the integral: PAR MIN MAX",nargs=3, action='append')
     parser.add_argument('--emcee', help="Read emcee input file", action='store_true', default=False)
     parser.add_argument('--evolution', help="Plot the evolution  of individual chains, either on the 'log' or 'linear' scale", action='store', default='harr')
-    parser.add_argument('--integrate', help="Compute integral over hyperrectangle, use with --cut",action='store_true')
-    parser.add_argument('--comp-integrate', help="Compute evidence from individual components",action='store_true')
+    parser.add_argument('--gof', help="Determine GoF for a particular point. Specify each coordinate independently as --gof i value, e.g. --gof 0 0.4 --gof 1 0.8 i<j, i,j=0...N-1", action='append', nargs=2)
     parser.add_argument('--hc-initial', help="Read initial guess from long patches for hierarchical clustering",action='store_true')
     parser.add_argument('--hc-patches', help="Read components from short chain patches for hierarchical clustering",action='store_true')
-    parser.add_argument('--min-prob', help="Whiten all bins with prob less than this value",action='store')
+    parser.add_argument('--integrate', help="Compute integral over hyperrectangle, use with --cut",action='store_true')
+    parser.add_argument('--mcmc', help="Treat input as file from mcmc", action='store_true')
+    parser.add_argument('--min-prob', help="Whiten all bins with prob less than this value",action='store', default=1e-10)
+    parser.add_argument('--nest', help="Treat input as file from multinest", action='store_true')
     parser.add_argument('--nuisance', help="Plot nuisance parameters.", action='store_true', default=False)
     parser.add_argument('--no-nuisance-vs-nuisance', help="Don't produce 2D plots if both are nuisance parameters",action='store_true', default=False)
-    parser.add_argument('--prior', help="Plot the prior in 1D distributions.",action='store_true')
-    parser.add_argument('--single-1D', help="Plot only the 1D marginal distribution of the ith parameter, i=0...N-1", type=int, nargs='+')
-    parser.add_argument('--single-2D', help="Plot only the 2D marginal distribution of parameters i,j, i<j, i,j=0...N-1", nargs=2, type=int, action='append')
-    parser.add_argument('--single-ext', help="File extension for single plots, e.g 'pdf'[default] or 'png'", action='store')
-    parser.add_argument('--select', help="Select a range of samples from each chain", action='store',nargs=2, default=(None, None))
-    parser.add_argument('--skip-initial', help="Allows to skip the first fraction of iterations", action='store', default=0)
     parser.add_argument('--output-dir', help="Store plots in different directory than input file", action='store')
-    parser.add_argument('--mcmc', help="Treat input as file from mcmc", action='store_true')
-    parser.add_argument('--nest', help="Treat input as file from multinest", action='store_true')
     parser.add_argument('--pmc-crop-outliers', help="Remove N points with the highest weight", action='store', default=0)
     parser.add_argument('--pmc-equal-weights', help="Plot PMC proposal function by giving each drawn samples the same weight", action='store_true')
     parser.add_argument('--pmc-proposal', help="Plot PMC proposal function", action='store_true')
@@ -1716,7 +1704,12 @@ def factory(cmd_line=None):
     parser.add_argument('--pmc-step', help="Use a specified step, default: final step", action='store')
     parser.add_argument('--pmc-queue-output', help="Treat input as file from PMC queue manager", action='store_true', default=None)
     parser.add_argument('--prerun', help="Use prerun instead of main", action='store_true')
-    parser.add_argument('--gof', help="Determine GoF for a particular point. Specify each coordinate independently as --gof i value, e.g. --gof 0 0.4 --gof 1 0.8 i<j, i,j=0...N-1", action='append', nargs=2)
+    parser.add_argument('--prior', help="Plot the prior in 1D distributions.",action='store_true')
+    parser.add_argument('--single-1D', help="Plot only the 1D marginal distribution of the ith parameter, i=0...N-1", type=int, nargs='+')
+    parser.add_argument('--single-2D', help="Plot only the 2D marginal distribution of parameters i,j, i<j, i,j=0...N-1", nargs=2, type=int, action='append')
+    parser.add_argument('--single-ext', help="File extension for single plots, e.g 'pdf'[default] or 'png'", action='store')
+    parser.add_argument('--select', help="Select a range of samples from each chain", action='store',nargs=2, default=(None, None))
+    parser.add_argument('--skip-initial', help="Allows to skip the first fraction of iterations", action='store', default=0)
     parser.add_argument('--use-data-range', help="Determine the parameter ranges from data, instead of from definition in HDF5. ", action='store', default=0.0)
     parser.add_argument('--use-KDE',  help='Use kernel density estimation instead of histograms', action='store_true')
 
