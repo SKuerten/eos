@@ -1350,7 +1350,7 @@ class MarginalDistributions:
         self.pdf_file = PdfPages(self.__output_base_name + "_stats.pdf")
 
 
-        P.figure(figsize=(8,8))
+        P.figure(figsize=(6,6))
         P.plot(self.out.stats.T[0], label='perplexity')
         P.plot(self.out.stats.T[1], label='eff. sample size')
         P.ylim((0,1))
@@ -1359,7 +1359,7 @@ class MarginalDistributions:
         P.xlabel("steps")
         self.pdf_file.savefig()
 
-        P.figure(figsize=(8,8))
+        P.figure(figsize=(6,6))
         P.plot(self.out.stats.T[2], label='evidence')
         P.title('evidence')
         P.xlabel("step")
@@ -1506,7 +1506,7 @@ class MarginalDistributions:
         """
          Plot component weights
         """
-        P.figure(figsize=(8,8))
+        P.figure(figsize=(6,6))
         P.plot(self.out.components.T['weight'])
         P.xlabel('components')
         P.ylabel('weight')
@@ -1543,7 +1543,7 @@ class MarginalDistributions:
         """
         Plot histogram of sample weights
         """
-        P.figure(figsize=(8,8))
+        P.figure(figsize=(6,6))
         P.hist(self.out.weights, self.one_dim_n_bins)
         P.xlabel('weight')
         self.pdf_file.savefig()
@@ -1586,7 +1586,7 @@ class MarginalDistributions:
 
             if self.single_2D is not None:
                 for x, y in self.single_2D:
-                    P.figure(figsize=(8,8))
+                    P.figure(figsize=(6,6))
                     two_dim(x, y)
                     pdf_file.savefig()
                     P.close()
@@ -1629,7 +1629,7 @@ class MarginalDistributions:
             for par2 in index_list[i + 1:]:
 
                 #aspect ratio 1/1
-                P.figure(figsize=(8,8))
+                P.figure(figsize=(6,6))
                 if two_dim(par1, par2) is not False:
                     print("plot #%d" % counter)
                     try:
@@ -1814,7 +1814,7 @@ def factory(cmd_line=None):
 def test_ellipse():
     from matplotlib.patches import Ellipse
 
-    P.figure(figsize=(8,8))
+    P.figure(figsize=(6,6))
     ax = P.gca()
 
     submatrix = np.array([[0.3**2   , -0.1], \
