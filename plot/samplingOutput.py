@@ -115,6 +115,9 @@ class SamplingOutput(object):
 
         return rows
 
+    def title(self):
+        return ''
+
 def read_descriptions(file, data_set, npar=None, samples=None):
     """Read parameter descriptions from an HDF5 file
 
@@ -284,6 +287,15 @@ class MCMC_Output(SamplingOutput):
         self.global_mode_index = np.argmax(self._modes.T[-1])
         if self.single_chain is None:
             print("Global mode found in chain %d" % self.global_mode_index)
+
+    def title(self):
+        if self.chains:
+            if len(self.chains) > 1:
+                return 'chains %s' % self.chains
+            else:
+                return 'chain %d' % self.chains[0]
+        else:
+            return 'All chains'
 
 class PMC_Output(SamplingOutput):
     def _read(self, *args, **kwargs):
@@ -552,6 +564,12 @@ class PMC_Output(SamplingOutput):
                np.array(( weighted_average - weighted_std_dev, weighted_average + weighted_std_dev)))
 
         return (weighted_average, weighted_std_dev), (rough_average, rough_std_dev)
+
+    def title(self):
+        if self.step:
+            return 'step %d' % self.step
+        else:
+            return ''
 
 class MultinestOutput(SamplingOutput):
 

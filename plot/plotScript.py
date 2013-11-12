@@ -783,29 +783,6 @@ class MarginalDistributions:
         print("Maxima of 68 %% contours at = %s " % np.array(maxima_68))
         """
 
-    # todo should move to sampleOutput
-    def __title(self):
-
-        title = ''
-
-        if self.single_chain:
-            if isinstance(self.out, PMC_Output):
-                title = " pmc\;step\; \#" + self.single_chain
-            elif isinstance(self.out, MCMC_Output):
-                title = "chain #" + self.single_chain
-            else:
-                title = ''
-
-        else:
-            if isinstance(self.out, MCMC_Output):
-                title = 'All chains'
-            else:
-                pass
-        if matplotlib.rcParams['text.usetex']:
-            title = r"${\mathrm " + title + r"}$"
-
-        return title
-
     def __extract_smallest_intervals(self, x, prob_density, level_68, level_95):
         """
         Extract set of smallest intervals in 1D
@@ -1071,7 +1048,7 @@ class MarginalDistributions:
             ax = P.gca()
             ax.xaxis.set_minor_locator(minor_locator)
 
-        P.title(self.__title())
+        P.title(self.out.title())
 
         return True
 
@@ -1303,7 +1280,7 @@ class MarginalDistributions:
         P.xlabel(x_label)
         P.ylabel(y_label)
 
-        P.title(self.__title())
+        P.title(self.out.title())
 
         #without this call, length of axis on image corresponds to size of data.
         #thus if one param in [0.3, 0.34] and the other in [0, 6], the image is just one strip
