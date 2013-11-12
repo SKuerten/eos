@@ -796,13 +796,13 @@ class MarginalDistributions:
             else:
                 title = ''
 
-            if matplotlib.rcParams['text.usetex']:
-                title = r"${\mathrm " + title + r"}$"
         else:
             if isinstance(self.out, MCMC_Output):
-                title = r"${\mathrm{All}\; \mathrm{chains}}$"
+                title = 'All chains'
             else:
                 pass
+        if matplotlib.rcParams['text.usetex']:
+            title = r"${\mathrm " + title + r"}$"
 
         return title
 
@@ -1676,11 +1676,11 @@ def factory(cmd_line=None):
 
     parser  = argparse.ArgumentParser(description='Plot marginal distributions of MCMC')
     parser.add_argument('i', metavar='input file',  help='HDF5 input file name')
-    parser.add_argument('--1D-bins', help="Use fixed number of bins for 1D marginal distributions",action='store')
-    parser.add_argument('--2D-bins', help="Use fixed number of bins for 2D marginal distributions",action='store')
+    parser.add_argument('--1D-bins', help="Use fixed number of bins for 1D marginal distributions (default: 100)",action='store')
+    parser.add_argument('--2D-bins', help="Use fixed number of bins for 2D marginal distributions (default: 100)",action='store')
     parser.add_argument('--1D-only', help="Plot only 1D marginal distributions",action='store_true')
     parser.add_argument('--bandwidth', help="Number in [0,1] used as bandwidth for KDE interpolation after rescaling to unit coordinate cube", action='store')
-    parser.add_argument('--chains', help="Use only the specified chain for plotting, instead of all available chains", type=int, nargs='+')
+    parser.add_argument('--chains', help="Use only the specified chains for plotting, instead of all available chains. Example: --chains 0 2 5", type=int, nargs='+', metavar=('chain0', 'chain1'))
     parser.add_argument('--comp-integrate', help="Compute evidence from individual components",action='store_true')
     parser.add_argument('--contours', help="Add one and two sigma contours",action='store_true')
     parser.add_argument('--compute-stats', help="Compute perplexity and effective sample size (PMC only)", action='store_true')
