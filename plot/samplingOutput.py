@@ -349,8 +349,12 @@ class PMC_Output(SamplingOutput):
                     size = self.select[1] - self.select[0]
                 self.weights = np.ones(size)
             elif queue_output:
-                self.weights = np.exp(hdf5_file['/data/weights'][self.select[0]:self.select[1]].T['weight'])
-                posterior = hdf5_file['/data/weights'][self.select[0]:self.select[1]].T['posterior']
+                try:
+                    self.weights = np.exp(hdf5_file['/data/weights'][self.select[0]:self.select[1]].T['weight'])
+                    posterior = hdf5_file['/data/weights'][self.select[0]:self.select[1]].T['posterior']
+                except KeyError:
+                    self.weights = np.ones(len(samples))
+                    posterior = None
             else:
                 self.weights = np.exp(samples.T[-1][self.select[0]:self.select[1]])
                 posterior = samples.T[-2][self.select[0]:self.select[1]]
