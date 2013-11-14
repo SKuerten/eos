@@ -1634,7 +1634,7 @@ class MarginalDistributions:
                     print("plot #%d" % counter)
                     try:
                         P.tight_layout()
-                    except harr:
+                    except:
                         pass
                     self.pdf_file.savefig()
                 P.close()
