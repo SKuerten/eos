@@ -1674,6 +1674,7 @@ def factory(cmd_line=None):
     parser.add_argument('--nuisance', help="Plot nuisance parameters.", action='store_true', default=False)
     parser.add_argument('--no-nuisance-vs-nuisance', help="Don't produce 2D plots if both are nuisance parameters",action='store_true', default=False)
     parser.add_argument('--output-dir', help="Store plots in different directory than input file", action='store')
+    parser.add_argument('--pmc-components', help="Select samples only from particular components. Examples: --pmc-components 43; --pmc-components 0 8", action='store', type=int, nargs='+', metavar=('comp0', 'comp1'))
     parser.add_argument('--pmc-crop-outliers', help="Remove N points with the highest weight", action='store', default=0)
     parser.add_argument('--pmc-equal-weights', help="Plot PMC proposal function by giving each drawn samples the same weight", action='store_true')
     parser.add_argument('--pmc-proposal', help="Plot PMC proposal function. Each component is displayed as a colored ellipse whose size matches the (Gaussian) covariance matrix.", action='store_true')
@@ -1713,6 +1714,7 @@ def factory(cmd_line=None):
                   # pmc
                   queue_output=args.pmc_queue_output, crop_outliers=int(args.pmc_crop_outliers),
                   equal_weights=args.pmc_equal_weights or args.pmc_proposal,
+                  components=args.pmc_components,
                   step=args.pmc_step, hc_comp=hc_comp)
 
     OutputClass = None

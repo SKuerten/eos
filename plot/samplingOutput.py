@@ -305,6 +305,7 @@ class PMC_Output(SamplingOutput):
         self.hc_comp = kwargs.get('hc_comp', None)
         self.queue_output = kwargs.get('queue_output', None)
         self.step = kwargs.get('step', None)
+        self.selected_components = kwargs.get('components', None)
 
         hdf5_file = h5py.File(self.input_file_name, 'r')
 
@@ -330,14 +331,14 @@ class PMC_Output(SamplingOutput):
                 samples = hdf5_file["/data/" + step + "/samples"][self.select[0]:self.select[1]]
         except KeyError:
             samples = None
-            print("No samples found")
+            print("No samples found.")
 
         self.crop_last_columns = 3
 
         # read par defs
         par_defs, priors = read_descriptions(hdf5_file,
                                              data_set='descriptions/parameters',
-                                             npar=samples.shape[1] - self.crop_last_columns,
+                                             npar=samples.shape[1] - self.crop_last_columns if samples is not None else len(hdf5_file['descriptions/parameters']),
                                              samples=samples)
 
         if samples is not None:
@@ -366,8 +367,16 @@ class PMC_Output(SamplingOutput):
                 print(samples[i_max][:-3])
 
             # plot only a single component
-            if self.step is not None:
-                self.weights[samples.T[-3] != float(self.step)] = 0.0
+            if self.selected_components is not None:
+                # all possible live components
+                ignored_components = range(np.max(samples.T[-3]))
+                for i in self.selected_components:
+                    try:
+                        del ignored_components[ignored_components.index(i)]
+                    except ValueError:
+                        pass
+                for i in ignored_components:
+                    self.weights[samples.T[-3] == float(i)] = 0.0
                 print('\033[91m' + 'WARNING: plotting only component %s' % self.step + '\033[0m')
 
             # reset highest 'outliers'
@@ -571,7 +580,7 @@ class PMC_Output(SamplingOutput):
 
     def title(self):
         if self.step:
-            return 'step %d' % self.step
+            return 'step ' + self.step
         else:
             return ''
 
