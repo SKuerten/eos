@@ -1352,14 +1352,21 @@ class MarginalDistributions:
 
         P.figure(figsize=(6,6))
         P.plot(self.out.stats.T[0], label='perplexity')
-        P.plot(self.out.stats.T[1], label='eff. sample size')
+        P.plot(self.out.stats.T[1], label='eff. sample size',ls='dashed')
         P.ylim((0,1))
         P.legend(loc='upper left')
         P.title("convergence diagnostics")
         P.xlabel("steps")
         self.pdf_file.savefig()
 
-        P.figure(figsize=(6,6))
+        P.clf()
+        P.plot(self.out.stats.T[3])
+        P.title("live components")
+        P.ylim(0)
+        P.xlabel("step")
+        self.pdf_file.savefig()
+
+        P.clf()
         P.plot(self.out.stats.T[2], label='evidence')
         P.title('evidence')
         P.xlabel("step")
