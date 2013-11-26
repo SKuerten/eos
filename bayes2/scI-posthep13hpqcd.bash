@@ -12,7 +12,7 @@ export PMC_FINAL_CHUNKSIZE=1000000
 export PMC_CLUSTERS=35
 export PMC_CONVERGENCE="$PMC_CONVERGENCE --pmc-crop-highest-weights 200"
 
-export PMC_NUMBER_OF_JOBS=200
+export PMC_NUMBER_OF_JOBS=100
 export PMC_RESOURCE_MANAGER=loadleveler
 export LL_QUEUE=test
 export LL_FINAL_QUEUE=serial

@@ -9,16 +9,18 @@ export MCMC_PRERUN_CHAINS=1
 export MCMC_PRERUN_PARALLEL=0
 
 export PMC_CONVERGENCE="$PMC_CONVERGENCE --pmc-crop-highest-weights 200"
-export PMC_CHUNKSIZE=3500
+export PMC_PATCH_LENGTH=250
+export PMC_CHUNKSIZE=4000
 export PMC_CLUSTERS=50
 export PMC_FINAL_CHUNKSIZE=1000000
 export PMC_GROUP_BY_RVALUE=2
-export PMC_PATCH_LENGTH=500
+export PMC_SKIP_INITIAL=0.5
 
-export PMC_NUMBER_OF_JOBS=500
-export LL_QUEUE=serial
+export PMC_NUMBER_OF_JOBS=170
+export LL_QUEUE=test
 export LL_FINAL_QUEUE=serial
 export PMC_POLLING_INTERVAL=30
+#export PMC_CLIENT_ARGV="--resume-update --step 0"
 
 export PMC_UNCERTAINTY_INPUT="${BASE_NAME}/scIII_posthep13/pmc_parameter_samples_15.hdf5_merge"
 
