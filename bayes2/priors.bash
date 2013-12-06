@@ -185,6 +185,8 @@ export NUISANCE_bsmumu="
 
 export NUISANCE_posthep13=${NUISANCE_all}
 export NUISANCE_posthep13hpqcd=${NUISANCE_all}
+export NUISANCE_posthep13hpqcdnoFLBabarAtlas=${NUISANCE_all}
+
 export NUISANCE_posthep13wide="
     ${NUISANCE_CKM}
     ${NUISANCE_QUARK_MASSES}
