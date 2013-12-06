@@ -11,13 +11,18 @@ export MCMC_PRERUN_PARALLEL=0
 export PMC_CONVERGENCE="$PMC_CONVERGENCE --pmc-crop-highest-weights 200"
 export PMC_CHUNKSIZE=3500
 export PMC_CLUSTERS=50
-export PMC_DOF=5
-export PMC_FINAL_CHUNKSIZE=1000000
+export PMC_DOF=12
+export PMC_FINAL_CHUNKSIZE=250000
 export PMC_GROUP_BY_RVALUE=2
+export PMC_IGNORE_GROUPS="
+    --pmc-ignore-group 0
+    --pmc-ignore-group 1
+    --pmc-ignore-group 2
+"
 export PMC_PATCH_LENGTH=150
 export PMC_SKIP_INITIAL=0.5
 
-export PMC_NUMBER_OF_JOBS=800
+export PMC_NUMBER_OF_JOBS=300
 export LL_QUEUE=test
 export LL_FINAL_QUEUE=serial
 export PMC_POLLING_INTERVAL=30
