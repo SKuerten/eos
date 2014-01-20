@@ -465,84 +465,6 @@ class MarginalDistributions:
 
         return labels
 
-    def read_data_multinest(self):
-        """
-        Parse multinest data using the pymultinest interface or from HDF5
-        """
-
-        par_defs = []
-        priors = []
-        if 'hdf5' in self.out.input_file_name:
-            import h5py
-
-            hdf5_file = h5py.File(self.out.input_file_name, 'r')
-
-            try:
-                samples = hdf5_file["/data/samples"][self.select[0]:self.select[1]]
-            except KeyError:
-                samples = None
-                print("No samples found")
-
-            if samples is not None:
-                weights = hdf5_file["/data/weights"][self.select[0]:self.select[1]]
-
-            evidence = hdf5_file["/data/weights"].attrs['log(evidence)']
-            evidence_error = hdf5_file["/data/weights"].attrs['log(evidence) error']
-
-        elif '.root' in self.out.input_file_name:
-            import root_numpy as R
-
-            tree_name = 'MultinestSamples'
-
-            # copy parameters into a structured array
-            struct_array = R.root2array(self.out.input_file_name, tree_name)
-
-            # parameter name = branch name
-            branches = R.list_branches(self.out.input_file_name, tree_name)
-
-            # but weight is not a parameter name
-            weights = struct_array['weight']
-            weights = np.ones_like(weights)
-            del branches[branches.index('weight')]
-
-            # convert to a regular array (see http://wiki.scipy.org/Cookbook/Recarray)
-            samples = struct_array[branches].view(float).reshape(len(struct_array), -1)
-
-            # store at least parameter names, though ranges may be inaccessible for now
-            for name in branches:
-                par_defs.append(ParameterDefinition(name, np.min(struct_array[name]), np.max(struct_array[name]), False, False, False))
-                priors.append(None)
-
-            evidence = 0
-            evidence_error = 0
-
-        else:
-            from pymultinest import Analyzer
-
-            # todo Do I need ? Should be parsed automatically
-            a = Analyzer(n_params=2, outputfiles_basename=self.out.input_file_name)
-
-            # remove first two columns, so nothing superfluous
-            samples = a.get_data().T[2:].transpose()
-
-            weights = np.ascontiguousarray(a.get_data().T[0])
-
-            # evidence
-            evidence = a.get_stats()["global evidence"]
-            evidence_error = a.get_stats()["global evidence error"]
-
-        self.crop_last_columns = 0
-        print("Parsed %d samples from multinest" % len(samples))
-        print("resulting in log(Z) = %g +- %g" % (evidence, evidence_error))
-
-        # mock up parameters definitions, no priors
-        if not par_defs:
-            for i,x in enumerate(samples.transpose()):
-                par_defs.append(ParameterDefinition('par%d' % i, np.min(x), np.max(x), False, False, False))
-                priors.append(None)
-
-        return samples, weights, par_defs, priors, evidence, evidence_error
-
     def find_min_max(self):
         """
         Find minimum and maximum values of each parameter and mode of posterior.
@@ -551,8 +473,8 @@ class MarginalDistributions:
         self.max = np.empty((self.out.npar(),))
 
         for index in range(self.min.shape[0]):
-            self.min[index] = min(self.out.samples.T[index])
-            self.max[index] = max(self.out.samples.T[index])
+            self.min[index] = np.min(self.out.samples.T[index])
+            self.max[index] = np.max(self.out.samples.T[index])
 
     def find_limits_1D(self, index, method='ECDF'):
         """
