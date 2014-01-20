@@ -493,6 +493,8 @@ class PMC_Output(SamplingOutput):
         self.stats = usable_stats
         self.components = components
 
+        hdf5_file.close()
+
     def integrate(self, cuts=None):
         rows = self.filter(cuts)
         N = len(np.where(self.weights[rows])[0])
@@ -504,7 +506,7 @@ class PMC_Output(SamplingOutput):
         ratio = partial_weight / total_weight
 
         # integral = average weight
-        integral =partial_weight / len(self.samples)
+        integral = partial_weight / len(self.samples)
 
         # normalize weights to avoid overflow if weights are large
         normalized_weights = self.weights[rows] / partial_weight
