@@ -44,7 +44,7 @@ def wide_figure(x_size=8, ratio=4/3.0, left=0.08, right=0.95, top=0.95, bottom=0
 class Scenario(object):
     def __init__(self, file, color, nbins=200, alpha=0.4, sigma='2 sigma',
                  bandwidth_default=None, two_sigma_color=None, queue_output=True,
-                 crop_outliers=200, local_mode=None):
+                 crop_outliers=200, local_mode=None, defs={}):
         self.f = file
         self.c = color
         self.prob = {}
@@ -57,6 +57,8 @@ class Scenario(object):
         self.queue_output = queue_output
         self.crop_outliers = crop_outliers
         self.local_mode = local_mode
+        # dictionary of name:ParameterDefinition
+        self.defs = defs
 
     def get_bandwidth(self, par1, par2):
         try:
@@ -67,48 +69,23 @@ class Scenario(object):
     def set_bandwidth(self, par1, par2, value):
         self.__bandwidth[(par1, par2)] = value
 
-class MarginalContours(object):
+class ScenarioComparison(object):
+    """Store parameter definitions and bandwidths to compare
+    the marginals of two scenarios.
 
-    def __init__(self, input_base, output_base, ext='.pdf', max_samples=None, ignore_scenarios=None):
+    Parameters
+    ----------
 
-        self.output_base = os.path.join(output_base, "contour")
-        if not os.path.isdir(self.output_base):
-            os.mkdir(self.output_base)
-        self.ext = ext
+    defs: sequence
+    Could be a sequence of (pairs of) ParameterDefinition. Pairs would be
+    used for a comparison of individual modes
+    """
+    def __init__(self, defs, bandwidths):
+        self.defs = defs
+        self.bandwidths = bandwidths
 
-        self.pars = ['Re{c7}', 'Re{c9}', 'Re{c10}']
-
-        self.defs = OrderedDict()
-        #(index, (min, max))
-        self.defs['Re{c7}'] = ParameterDefinition(index=0, name='Re{c7}', min=-1, max=+1)
-        self.defs['Re{c9}'] = ParameterDefinition(index=1, name='Re{c9}', min=-15, max=15)
-        self.defs['Re{c10}'] = ParameterDefinition(index=2, name='Re{c10}', min=-15, max=15)
-
-        self.input_base = input_base
-
-        self.scen = OrderedDict()
-
-        # remove some for testing and increasing speed
-        if ignore_scenarios:
-            for s in ignore_scenarios:
-                del(self.scen[s])
-
-        print("Operating on: %s" % str(self.scen.keys()))
-
-        # SM prediction for C7, C9, C10
-        self.sm_point = [-0.32741917, +4.27584794, -4.15077942]
-        self.sm_point_style = dict(marker = 'D', markersize = 8, color = 'black')
-
-        best_fit_point_style = dict(self.sm_point_style)
-        best_fit_point_style['marker'] = 'x'
-        best_fit_point_style['markeredgewidth'] = 3.0
-
-        self.best_fit_points_style = [best_fit_point_style]*2
-
-        self.max_samples = max_samples
-        self.read_data()
-
-        # store bandwidths for comparison of two scenarios
+        """
+                # store bandwidths for comparison of two scenarios
         # format: (scenario, i, j, par1, par2)
         self.comparison_bandwidths = {}
 
@@ -126,9 +103,57 @@ class MarginalContours(object):
                                 ParameterDefinition(name='Re{c9}', min=-7, max=-2, index=self.pars.index('Re{c9}')))
         self.comparison_defs['Re{c10}'] = (ParameterDefinition(name='Re{c10}', min=+1.5, max=+6.5, index=self.pars.index('Re{c10}')),
                                  ParameterDefinition(name='Re{c10}', min=-6.5, max=-1.5, index=self.pars.index('Re{c10}')))
+        """
+
+class MarginalContours(object):
+
+    def __init__(self, input_base, output_base, ext='.pdf', max_samples=None, ignore_scenarios=None):
+
+        self.output_base = os.path.join(output_base, "contour")
+        if not os.path.isdir(self.output_base):
+            os.mkdir(self.output_base)
+        self.ext = ext
+        """
+        self.pars = ['Re{c7}', 'Re{c9}', 'Re{c10}']
+
+        self.defs = OrderedDict()
+        #(index, (min, max))
+        self.defs['Re{c7}'] = ParameterDefinition(index=0, name='Re{c7}', min=-1, max=+1)
+        self.defs['Re{c9}'] = ParameterDefinition(index=1, name='Re{c9}', min=-15, max=15)
+        self.defs['Re{c10}'] = ParameterDefinition(index=2, name='Re{c10}', min=-15, max=15)
+        """
+        self.input_base = input_base
+
+        self.scen = OrderedDict()
+        """
+        # remove some for testing and increasing speed
+        if ignore_scenarios:
+            for s in ignore_scenarios:
+                del(self.scen[s])
+
+        print("Operating on: %s" % str(self.scen.keys()))
+        """
+        # SM prediction for C7, C9, C10
+        """
+        self.sm_point = [-0.32741917, +4.27584794, -4.15077942]
+        """
+        self.sm_point = {'Re{c7}':-0.32741917, 'Re{c9}':+4.27584794, 'Re{c10}':-4.15077942}
+        self.sm_point_style = dict(marker = 'D', markersize = 8, color = 'black')
+
+        best_fit_point_style = dict(self.sm_point_style)
+        best_fit_point_style['marker'] = 'x'
+        best_fit_point_style['markeredgewidth'] = 3.0
+
+        self.best_fit_points_style = [best_fit_point_style]*2
+
+        self.max_samples = max_samples
+        self.read_data()
 
         # store expensive calculation of contours
         self.__density_cache = {}
+
+        # ranges and bandwidths for scenario comparison
+        self.scen_comp = {}
 
     def out(self, name):
         """ Create output file name"""
@@ -149,8 +174,8 @@ class MarginalContours(object):
         if scenario.queue_output:
             cmd_template += ' --pmc-queue-output'
 
-        for p in self.defs.itervalues():
-            cmd_template += ' --cut %d %s %s' % (p.i, p.min, p.max)
+#         for p in self.defs.itervalues():
+#             cmd_template += ' --cut %d %s %s' % (p.i, p.min, p.max)
 
         return cmd_template.split()
 
@@ -171,28 +196,31 @@ class MarginalContours(object):
         assert(len(scenarios) in (1, 2))
 
         # parameter indices in EOS output file
-        i = self.pars.index(def1.name)
-        j = self.pars.index(def2.name)
+        i = def1.i
+        j = def2.i
+#         i = self.pars.index(def1.name)
+#         j = self.pars.index(def2.name)
 
         # compute and cache densities
         for s in scenarios:
             if not self.__density_cache.has_key((i, j, s)):
-                bandwidth = self.comparison_bandwidths.get((s, pos1, pos2, def1.name, def2.name), None)
+                bandwidth = self.scen_comp.comparison_bandwidths.get((s, pos1, pos2, def1.name, def2.name), None)
                 if bandwidth is not None:
                     self.margs[s].use_histogram = False
                     self.margs[s].kde_bandwidth = bandwidth
                     print("bandwidth = %g " % bandwidth)
                 else:
                     self.margs[s].use_histogram = True
-                self.__density_cache[(i, j, s)] = self.margs[s].two_dimensional(i, j)
-
+                density = self.margs[s].two_dimensional(i, j)
+                self.__density_cache[(i, j, s)] = density
+                print("denstity sum %g" % density.sum())
         P.cla()
 
         for k, s in enumerate(scenarios):
             # retrieve original range used to create prob_density
             # then zoom will work correctly
-            xrange = (self.defs[def1.name].min, self.defs[def1.name].max)
-            yrange = (self.defs[def2.name].min, self.defs[def2.name].max)
+            xrange = (def1.min, def2.max)
+            yrange = (def2.min, def2.max)
             artist = self.margs[s].contours_two(xrange, yrange, self.__density_cache[(i, j, s)],
                                                 color=self.scen[s].c, line=bool(k), grid=True)
 
@@ -700,6 +728,63 @@ class MarginalContours(object):
             fig.subplots_adjust(left=0.2, right=0.95, bottom=0.15)
             P.savefig(self.out('scIII_%d' % i))
 
+    def nine_nine_prime(self):
+        """Compare C9 vs C9' for posthep13 and posthep13 with hpqcd FF constraints"""
+
+        sc_name = 'scII_posthep13'
+        s = Scenario(os.path.join(self.input_base, 'pmc_%s.hdf5' % sc_name), 'OrangeRed', bandwidth_default=0.005,
+                                  sigma='1+2 sigma', two_sigma_color='LightSalmon', alpha=1, queue_output=False, crop_outliers=50,
+                                  local_mode=[[ 3.5, 1.1]])
+        self.scen[sc_name] = s
+        marg = plotScript.factory(self.command_template(s))
+        self.margs[sc_name] = marg
+        marg.use_histogram = True
+        marg.kde_bandwidth = 0.001
+
+        def9      = ParameterDefinition(name='Re{c9}',  min=-7.5, max=+7.5, index=0)
+        def9prime = ParameterDefinition(name="Re{c9'}", min=-7.5, max=+7.5, index=1)
+
+        P.figure()
+        self.single_panel(0, 1, def9, def9prime, SM_point=False, local_mode=False, scenarios=(sc_name,))
+        P.savefig(self.out(sc_name))
+        return
+
+        P.figure()
+        density = marg.two_dimensional(def9.i, def9prime.i)
+        self.__density_cache[(0,1, sc_name)] = density
+        # draw contours
+        P.clf()
+        i = 1
+        P.plot(self.sm_point[i], 0.0, **self.sm_point_style)
+        xrange = (def9.min, def9.max)
+        yrange = (def9prime.min, def9prime.max)
+        CS = marg.contours_two(xrange, yrange, density, color=s.c)
+        P.show()
+        P.setp(CS.collections[1], alpha=s.alpha)
+
+        P.setp(CS.collections[1], color=s.two_sigma_color)
+
+        # indicate SM prediction
+        P.plot(self.sm_point[i], 0.0, **self.sm_point_style)
+
+        # don't whiten beyond 2 sigma, so ignore lowest contour fill
+        #P.setp(CS.collections[0], alpha=0.0)
+        CS.collections[0].remove()
+        P.xlabel(marg.tr.to_tex(def9.name))
+        P.ylabel(marg.tr.to_tex(def9prime.name))
+
+
+        # 1:1 aspect ratio, but only if called before adjusting edges
+        P.gca().set_aspect('equal')
+#         fig.subplots_adjust(left=0.2, right=0.95, bottom=0.15)
+        P.savefig(self.out('harr'))
+        return
+
+
+#         shpqcd = Scenario(os.path.join(self.input_base, 'pmc_scII_posthep13hpqcd.hdf5'), 'OrangeRed', bandwidth_default=0.005,
+#                                   sigma='1+2 sigma', two_sigma_color='LightSalmon', alpha=1, queue_output=False, crop_outliers=50,
+#                                   local_mode=[[ -0.337899, 3.30393]])
+
 class ObservableProperties(object):
 
     def __init__(self, name, index, range=None, n_bins=150, mode_precision=3, plot=False,
@@ -1193,6 +1278,9 @@ def fall2013():
     # set up object
     input_base, output_base = input_output()
     marg = MarginalContours(input_base, output_base, max_samples=None)
+
+    marg.nine_nine_prime()
+    return
 
     marg.scen['scI_posthep13'] = Scenario(os.path.join(input_base, 'pmc_scI_posthep13.hdf5'), 'OrangeRed', bandwidth_default=0.005,
                                     sigma='1+2 sigma', two_sigma_color='LightSalmon', alpha=1, queue_output=False, crop_outliers=50,
