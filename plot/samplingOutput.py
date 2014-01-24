@@ -514,6 +514,7 @@ class PMC_Output(SamplingOutput):
         print('Partial weight: %g, total weight: %g, ratio: %g' % (partial_weight, total_weight, ratio))
 
         print('Integral of the selected region is: %g +- %g (stat. uncertainty only)' % (integral, error))
+        print('Integral on the log scale: %g' % (np.log(integral)))
 
         return (integral, ratio, total_weight, error)
 

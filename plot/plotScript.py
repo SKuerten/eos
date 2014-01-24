@@ -745,6 +745,10 @@ class MarginalDistributions:
         print("Minimal 1 sigma intervals:")
         print(np.array(intervals_68))
 
+        if len(local_modes) == 1:
+            print('x +a -b:')
+            print('%g +%g -%g' % (local_modes[0], intervals_68[0][1] - local_modes[0], local_modes[0] - intervals_68[0][0]))
+
     def one_dimensional(self, index,
                         prior_style=dict(color='black', linestyle='dashed'),
                         marginal_style=dict(color='black', linestyle='solid', linewidth=0.5),
