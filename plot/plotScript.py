@@ -627,18 +627,29 @@ class MarginalDistributions:
     def contours_two(self, x_range, y_range, densities, desired_levels=None, color='blue', grid=True, line=False):
         """
         Plot several filled 2D contours
-        args:
-        x = the pixel centers in parameter values (NxN array)
-        densities = probability density estimate at x (NxN array)
-        levels = the probability levels
+
+        :param x:
+             NxN array; the pixel centers in parameter values
+
+        :param densities:
+            NxN array; probability density estimate at x
+
+        :param levels:
+            The probability levels of the contours. Default to 1 and 2 sigma.
+            Use `1 sigma` or `2 sigma` to select only one of the two. Any
+            iterable is passed on to ``find_hist_limits``.
         """
+
+        kwargs = {'credibilities':desired_levels}
+        if not np.iterable(desired_levels):
+            kwargs.pop('credibilities')
 
         # pass pixel values as histogram:
         # interpret value at bin center as average over bin
         # since all bins have same size, the integral in bin
         # is just mean value times volume, and the volume cancels
 
-        levels = self.find_hist_limits(densities).flatten().tolist()
+        levels = self.find_hist_limits(densities, **kwargs).flatten().tolist()
 
         # default: use 1 and 2 sigma
         if desired_levels == '1 sigma':
@@ -659,17 +670,20 @@ class MarginalDistributions:
             artist = P.contour(densities, levels[1:-1], colors=color, extent=extent)
             P.setp(artist.collections[0], linestyle='dashed')
         else:
-            artist = P.contourf(densities,
-                            levels,
-                            colors=['white', color, color],
-                            extent=extent)
+            # give all colors explicitly
+            colors=[color]*(len(levels) - 1)
+            colors.append('white')
+            # reverse list with ::-1
+            artist = P.contourf(densities, levels, colors=colors[::-1], extent=extent)
 
-            # make 'outer' contour fill transparent, and inner opaque
-            zc = artist.collections[0]
-            P.setp(zc, alpha=1)
+            # make 'outer' contour -- the lowest part -- fill opaque
+            P.setp(artist.collections[0], alpha=1)
 
-            zc = artist.collections[1]
-            P.setp(zc, alpha=0.4)
+            # handle case of more than two contours
+            # highest is opaque, lower contours increasingly transparent
+            alpha = (1, 0.4, 0.2, 0.1, 0.05)
+            for i, zc in enumerate(reversed(artist.collections[1:])):
+                P.setp(zc, alpha=alpha[i])
 
         # add grid lines for easier visual comparison
         if grid:
