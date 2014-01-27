@@ -41,6 +41,15 @@ def wide_figure(x_size=8, ratio=4/3.0, left=0.08, right=0.95, top=0.95, bottom=0
 
     return ax
 
+def adjust_subplot(fig=None, equal=True):
+    # 1:1 aspect ratio, but only if called before adjusting edges
+    if equal:
+        P.gca().set_aspect('equal')
+
+    if fig is None:
+        fig = P.gcf()
+    fig.subplots_adjust(left=0.2, right=0.95, bottom=0.15)
+
 class Scenario(object):
     def __init__(self, file, color, nbins=200, alpha=0.4, sigma='2 sigma',
                  bandwidth_default=None, two_sigma_color=None, queue_output=True,
@@ -174,8 +183,8 @@ class MarginalContours(object):
         if scenario.queue_output:
             cmd_template += ' --pmc-queue-output'
 
-#         for p in self.defs.itervalues():
-#             cmd_template += ' --cut %d %s %s' % (p.i, p.min, p.max)
+        for p in scenario.defs.itervalues():
+            cmd_template += ' --cut %d %s %s' % (p.i, p.min, p.max)
 
         return cmd_template.split()
 
@@ -185,7 +194,9 @@ class MarginalContours(object):
         for k in self.scen.keys():
             self.margs[k] = plotScript.factory(self.command_template(self.scen[k]))
 
-    def single_panel(self, pos1, pos2, def1, def2, SM_point=True, local_mode=True, scenarios=('all_wide', 'all_nuis')):
+    def single_panel(self, pos1, pos2, def1, def2, SM_point=True,
+                     local_mode=True, scenarios=('all_wide', 'all_nuis'),
+                     desired_levels=None):
         """
         Single marginal plot to compare two scenarios
 
@@ -213,28 +224,26 @@ class MarginalContours(object):
                     self.margs[s].use_histogram = True
                 density = self.margs[s].two_dimensional(i, j)
                 self.__density_cache[(i, j, s)] = density
-                print("denstity sum %g" % density.sum())
         P.cla()
 
         for k, s in enumerate(scenarios):
             # retrieve original range used to create prob_density
             # then zoom will work correctly
-            xrange = (def1.min, def2.max)
+            xrange = (def1.min, def1.max)
             yrange = (def2.min, def2.max)
             artist = self.margs[s].contours_two(xrange, yrange, self.__density_cache[(i, j, s)],
-                                                color=self.scen[s].c, line=bool(k), grid=True)
+                                                color=self.scen[s].c, line=bool(k), grid=True,
+                                                desired_levels=desired_levels)
+            P.setp(artist.collections[2], alpha=1, color=self.scen[s].two_sigma_color)
 
         if SM_point:
-            P.plot(self.sm_point[i], self.sm_point[j], **self.sm_point_style)
+            P.plot(self.sm_point.get(def1.name, 0.), self.sm_point.get(def2.name, 0.), **self.sm_point_style)
         if local_mode:
             for style, p in zip(self.best_fit_points_style, self.scen[scenarios[0]].local_mode):
                 P.plot(p[i], p[j], **style)
 
         ax = P.gca()
-
-        # some doesn't work in contours_two
-        # so turn on manually
-        ax.grid()
+        ax.grid(True)
 
         if hasattr(def1, 'major_locator'):
             ax.xaxis.set_major_locator(def1.major_locator)
@@ -243,9 +252,6 @@ class MarginalContours(object):
         if hasattr(def2, 'major_locator'):
             ax.yaxis.set_major_locator(def2.major_locator)
         ax.set_ylim(def2.range)
-#         ax.set_aspect('auto', adjustable='box')
-#         ax.set_aspect('equal')
-#         P.axis('equal')
 
     def all_nuis_stack(self, def1, def2, like_sign=False, flip_order=False, scenarios=('all_wide', 'all_nuis')):
         """
@@ -706,9 +712,7 @@ class MarginalContours(object):
             P.plot(self.sm_point[i], primed_predictions[i], **self.sm_point_style)
             xrange = (self.defs[primed_defs[i].name.replace("'",'')].min, self.defs[primed_defs[i].name.replace("'",'')].max)
             CS = m.contours_two(xrange, primed_defs[i].range, density, color=s.c)
-            P.setp(CS.collections[1], alpha=s.alpha)
-
-            P.setp(CS.collections[1], color=s.two_sigma_color)
+#             P.setp(CS.collections[1], alpha=s.alpha, color=s.two_sigma_color)
 
             # indicate SM prediction
             P.plot(self.sm_point[i], primed_predictions[i], **self.sm_point_style)
@@ -722,68 +726,36 @@ class MarginalContours(object):
             P.xlabel(m.tr.to_tex(self.pars[i]))
             P.ylabel(m.tr.to_tex(primed_defs[i].name))
 
-
-            # 1:1 aspect ratio, but only if called before adjusting edges
-            P.gca().set_aspect('equal')
-            fig.subplots_adjust(left=0.2, right=0.95, bottom=0.15)
+            adjust_subplot(fig)
             P.savefig(self.out('scIII_%d' % i))
 
     def nine_nine_prime(self):
         """Compare C9 vs C9' for posthep13 and posthep13 with hpqcd FF constraints"""
 
         sc_name = 'scII_posthep13'
+        def9      = ParameterDefinition(name='Re{c9}',  min=1, max=6, index=0)
+        def9prime = ParameterDefinition(name="Re{c9'}", min=-1, max=4, index=1)
         s = Scenario(os.path.join(self.input_base, 'pmc_%s.hdf5' % sc_name), 'OrangeRed', bandwidth_default=0.005,
                                   sigma='1+2 sigma', two_sigma_color='LightSalmon', alpha=1, queue_output=False, crop_outliers=50,
-                                  local_mode=[[ 3.5, 1.1]])
+                                  local_mode=[[ 3.41, 1.46]], defs={def9.name:def9, def9prime:def9prime})
         self.scen[sc_name] = s
         marg = plotScript.factory(self.command_template(s))
         self.margs[sc_name] = marg
-        marg.use_histogram = True
-        marg.kde_bandwidth = 0.001
+        marg.use_histogram = False
+        marg.kde_bandwidth = 0.017
 
-        def9      = ParameterDefinition(name='Re{c9}',  min=-7.5, max=+7.5, index=0)
-        def9prime = ParameterDefinition(name="Re{c9'}", min=-7.5, max=+7.5, index=1)
-
-        P.figure()
-        self.single_panel(0, 1, def9, def9prime, SM_point=False, local_mode=False, scenarios=(sc_name,))
-        P.savefig(self.out(sc_name))
-        return
-
-        P.figure()
         density = marg.two_dimensional(def9.i, def9prime.i)
         self.__density_cache[(0,1, sc_name)] = density
-        # draw contours
-        P.clf()
-        i = 1
-        P.plot(self.sm_point[i], 0.0, **self.sm_point_style)
-        xrange = (def9.min, def9.max)
-        yrange = (def9prime.min, def9prime.max)
-        CS = marg.contours_two(xrange, yrange, density, color=s.c)
-        P.show()
-        P.setp(CS.collections[1], alpha=s.alpha)
 
-        P.setp(CS.collections[1], color=s.two_sigma_color)
+        fig = P.figure(figsize=[6]*2)
+        # 1,2, and 3 sigma contours
+        self.single_panel(0, 1, def9, def9prime, SM_point=True, local_mode=True, scenarios=(sc_name,),
+                          desired_levels=(0.683, 0.954, 0.9973))
 
-        # indicate SM prediction
-        P.plot(self.sm_point[i], 0.0, **self.sm_point_style)
-
-        # don't whiten beyond 2 sigma, so ignore lowest contour fill
-        #P.setp(CS.collections[0], alpha=0.0)
-        CS.collections[0].remove()
         P.xlabel(marg.tr.to_tex(def9.name))
         P.ylabel(marg.tr.to_tex(def9prime.name))
-
-
-        # 1:1 aspect ratio, but only if called before adjusting edges
-        P.gca().set_aspect('equal')
-#         fig.subplots_adjust(left=0.2, right=0.95, bottom=0.15)
-        P.savefig(self.out('harr'))
-        return
-
-
-#         shpqcd = Scenario(os.path.join(self.input_base, 'pmc_scII_posthep13hpqcd.hdf5'), 'OrangeRed', bandwidth_default=0.005,
-#                                   sigma='1+2 sigma', two_sigma_color='LightSalmon', alpha=1, queue_output=False, crop_outliers=50,
-#                                   local_mode=[[ -0.337899, 3.30393]])
+        adjust_subplot()
+        P.savefig(self.out(sc_name))
 
 class ObservableProperties(object):
 
