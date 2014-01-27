@@ -26,7 +26,16 @@ def bayes(z, ratio=None):
             if ratio:
                 zsc -= log(ratio[sc])
             factor = exp(zsc - zref)
-            print("%s vs %s: %g" % (sc, reference, factor))
+            out_sc = sc
+            out_ref = reference
+
+            # prefer to put values > 1 in paper, then have to flip order
+            if factor < 1:
+                factor = 1. / factor
+                out_sc = reference
+                out_ref = sc
+
+            print("%s vs %s: %g" % (out_sc, out_ref, factor))
 
 print("Compute Bayes factors for...\n")
 print("posthep13")
@@ -46,6 +55,9 @@ bayes(zhpcqcd)
 print
 print("volume corrected")
 bayes(zhpcqcd, ratio)
+
+print
+print('NOTE: in each file, 200 highest weights are cropped.')
 
 def ratios():
     '''scIII compare posterior masses. Use crop 200'''
