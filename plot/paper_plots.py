@@ -732,12 +732,13 @@ class MarginalContours(object):
     def nine_nine_prime(self):
         """Compare C9 vs C9' for posthep13 and posthep13 with hpqcd FF constraints"""
 
-        sc_name = 'scII_posthep13'
+        # sc_name = 'scII_posthep13hpqcd'; local_mode = [[ 3.5210443, 1.2040]]
+        sc_name = 'scII_posthep13     '; local_mode = [[ 3.41, 1.46]]
         def9      = ParameterDefinition(name='Re{c9}',  min=1, max=6, index=0)
         def9prime = ParameterDefinition(name="Re{c9'}", min=-1, max=4, index=1)
         s = Scenario(os.path.join(self.input_base, 'pmc_%s.hdf5' % sc_name), 'OrangeRed', bandwidth_default=0.005,
                                   sigma='1+2 sigma', two_sigma_color='LightSalmon', alpha=1, queue_output=False, crop_outliers=50,
-                                  local_mode=[[ 3.41, 1.46]], defs={def9.name:def9, def9prime:def9prime})
+                                  local_mode=local_mode, defs={def9.name:def9, def9prime:def9prime})
         self.scen[sc_name] = s
         marg = plotScript.factory(self.command_template(s))
         self.margs[sc_name] = marg
