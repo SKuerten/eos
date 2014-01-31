@@ -1442,7 +1442,8 @@ class LL_Iterator(PMC_Iterator):
 #@ resources = ConsumableCpus(1)
 #@ class = %s
 ###                    hh:mm:ss
-##@ wall_clock_limit = 48:15:50
+#@ wall_clock_limit = 20:15:50
+#@ node_usage=shared
 #@ job_name = eos-%s
 #@ initialdir = $(home)/workspace/eos-scripts/bayes2
 #@ output = %s
@@ -1478,9 +1479,9 @@ class LL_Iterator(PMC_Iterator):
 
         # extract job index from a line like
         # llsubmit: The job "xcat.163140" has been submitted.
-        start = output.find('.')
+        start = output.find('xcat.')
         end = output.find('"', start)
-        job_id = int(output[start + 1: end])
+        job_id = int(output[start + 5: end])
 
         return job_id
 
