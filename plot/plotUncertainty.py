@@ -69,6 +69,8 @@ class UncertaintyPropagation(object):
                      "B->K^*ll::H_T^1@LargeRecoil,s_min=1,s_max=6":0.1,
                      "B->K^*ll::H_T^2@LargeRecoil,s_min=1,s_max=6":-0.6,
                      "B->K^*ll::H_T^3@LargeRecoil,s_min=1,s_max=6":-0.3,
+                     "B->K^*::V(s)/A_1(s),s_min=0,s_max=0":0,
+                     "B->K^*::A_2(s)/A_1(s),s_min=0,s_max=0":0.5
                     }
 
         self.upper_cuts = {
@@ -92,6 +94,7 @@ class UncertaintyPropagation(object):
                      "B->K^*ll::H_T^1@LargeRecoil,s_min=1,s_max=6":0.9,
                      "B->K^*ll::H_T^2@LargeRecoil,s_min=1,s_max=6":0.0,
                      "B->K^*ll::H_T^4@LargeRecoil,s_min=1,s_max=6":0.0,
+                     "B->K^*::V(s)/A_1(s),s_min=0,s_max=0":2.3,
                     }
 
         if ignore_cuts:
