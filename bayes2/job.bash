@@ -235,16 +235,30 @@ gof() {
         exit -1
     fi
 
+    shift
+
+    # optimize [default] or simply compute gof at given parameter values
+    opt=${1}
+    if [[ -z ${opt} ]] ; then
+        opt=1
+    fi
+
     scan=SCAN_${scenario}
     constraints=CONSTRAINTS_${data}
     nuisance=NUISANCE_${data}
     mode=GOF_MODE_${idx}
 
     mkdir -p ${BASE_NAME}/${scenario}_${data}
+
+    cmd="--goodness-of-fit"
+    if [[ "$opt" -eq 1 ]] ; then
+        cmd="${cmd} --optimize"
+    fi
+    cmd="${cmd} ${!mode}"
+
     eos-scan-mc \
         --debug \
-        --optimize ${!mode} \
-        --goodness-of-fit \
+        ${cmd} \
         ${!constraints} \
         ${!scan} \
         ${!nuisance} \
