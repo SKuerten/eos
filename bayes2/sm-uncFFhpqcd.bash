@@ -17,9 +17,23 @@ export PMC_INITIALIZATION="$PMC_INITIALIZATION --pmc-r-value-no-nuisance 0"
 
 export UNC_SAMPLES=100000
 export UNC_WORKERS=1
+
+# just priors and theory constraints
 export UNC_PMC_INPUT="
-    --pmc-input ${BASE_NAME}/../pmc_scIII_posthep13.hdf5 0 ${UNC_SAMPLES}
+    --pmc-input ${BASE_NAME}/sm_uncFFhpqcd/pmc_monolithic.hdf5 0 100000
     --pmc-sample-directory /data/final
 "
+
+# as above + experimental constraints
+export UNC_PMC_INPUT="
+    --pmc-input ${BASE_NAME}/../pmc_sm_posthep13hpqcd.hdf5 0 100000
+"
+
+export PMC_NUMBER_OF_JOBS=1
+export PMC_UNCERTAINTY_INPUT="${BASE_NAME}/sm_uncFFhpqcd/pmc_monolithic.hdf5"
+#export PMC_CLIENT_ARGV="--n-samples 500"
+export LL_QUEUE=test
+export LL_FINAL_QUEUE=${LL_QUEUE}
+export PMC_POLLING_INTERVAL=30
 
 main $@

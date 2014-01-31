@@ -55,3 +55,4 @@ export PREDICTIONS_uncFF="
     --kinematics s 0.0 --observable B->K^*::V(s)/A_1(s),form-factors=KMPW2010
     --kinematics s 0.0 --observable B->K^*::A_2(s)/A_1(s),form-factors=KMPW2010
 "
+export PREDICTIONS_uncFFhpqcd=${PREDICTIONS_uncFF}

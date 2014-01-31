@@ -18,8 +18,7 @@ export PMC_INITIALIZATION="$PMC_INITIALIZATION --pmc-r-value-no-nuisance 0"
 export UNC_SAMPLES=100000
 export UNC_WORKERS=1
 export UNC_PMC_INPUT="
-    --pmc-input ${BASE_NAME}/../pmc_scIII_posthep13.hdf5 0 ${UNC_SAMPLES}
-    --pmc-sample-directory /data/final
+    --pmc-input ${BASE_NAME}/../pmc_scIII_posthep13hpqcd_A.hdf5 0 ${UNC_SAMPLES}
 "
 
 main $@

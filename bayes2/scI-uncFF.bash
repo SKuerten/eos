@@ -18,15 +18,7 @@ export PMC_INITIALIZATION="$PMC_INITIALIZATION --pmc-r-value-no-nuisance 0"
 export UNC_SAMPLES=100000
 export UNC_WORKERS=1
 export UNC_PMC_INPUT="
-    --pmc-input ${BASE_NAME}/scI_posthep13/pmc_scI_posthep13.hdf5 0 100000
-    --pmc-sample-directory /data/final
+    --pmc-input ${BASE_NAME}/../pmc_scI_posthep13.hdf5 0 100000
 "
-
-export PMC_NUMBER_OF_JOBS=100
-export PMC_UNCERTAINTY_INPUT="${BASE_NAME}/scI_posthep13/pmc_scI_posthep13.hdf5"
-#export PMC_CLIENT_ARGV="--n-samples 500"
-export LL_QUEUE=test
-export LL_FINAL_QUEUE=${LL_QUEUE}
-export PMC_POLLING_INTERVAL=30
 
 main $@
