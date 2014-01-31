@@ -253,8 +253,8 @@ export CONSTRAINTS_B_TO_VLL_POSTHEP13="
 export CONSTRAINTS_B_TO_VLL_FF="
     --global-option form-factors KMPW2010
 
-    --kinematics s 0.0 --observable B->K^*::V(s)/A_1(s) 0.93 1.33 1.73
-    --kinematics s 0.0 --observable B->K^*ll::xi_para(s)@LargeRecoil 0.08 0.10 0.13
+    --kinematics s 0.0 --observable-prior B->K^*::V(s)/A_1(s) 0.93 1.33 1.73
+    --kinematics s 0.0 --observable-prior B->K^*ll::xi_para(s)@LargeRecoil 0.08 0.10 0.13
 "
 
 export CONSTRAINTS_B_TO_VLL_FF_HPQCD="

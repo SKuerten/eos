@@ -61,13 +61,15 @@ print('NOTE: in each file, 200 highest weights are cropped.')
 
 def ratios():
     '''scIII compare posterior masses. Use crop 200'''
-    z = {'A':zhpcqcd['III'], 'B':569.175, 'C':567.448, 'D':568.439}
+    z1 = {'A':zposthep['III'], 'B':560.475, 'C':558.288, 'D':559.493}
+    z2 = {'A':zhpcqcd['III'], 'B':569.175, 'C':567.448, 'D':568.439}
 
-    zv = np.array([z[k] for k in sorted(z.keys())])
-    zv = exp(zv)
-    print('')
-    print('Posterior mass ratios of the four solutions in scenario III hpqcd')
-    print(sorted(z.keys()))
-    print(zv / zv.sum())
+    for z in (z1, z2):
+        zv = np.array([z[k] for k in sorted(z.keys())])
+        zv = exp(zv)
+        print('')
+        print('Posterior mass ratios of the four solutions in scenario III')
+        print(sorted(z.keys()))
+        print(zv / zv.sum())
 
 ratios()
