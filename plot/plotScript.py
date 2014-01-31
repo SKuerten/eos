@@ -919,6 +919,8 @@ class MarginalDistributions:
                 ###
                 points_68 = densities_interp >= level_68
 
+                # TODO runs change on the same data set? why
+
                 # find connected regions
                 runs = find_runs(points_68, True)
 
@@ -928,14 +930,15 @@ class MarginalDistributions:
 
                 # print intervals
                 intervals_68 = []
-                for run in runs:
+                for run, mode in zip(runs, local_modes):
                     intervals_68.append([finer_mesh[run[0]], finer_mesh[run[1] - 1]])
                     intervals_68[-1].append(intervals_68[-1][1] - intervals_68[-1][0])
 
-                print("Minimal 1 sigma intervals:")
-                print(np.array(intervals_68))
-                print("Local marginalized mode(s):")
-                print(np.array(local_modes))
+                    print("Minimal 1 sigma intervals:")
+                    print(np.array(intervals_68))
+
+                    print("Local marginalized mode +a -b:")
+                    print('%g + %g - %g' % (mode, intervals_68[-1][1] - mode, mode - intervals_68[-1][0], ))
 
         # determine goodness-of-fit
         if self.gof_point is not None:
