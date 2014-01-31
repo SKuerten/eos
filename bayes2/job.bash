@@ -64,53 +64,6 @@ mcmc_merge() {
     echo
 }
 
-hc() {
-    scenario=${1}
-    if [[ -z ${scenario} ]] ; then
-        echo "No scenario given!"
-        exit -1
-    fi
-    echo "[scenario = ${scenario}]"
-
-    shift
-    data=${1}
-    if [[ -z ${data} ]] ; then
-        echo "No data given!"
-        exit -1
-    fi
-    echo "[data = ${data}]"
-
-    seed=789654
-
-    scan=SCAN_${scenario}
-    constraints=CONSTRAINTS_${data}
-    nuisance=NUISANCE_${data}
-
-    mkdir -p ${BASE_NAME}/${scenario}_${data}
-    eos-scan-mc \
-        --seed ${seed} \
-        --debug \
-        --parallel 0 \
-        --chunks 1 \
-        --chunk-size 50 \
-        --use-pmc \
-        --pmc-dof ${PMC_DOF} \
-        --pmc-adjust-sample-size 0 \
-        --pmc-initialize-from-file ${BASE_NAME}/${scenario}_${data}/mcmc_pre_merged.hdf5 \
-        --pmc-hierarchical-clusters ${PMC_CLUSTERS} \
-        --global-local-covariance-window ${PMC_PATCH_LENGTH} \
-        --global-local-skip-initial ${PMC_SKIP_INITIAL} \
-        --pmc-group-by-r-value ${PMC_GROUP_BY_RVALUE} \
-        ${PMC_INITIALIZATION} \
-        --pmc-draw-samples \
-        --pmc-final-chunksize ${PMC_FINAL_CHUNKSIZE} \
-        ${!constraints} \
-        ${!scan} \
-        ${!nuisance} \
-        --output "${BASE_NAME}/${scenario}_${data}/hc.hdf5" \
-        > ${BASE_NAME}/${scenario}_${data}/hc.log 2>&1
-}
-
 export PMC_PARALLEL=1
 export PMC_MAX_STEPS=20
 export PMC_CHUNKSIZE=3000
@@ -210,6 +163,54 @@ pmc_queue() {
         --resource-manager ${PMC_RESOURCE_MANAGER} \
         $PMC_CLIENT_ARGV \
 	2>&1 | tee ${BASE_NAME}/${scenario}_${data}/manager.log
+}
+
+hc() {
+    scenario=${1}
+    if [[ -z ${scenario} ]] ; then
+        echo "No scenario given!"
+        exit -1
+    fi
+    echo "[scenario = ${scenario}]"
+
+    shift
+    data=${1}
+    if [[ -z ${data} ]] ; then
+        echo "No data given!"
+        exit -1
+    fi
+    echo "[data = ${data}]"
+
+    seed=789654
+
+    scan=SCAN_${scenario}
+    constraints=CONSTRAINTS_${data}
+    nuisance=NUISANCE_${data}
+
+    mkdir -p ${BASE_NAME}/${scenario}_${data}
+    eos-scan-mc \
+        --seed ${seed} \
+        --debug \
+        --parallel 0 \
+        --chunks 1 \
+        --chunk-size 50 \
+        --use-pmc \
+        --pmc-dof ${PMC_DOF} \
+        --pmc-adjust-sample-size 0 \
+        --pmc-initialize-from-file ${BASE_NAME}/${scenario}_${data}/mcmc_pre_merged.hdf5 \
+        --pmc-hierarchical-clusters ${PMC_CLUSTERS} \
+        --global-local-covariance-window ${PMC_PATCH_LENGTH} \
+        --global-local-skip-initial ${PMC_SKIP_INITIAL} \
+        --pmc-group-by-r-value ${PMC_GROUP_BY_RVALUE} \
+        ${PMC_INITIALIZATION} \
+        ${PMC_IGNORE_GROUPS} \
+        --pmc-draw-samples \
+        --pmc-final-chunksize ${PMC_FINAL_CHUNKSIZE} \
+        ${!constraints} \
+        ${!scan} \
+        ${!nuisance} \
+        --output "${BASE_NAME}/${scenario}_${data}/hc.hdf5" \
+        > ${BASE_NAME}/${scenario}_${data}/hc.log 2>&1
 }
 
 gof() {
