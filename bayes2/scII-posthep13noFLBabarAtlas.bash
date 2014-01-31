@@ -18,4 +18,6 @@ export LL_FINAL_QUEUE=parallel
 export PMC_POLLING_INTERVAL=30
 export PMC_CLIENT_ARGV=
 
+export GOF_MODE_0="{ }"
+
 main $@

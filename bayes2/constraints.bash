@@ -302,7 +302,7 @@ export CONSTRAINTS_posthep13hpqcd="
     ${CONSTRAINTS_B_TO_VLL_FF_HPQCD}
 "
 
-export CONSTRAINTS_posthep13hpqcdnoFLBabarAtlas="
+export CONSTRAINTS_posthep13noFLBabarAtlas="
     ${CONSTRAINTS_B_MASS_SPLITTING}
     ${CONSTRAINTS_B_TO_XSGAMMA}
     ${CONSTRAINTS_B_TO_KSTARGAMMA}
@@ -315,6 +315,11 @@ export CONSTRAINTS_posthep13hpqcdnoFLBabarAtlas="
     ${CONSTRAINTS_B_TO_VLL_LOW_RECOIL}
     ${CONSTRAINTS_B_TO_VLL_POSTHEP13}
     ${CONSTRAINTS_B_TO_VLL_FF}
+    ${CONSTRAINTS_B_TO_VLL_FF_HPQCD}
+"
+
+export CONSTRAINTS_posthep13hpqcdnoFLBabarAtlas="
+    ${CONSTRAINTS_posthep13noFLBabarAtlas}
     ${CONSTRAINTS_B_TO_VLL_FF_HPQCD}
 "
 
