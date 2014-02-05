@@ -338,7 +338,6 @@ class MarginalDistributions:
 
         self.one_dimensional_only = False
 
-        self.color_map = 'jet'
         self.use_contours = False
 
         if output_dir is None:
@@ -1059,7 +1058,7 @@ class MarginalDistributions:
         probability_array = None
 
         # prepare for whitening
-        cmap = P.get_cmap(self.color_map)
+        cmap = P.get_cmap()
         if self.minimum_probability is not None:
             cmap.set_under('white')
 
@@ -1807,5 +1806,4 @@ def main():
 if __name__ == '__main__':
     np.set_printoptions(precision=6)
     matplotlib.rcParams['text.latex.unicode'] = True
-
     main()
