@@ -162,7 +162,8 @@ class MarginalContours(object):
         self.__density_cache = {}
 
         # ranges and bandwidths for scenario comparison
-        self.scen_comp = {}
+        self.comparison_bandwidths = {}
+        self.comparison_defs = {}
 
     def out(self, name):
         """ Create output file name"""
@@ -183,7 +184,7 @@ class MarginalContours(object):
         if scenario.queue_output:
             cmd_template += ' --pmc-queue-output'
 
-        for p in scenario.defs.itervalues():
+        for p in scenario.defs:
             cmd_template += ' --cut %d %s %s' % (p.i, p.min, p.max)
 
         return cmd_template.split()
@@ -194,14 +195,17 @@ class MarginalContours(object):
         for k in self.scen.keys():
             self.margs[k] = plotScript.factory(self.command_template(self.scen[k]))
 
-    def single_panel(self, pos1, pos2, def1, def2, SM_point=True,
+    def single_panel(self, def1, def2, pos=None, SM_point=True,
                      local_mode=True, scenarios=('all_wide', 'all_nuis'),
-                     desired_levels=None):
+                     desired_levels=None, label=True):
         """
         Single marginal plot to compare two scenarios
 
         First scenario is plotted with filled colored regions,
         the second is plotted with contour lines
+
+        :param pos:
+            pair of indices to identify a region of zoom into the 2D marginal.
         """
 
         assert(len(scenarios) in (1, 2))
@@ -209,21 +213,21 @@ class MarginalContours(object):
         # parameter indices in EOS output file
         i = def1.i
         j = def2.i
-#         i = self.pars.index(def1.name)
-#         j = self.pars.index(def2.name)
 
         # compute and cache densities
         for s in scenarios:
-            if not self.__density_cache.has_key((i, j, s)):
-                bandwidth = self.scen_comp.comparison_bandwidths.get((s, pos1, pos2, def1.name, def2.name), None)
+            if not self.__density_cache.has_key((i, j, s, pos)):
+                if len(scenarios) == 1:
+                    bandwidth = self.scen[scenarios[0]].get_bandwidth(i, j)
+                else:
+                    bandwidth = self.comparison_bandwidths.get((s, pos1, pos2, def1.name, def2.name), None)
                 if bandwidth is not None:
                     self.margs[s].use_histogram = False
                     self.margs[s].kde_bandwidth = bandwidth
-                    print("bandwidth = %g " % bandwidth)
                 else:
                     self.margs[s].use_histogram = True
                 density = self.margs[s].two_dimensional(i, j)
-                self.__density_cache[(i, j, s)] = density
+                self.__density_cache[(i, j, s, pos)] = density
         P.cla()
 
         for k, s in enumerate(scenarios):
@@ -231,7 +235,7 @@ class MarginalContours(object):
             # then zoom will work correctly
             xrange = (def1.min, def1.max)
             yrange = (def2.min, def2.max)
-            artist = self.margs[s].contours_two(xrange, yrange, self.__density_cache[(i, j, s)],
+            artist = self.margs[s].contours_two(xrange, yrange, self.__density_cache[(i, j, s, pos)],
                                                 color=self.scen[s].c, line=bool(k), grid=True,
                                                 desired_levels=desired_levels)
             P.setp(artist.collections[2], alpha=1, color=self.scen[s].two_sigma_color)
@@ -252,6 +256,10 @@ class MarginalContours(object):
         if hasattr(def2, 'major_locator'):
             ax.yaxis.set_major_locator(def2.major_locator)
         ax.set_ylim(def2.range)
+
+        if label:
+            P.xlabel(self.margs[scenarios[0]].tr.to_tex(def1.name))
+            P.ylabel(self.margs[scenarios[0]].tr.to_tex(def2.name))
 
     def all_nuis_stack(self, def1, def2, like_sign=False, flip_order=False, scenarios=('all_wide', 'all_nuis')):
         """
@@ -276,13 +284,13 @@ class MarginalContours(object):
             ind = ind[::-1]
 
         ax1 = P.subplot(211)
-        self.single_panel(ind[0], ind[1], def1[ind[0]], def2[ind[1]], scenarios=scenarios)
+        self.single_panel(def1[ind[0]], def2[ind[1]], pos=ind, scenarios=scenarios)
 
         if like_sign:
             ind = (0, 0)
 
         ax2 = P.subplot(212)
-        self.single_panel(ind[1], ind[0], def1[ind[1]], def2[ind[0]], scenarios=scenarios)
+        self.single_panel(def1[ind[1]], def2[ind[0]], pos=ind[::-1], scenarios=scenarios)
 
         # Set common labels
         tr = self.margs[scenarios[0]].tr
@@ -547,34 +555,16 @@ class MarginalContours(object):
         """
 
         P.figure(figsize=(8,8))
-        for k in self.scen.keys():
-            for i, p1 in enumerate(self.pars):
-                for j, p2 in enumerate(self.pars[self.pars.index(p1) + 1:]):
-                    # draw SM point
-                    P.plot(self.sm_point[self.defs[p1].i], self.sm_point[self.defs[p2].i], **self.sm_point_style)
 
-                    # draw best fit points
-                    for n, point in enumerate(self.scen[k].local_mode):
-                        P.plot(point[self.defs[p1].i], point[self.defs[p2].i], \
-                               **self.best_fit_points_style[n])
+        # loop over scenarios
+        for k, name in enumerate(self.scen.keys()):
+            sc = self.scen[name]
 
-                    # add axis labels
-                    P.xlabel(self.margs[k].tr.to_tex(p1))
-                    P.ylabel(self.margs[k].tr.to_tex(p2))
-
-                    # todo move to separate function
-                    # plot/store density arrays
-                    self.margs[k].use_histogram = not bool(self.scen[k].get_bandwidth(p1, p2))
-                    self.margs[k].kde_bandwidth = self.scen[k].get_bandwidth(p1, p2)
-                    self.scen[k].prob[(p1,p2)] = self.margs[k].two_dimensional(self.defs[p1].i, self.defs[p2].i)
-
-                    # draw contours
+            for i, d1 in enumerate(sc.defs):
+                for j, d2 in enumerate(sc.defs[i + 1:]):
                     P.clf()
-                    CS = self.margs[k].contours_two(self.defs[p1].range, self.defs[p2].range, self.scen[k].prob[(p1,p2)], color=self.scen[k].c)
-                    P.setp(CS.collections[1], alpha=self.scen[k].alpha)
-
-
-                    P.savefig(self.out('%s_%d_%d' % (k, i, self.pars.index(p1) + j + 1)))
+                    self.single_panel(d1, d2, SM_point=True, local_mode=True, scenarios=(name,), desired_levels=(0.683, 0.954, 0.9973))
+                    P.savefig(self.out('%s_%d_%d' % (name, i, j)))
 
     def overlays(self):
         ###
@@ -732,29 +722,17 @@ class MarginalContours(object):
     def nine_nine_prime(self):
         """Compare C9 vs C9' for posthep13 and posthep13 with hpqcd FF constraints"""
 
-        # sc_name = 'scII_posthep13hpqcd'; local_mode = [[ 3.5210443, 1.2040]]
-        sc_name = 'scII_posthep13     '; local_mode = [[ 3.41, 1.46]]
-        def9      = ParameterDefinition(name='Re{c9}',  min=1, max=6, index=0)
-        def9prime = ParameterDefinition(name="Re{c9'}", min=-1, max=4, index=1)
-        s = Scenario(os.path.join(self.input_base, 'pmc_%s.hdf5' % sc_name), 'OrangeRed', bandwidth_default=0.005,
-                                  sigma='1+2 sigma', two_sigma_color='LightSalmon', alpha=1, queue_output=False, crop_outliers=50,
-                                  local_mode=local_mode, defs={def9.name:def9, def9prime:def9prime})
-        self.scen[sc_name] = s
-        marg = plotScript.factory(self.command_template(s))
-        self.margs[sc_name] = marg
-        marg.use_histogram = False
-        marg.kde_bandwidth = 0.017
-
-        density = marg.two_dimensional(def9.i, def9prime.i)
-        self.__density_cache[(0,1, sc_name)] = density
-
+        sc_name = 'scII_posthep13'
+        sc = self.scen[sc_name]
+        def9 = sc.defs[0]
+        def9prime = sc.defs[1]
         fig = P.figure(figsize=[6]*2)
         # 1,2, and 3 sigma contours
-        self.single_panel(0, 1, def9, def9prime, SM_point=True, local_mode=True, scenarios=(sc_name,),
+        self.single_panel(def9, def9prime, SM_point=True, local_mode=True, scenarios=(sc_name,),
                           desired_levels=(0.683, 0.954, 0.9973))
 
-        P.xlabel(marg.tr.to_tex(def9.name))
-        P.ylabel(marg.tr.to_tex(def9prime.name))
+        P.xlabel(self.margs[sc_name].tr.to_tex(def9.name))
+        P.ylabel(self.margs[sc_name].tr.to_tex(def9prime.name))
         adjust_subplot()
         P.savefig(self.out(sc_name))
 
@@ -1250,18 +1228,31 @@ def fall2013():
 
     # set up object
     input_base, output_base = input_output()
-    marg = MarginalContours(input_base, output_base, max_samples=None)
+    marg = MarginalContours(input_base, output_base, max_samples=300)
 
-    marg.nine_nine_prime()
-    return
+    ###
+    # parameter definitions
+    ###
+    def9      = ParameterDefinition(name='Re{c9}',  min=1, max=6, index=0)
+    def9prime = ParameterDefinition(name="Re{c9'}", min=-1, max=4, index=1)
+
+    ###
+    # scenarios
+    ###
+
+    # sc_name = 'scII_posthep13hpqcd'; local_mode = [[ 3.5210443, 1.2040]]
+    sc_name = 'scII_posthep13'; local_mode = [[ 3.41, 1.46]]
+    marg.scen[sc_name] = Scenario(os.path.join(marg.input_base, 'pmc_%s.hdf5' % sc_name), 'OrangeRed', bandwidth_default=0.017,
+                              sigma='1+2 sigma', two_sigma_color='LightSalmon', alpha=1, queue_output=False, crop_outliers=50,
+                              local_mode=local_mode, defs=[def9, def9prime])
 
     marg.scen['scI_posthep13'] = Scenario(os.path.join(input_base, 'pmc_scI_posthep13.hdf5'), 'OrangeRed', bandwidth_default=0.005,
                                     sigma='1+2 sigma', two_sigma_color='LightSalmon', alpha=1, queue_output=False, crop_outliers=50,
                                     local_mode=[[-0.342938, 3.94893, -4.61573],
                                                 [0.505892, -5.00182, 4.50871]])
-    marg.read_data()
-    marg.subleading_together()
-    return
+#     marg.read_data()
+#     marg.subleading_together()
+
     marg.scen['scI_quim1'] = Scenario(os.path.join(input_base, 'pmc_scI_quim1.hdf5'), 'Blue', bandwidth_default=0.005,
                                       sigma='1+2 sigma', two_sigma_color='LightBlue', alpha=1, queue_output=False, crop_outliers=50,
                                       local_mode=[[-0.345514, 2.99263, -4.16734],
@@ -1270,7 +1261,25 @@ def fall2013():
                                          sigma='1+2 sigma', two_sigma_color='LightGrey', alpha=1, crop_outliers=200,
                                       local_mode=[[-0.294991910838,    3.731820480717,  -4.140554057902],
                                                   [ 0.41787049285,  -4.639111764728,  3.994616452063]])
+
     marg.read_data()
+
+    ###
+    # settings for comparing scenarios
+    ###
+    name = 'Re{c7}'
+    nticks = 5
+    par_def1 = ParameterDefinition(name=name, min=0.2, max=0.6, index=0)
+    par_def1.major_locator = ticker.FixedLocator(np.linspace(par_def1.min, par_def1.max, nticks))
+    par_def2 = ParameterDefinition(name=name, min=-0.5, max=-0.1, index=0)
+    par_def2.major_locator = ticker.FixedLocator(np.linspace(par_def2.min, par_def2.max, nticks))
+
+    marg.comparison_defs[('Re{c7}', 0, 1)] = par_def1
+    marg.comparison_defs[('Re{c7}', 1, 0)] = par_def2
+    marg.comparison_defs[('Re{c9}', 0, 1)] = ParameterDefinition(name='Re{c9}', min=+1, max=+6, index=1)
+    marg.comparison_defs[('Re{c9}', 1, 0)] = ParameterDefinition(name='Re{c9}', min=-7, max=-2, index=1)
+    marg.comparison_defs[('Re{c10}', 0, 1)] = ParameterDefinition(name='Re{c10}', min=+1.5, max=+6.5, index=2)
+    marg.comparison_defs[('Re{c10}', 1, 0)] = ParameterDefinition(name='Re{c10}', min=-6.5, max=-1.5, index=2)
 
     # define bandwidths for each individual plot
     bw = 0.0045
@@ -1303,10 +1312,15 @@ def fall2013():
                     ('scI_all_nuis', 'scI_posthep13'), ('scI_all_nuis', 'scI_quim1'),
                     ('scI_posthep13', 'scI_quim1'))
     marg.compare_scenarios(combinations)
-    marg.subleading_separate()
+    return
+#     marg.subleading_separate()
 
     # scIII plot
     marg.primed()
+
+    # scII plot
+    marg.read_data()
+    marg.nine_nine_prime()
 
 if __name__ == '__main__':
     matplotlib.rcParams['text.usetex'] = True
