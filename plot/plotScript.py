@@ -680,13 +680,13 @@ class MarginalDistributions:
 
             # handle case of more than two contours
             # highest is opaque, lower contours increasingly transparent
-            alpha = (1, 0.4, 0.2, 0.1, 0.05)
+            alpha = (1, 0.5, 0.3, 0.1, 0.05)
             for i, zc in enumerate(reversed(artist.collections[1:])):
                 P.setp(zc, alpha=alpha[i])
 
         # add grid lines for easier visual comparison
-        if grid:
-            P.grid()
+        P.grid(grid)
+
         ax = P.gca()
         ax.xaxis.set_minor_locator(matplotlib.ticker.AutoMinorLocator())
         ax.yaxis.set_minor_locator(matplotlib.ticker.AutoMinorLocator())
