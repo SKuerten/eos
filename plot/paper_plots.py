@@ -2,7 +2,7 @@
 """
 Plot several distributions with their contours for paper
 """
-
+from __future__ import print_function
 import plotScript
 from plotScript import ParameterDefinition
 import plotUncertainty
@@ -26,6 +26,9 @@ def run_command(com):
         raise Exception(output)
 
     return output
+
+def square_figure(size=6):
+    return P.figure(figsize=(size, size))
 
 def wide_figure(x_size=8, ratio=4/3.0, left=0.08, right=0.95, top=0.95, bottom=0.15):
     """
@@ -195,6 +198,39 @@ class MarginalContours(object):
         for k in self.scen.keys():
             self.margs[k] = plotScript.factory(self.command_template(self.scen[k]))
 
+    def compute_marginal(self, def1, def2, scenario, solution=0):
+        # parameter index
+        i = def1.i
+        j = def2.i
+
+        if self.__density_cache.has_key((i, j, scenario, solution)):
+            return
+
+        m = self.margs[scenario]
+        bandwidth = self.comparison_bandwidths.get((scenario, solution, def1.name, def2.name), None)
+        if bandwidth is None:
+            bandwidth = self.scen[scenario].get_bandwidth(i, j)
+        if bandwidth is None:
+            m.use_histogram = True
+        else:
+            m.use_histogram = False
+            m.kde_bandwidth = bandwidth
+
+        m.cuts[i] = def1.range
+        m.cuts[j] = def2.range
+
+        # compute the density
+        density = m.two_dimensional(i, j)
+
+        # store the density and the associated ranges
+        if not np.iterable(solution):
+            solution = (solution,)
+        for sol in solution:
+            self.__density_cache[(i, j, scenario, sol)] = (density, def1.range, def2.range)
+
+        # clean up
+        P.cla()
+
     def single_panel(self, def1, def2, scenarios,
                      solution=None, SM_point=True, local_mode=True,
                      desired_levels=None, label=True):
@@ -214,36 +250,17 @@ class MarginalContours(object):
         i = def1.i
         j = def2.i
 
-        # retrieve original range used to create prob_density
-        # then zoom will work correctly
-        xrange = (def1.min, def1.max)
-        yrange = (def2.min, def2.max)
-
         # compute and cache densities
         for s in scenarios:
-            m = self.margs[s]
-            if not self.__density_cache.has_key((i, j, s, solution)):
-                bandwidth = self.comparison_bandwidths.get((s, solution, def1.name, def2.name), None)
-                if bandwidth is None:
-                    bandwidth = self.scen[s].get_bandwidth(i, j)
-                if bandwidth is None:
-                    m.use_histogram = True
-                else:
-                    m.use_histogram = False
-                    m.kde_bandwidth = bandwidth
-
-                m.cuts[i] = xrange
-                m.cuts[j] = yrange
-
-                density = m.two_dimensional(i, j)
-                self.__density_cache[(i, j, s, solution)] = density
-        P.cla()
+            self.compute_marginal(def1, def2, s, solution)
 
         for k, s in enumerate(scenarios):
-            artist = self.margs[s].contours_two(xrange, yrange, self.__density_cache[(i, j, s, solution)],
+            # retrieve original range used to create prob_density
+            # then zoom will work correctly
+            density, xrange, yrange = self.__density_cache[(i, j, s, solution)]
+            artist = self.margs[s].contours_two(xrange, yrange, density,
                                                 color=self.scen[s].c, line=bool(k), grid=True,
                                                 desired_levels=desired_levels)
-#             P.setp(artist.collections[2], alpha=1, color=self.scen[s].two_sigma_color)
 
         if SM_point:
             P.plot(self.sm_point.get(def1.name, 0.), self.sm_point.get(def2.name, 0.), **self.sm_point_style)
@@ -252,28 +269,30 @@ class MarginalContours(object):
                 P.plot(p[i], p[j], **style)
 
         ax = P.gca()
-        ax.grid(True)
 
         if hasattr(def1, 'major_locator'):
             ax.xaxis.set_major_locator(def1.major_locator)
+        # zoom in
         ax.set_xlim(def1.range)
 
         if hasattr(def2, 'major_locator'):
             ax.yaxis.set_major_locator(def2.major_locator)
+        # zoom in
         ax.set_ylim(def2.range)
 
         if label:
             P.xlabel(self.margs[scenarios[0]].tr.to_tex(def1.name))
             P.ylabel(self.margs[scenarios[0]].tr.to_tex(def2.name))
 
-    def all_nuis_stack(self, par1, par2, solution=(0, 1), scenarios=('all_wide', 'all_nuis')):
+    def stack(self, par1, par2, scenarios, solution=(1, 0)):
         """
         Plot two panels, one on top of the other with
-        marginal distribution for two parameters.
+        marginal distribution for two parameters. Each panel
+        focuses on one solution/region of the target.
 
         Keyword arguments:
         par1, par2 -- parameter names.
-        solution -- specify indices of solution
+        solution -- specify indices of solution. First solution on bottom, second on top.
         """
 
         # choose x_size such that fonts are readible
@@ -294,33 +313,19 @@ class MarginalContours(object):
 
         fig.subplots_adjust(left=0.2, right=0.92, bottom=0.1, top=0.98)
 
-    def all_nuis_vs_wide(self):
-        """
-        compare all_nuis with all_wide
-        """
-
-        self.all_nuis_stack(self.comparison_defs['Re{c7}'], self.comparison_defs['Re{c9}'])
-        P.savefig(self.out("all_nuis_wide_0_1"))
-
-        self.all_nuis_stack(self.comparison_defs['Re{c7}'], self.comparison_defs['Re{c10}'], like_sign=True)
-        P.savefig(self.out("all_nuis_wide_0_2"))
-
-        self.all_nuis_stack(self.comparison_defs['Re{c9}'], self.comparison_defs['Re{c10}'], flip_order=True)
-        P.savefig(self.out("all_nuis_wide_1_2"))
-
     def compare_scenarios(self, combinations):
         """
         compare multiple scenarios in overlays with filled and contoured regions
         """
 
         for c in combinations:
-            self.all_nuis_stack('Re{c7}', 'Re{c9}', scenarios=c)
+            self.stack('Re{c7}', 'Re{c9}', scenarios=c)
             P.savefig(self.out("%s_0_1" % '_'.join(c)))
 
-            self.all_nuis_stack('Re{c7}', 'Re{c10}', scenarios=c)
+            self.stack('Re{c7}', 'Re{c10}', scenarios=c)
             P.savefig(self.out("%s_0_2" % '_'.join(c)))
 
-            self.all_nuis_stack('Re{c9}', 'Re{c10}', scenarios=c)
+            self.stack('Re{c9}', 'Re{c10}', scenarios=c)
             P.savefig(self.out("%s_1_2" % '_'.join(c)))
 
     def scI_all_vs_excl(self):
@@ -340,13 +345,13 @@ class MarginalContours(object):
         self.comparison_bandwidths[(1, 0, 'Re{c9}', 'Re{c10}')] = bw * 1.5  # bottom
         self.comparison_bandwidths[(0, 1, 'Re{c9}', 'Re{c10}')] = bw * 1.4  # top
         """
-        self.all_nuis_stack('Re{c7}', 'Re{c9}', scenarios=scenarios)
+        self.stack('Re{c7}', 'Re{c9}', scenarios=scenarios)
         P.savefig(self.out("%s_%s_0_1" % (scenarios)))
 
-        self.all_nuis_stack('Re{c7}', 'Re{c10}', like_sign=True, scenarios=scenarios)
+        self.stack('Re{c7}', 'Re{c10}', like_sign=True, scenarios=scenarios)
         P.savefig(self.out("%s_%s_0_2" % (scenarios)))
 
-        self.all_nuis_stack('Re{c9}', 'Re{c10}', flip_order=True, scenarios=scenarios)
+        self.stack('Re{c9}', 'Re{c10}', flip_order=True, scenarios=scenarios)
         P.savefig(self.out("%s_%s_1_2" % (scenarios)))
 
     def one_dim_nuisance_KMPW(self):
@@ -546,7 +551,7 @@ class MarginalContours(object):
         Plot one scenario by itself at a time.
         """
 
-        P.figure(figsize=(8,8))
+        square_figure()
 
         # loop over scenarios
         for k, name in enumerate(self.scen.keys()):
@@ -751,6 +756,7 @@ class Fall2013(object):
     # set up object
     input_base, output_base = input_output()
     max_samples = None
+    fig_size = 6 # inches, same for x and y
 
     def figII(self):
 
@@ -761,20 +767,19 @@ class Fall2013(object):
         ###
 
         marg.scen['scI_posthep13'] = Scenario(os.path.join(marg.input_base, 'pmc_scI_posthep13.hdf5'), 'OrangeRed',
-                                        sigma='1+2 sigma', two_sigma_color='LightSalmon', alpha=1, queue_output=False, crop_outliers=50,
+                                        crop_outliers=200, nbins=300,
                                         local_mode=[[-0.342938, 3.94893, -4.61573],
                                                     [0.505892, -5.00182, 4.50871]])
-    #     marg.read_data()
     #     marg.subleading_together()
 
         marg.scen['scI_quim1'] = Scenario(os.path.join(marg.input_base, 'pmc_scI_quim1.hdf5'), 'Blue',
-                                          sigma='1+2 sigma', two_sigma_color='LightBlue', alpha=1, queue_output=False, crop_outliers=50,
+                                          crop_outliers=200, nbins=300,
                                           local_mode=[[-0.345514, 2.99263, -4.16734],
                                                       [ 0.509072, -4.02532, 4.22568]])
-        marg.scen['scI_all_nuis'] = Scenario(os.path.join(marg.input_base, 'pmc_scI_all_nuis.hdf5'), 'Grey',
-                                             sigma='1+2 sigma', two_sigma_color='LightGrey', alpha=1, crop_outliers=200,
-                                          local_mode=[[-0.294991910838,    3.731820480717,  -4.140554057902],
-                                                      [ 0.41787049285,  -4.639111764728,  3.994616452063]])
+#         marg.scen['scI_all_nuis'] = Scenario(os.path.join(marg.input_base, 'pmc_scI_all_nuis.hdf5'), 'Grey',
+#                                              crop_outliers=200,
+#                                              local_mode=[[-0.294991910838,    3.731820480717,  -4.140554057902],
+#                                                          [ 0.41787049285,  -4.639111764728,  3.994616452063]])
 
         marg.read_data()
 
@@ -796,29 +801,27 @@ class Fall2013(object):
         marg.comparison_defs[('Re{c10}', 0)] = ParameterDefinition(name='Re{c10}', min=-6.5, max=-1.5, index=2)
         marg.comparison_defs[('Re{c10}', 1)] = ParameterDefinition(name='Re{c10}', min=+1.5, max=+6.5, index=2)
 
-        # define bandwidths for each individual plot
-        bw = 0.0045
-        cb = marg.comparison_bandwidths
-        cb[('scI_posthep13', 0, 'Re{c7}', 'Re{c9}')] = bw * 1.4  # top
-        cb[('scI_posthep13', 1, 'Re{c7}', 'Re{c9}')] = bw * 1.4  # bottom
-        cb[('scI_posthep13', 1, 'Re{c7}', 'Re{c10}')] = bw * 1.6  # bottom
-        cb[('scI_posthep13', 0, 'Re{c7}', 'Re{c10}')] = bw * 1.6  # top
-        cb[('scI_posthep13', 1, 'Re{c9}', 'Re{c10}')] = bw * 1.7  # bottom
-        cb[('scI_posthep13', 0, 'Re{c9}', 'Re{c10}')] = bw * 1.4  # top
+        ###
+        # Create plot for large range to properly weight both modes, then zoom in
+        ###
+        large_def = (ParameterDefinition(name='Re{c7}', min=-0.5, max=+0.6, index=0),
+                     ParameterDefinition(name='Re{c9}', min=-7, max=+6, index=1),
+                     ParameterDefinition(name='Re{c10}', min=-6, max=+6, index=2),
+                     )
 
-        cb[('scI_quim1', 0, 'Re{c7}', 'Re{c9}')] = bw * 1.4  # top
-        cb[('scI_quim1', 1, 'Re{c7}', 'Re{c9}')] = bw * 1.4  # bottom
-        cb[('scI_quim1', 1, 'Re{c7}', 'Re{c10}')] = bw * 1.6  # bottom
-        cb[('scI_quim1', 0, 'Re{c7}', 'Re{c10}')] = bw * 1.6  # top
-        cb[('scI_quim1', 1, 'Re{c9}', 'Re{c10}')] = bw * 1.5  # bottom
-        cb[('scI_quim1', 0, 'Re{c9}', 'Re{c10}')] = bw * 1.4  # top
+        # bandwidths for each plane
+        marg.scen['scI_posthep13'].set_bandwidth(0, 1, 0.01)
+        marg.scen['scI_posthep13'].set_bandwidth(0, 2, 0.008)
+        marg.scen['scI_posthep13'].set_bandwidth(1, 2, 0.008)
 
-        cb[('scI_all_nuis', 0, 'Re{c7}', 'Re{c9}')] = bw * 1.4  # top
-        cb[('scI_all_nuis', 1, 'Re{c7}', 'Re{c9}')] = bw * 1.4  # bottom
-        cb[('scI_all_nuis', 1, 'Re{c7}', 'Re{c10}')] = bw * 1.6  # bottom
-        cb[('scI_all_nuis', 0, 'Re{c7}', 'Re{c10}')] = bw * 1.6  # top
-        cb[('scI_all_nuis', 1, 'Re{c9}', 'Re{c10}')] = bw * 1.5  # bottom
-        cb[('scI_all_nuis', 0, 'Re{c9}', 'Re{c10}')] = bw * 1.4  # top
+        marg.scen['scI_quim1'].set_bandwidth(0, 1, 0.01)
+        marg.scen['scI_quim1'].set_bandwidth(0, 2, 0.008)
+        marg.scen['scI_quim1'].set_bandwidth(1, 2, 0.008)
+
+        for scenario in ('scI_posthep13', 'scI_quim1'):
+            for i in range(3):
+                for j in range(i + 1, 3):
+                    marg.compute_marginal(large_def[i], large_def[j], scenario, solution=(0, 1))
 
         marg.single_scenario()
         combinations = (('scI_quim1',), ('scI_posthep13',), ('scI_posthep13', 'scI_quim1'),
@@ -841,7 +844,7 @@ class Fall2013(object):
 
         name = 'scIII_posthep13'
         s = Scenario(os.path.join(self.input_base, 'pmc_' + name + '.hdf5'), 'OrangeRed', bandwidth_default=0.005,
-                                  sigma='1+2 sigma', two_sigma_color='LightSalmon', alpha=1, queue_output=False, crop_outliers=50,
+                                  crop_outliers=200, nbins=300,
                                   local_mode=[[ -0.337899, 3.30393, -4.48358, -0.0861297, 0.0512656, -0.837369],
                                               [0.502549, -4.1695, 3.52083, 0.0500648, -2.70563, -0.822219],
                                               [0.0115065, 3.28042, -1.57617, -0.424717, 3.38051, 2.46494],
@@ -854,9 +857,12 @@ class Fall2013(object):
         marg.read_data()
 
         # predictions in the SM
-        primed_defs = (ParameterDefinition(index=3, name="Re{c7'}" , min=-0.6, max=0.6),
+
+        primed_defs = [ParameterDefinition(index=3, name="Re{c7'}" , min=-0.6, max=0.6),
                        ParameterDefinition(index=4, name="Re{c9'}" , min=-6, max=6),
-                       ParameterDefinition(index=5, name="Re{c10'}", min=-6, max=6),)
+                       ParameterDefinition(index=5, name="Re{c10'}", min=-6, max=6),]
+        primed_defs[0].major_locator = ticker.FixedLocator(np.linspace(primed_defs[0].min, primed_defs[0].max, 7))
+
 #         for d in primed_defs:
 #             m.cuts[d.i] = d.range
         primed_predictions = (0, 0, 0)
@@ -866,36 +872,16 @@ class Fall2013(object):
                        ('C', ((0.01, -0.37), (2.05, 2.5),   (-0.85, 2.25))),
                        ('D', ((0.1, 0.3), (-4.9, -5),  (2.3, -3.5))))
 
-        fig = P.figure(figsize=(6, 6))
+        square_figure(self.fig_size)
 
         for i in range(3):
-            marg.single_panel(defs[i], primed_defs[i], scenarios=(name,))
+            marg.single_panel(defs[i], primed_defs[i], scenarios=(name,), local_mode=False)
 
-#             m.use_histogram = False
-#             m.kde_bandwidth = bandwidths[i]
-#             density = m.two_dimensional(i, i + len(self.pars))
-#
-#             # draw contours
-#             P.clf()
-#
-#             P.plot(self.sm_point[i], primed_predictions[i], **self.sm_point_style)
-#             xrange = (defs[primed_defs[i].name.replace("'",'')].min, defs[primed_defs[i].name.replace("'",'')].max)
-#             CS = m.contours_two(xrange, primed_defs[i].range, density, color=s.c)
-    #             P.setp(CS.collections[1], alpha=s.alpha, color=s.two_sigma_color)
-
-            # indicate SM prediction
-#             P.plot(self.sm_point[i], primed_predictions[i], **self.sm_point_style)
             for p, (lab, loc) in zip(s.local_mode, mode_labels):
-#                 P.plot(p[i], p[i+3], **self.best_fit_points_style[0])
+                P.plot(p[i], p[i+3], **marg.best_fit_points_style[0])
                 P.text(loc[i][0], loc[i][1], '$'+lab+'^{\prime}$')
 
-            # don't whiten beyond 2 sigma, so ignore lowest contour fill
-            #P.setp(CS.collections[0], alpha=0.0)
-#             CS.collections[0].remove()
-#             P.xlabel(m.tr.to_tex(self.pars[i]))
-#             P.ylabel(m.tr.to_tex(primed_defs[i].name))
-
-            adjust_subplot(fig)
+            adjust_subplot()
             P.savefig(marg.out('scIII_%d' % i))
 
     def figIV(self):
@@ -912,11 +898,10 @@ class Fall2013(object):
                 # sc_name = 'scII_posthep13hpqcd'; local_mode = [[ 3.5210443, 1.2040]]
         sc_name = 'scII_posthep13'; local_mode = [[ 3.41, 1.46]]
         marg.scen[sc_name] = Scenario(os.path.join(marg.input_base, 'pmc_%s.hdf5' % sc_name), 'OrangeRed', bandwidth_default=0.017,
-                                  sigma='1+2 sigma', two_sigma_color='LightSalmon', alpha=1, queue_output=False, crop_outliers=50,
-                                  local_mode=local_mode, defs=[def9, def9prime])
+                                      queue_output=False, crop_outliers=50, local_mode=local_mode, defs=[def9, def9prime])
         marg.read_data()
 
-        fig = P.figure(figsize=[6]*2)
+        square_figure(self.fig_size)
         # 1,2, and 3 sigma contours
         marg.single_panel(def9, def9prime, SM_point=True, local_mode=True, scenarios=(sc_name,),
                           desired_levels=(0.683, 0.954, 0.9973), label=True)
