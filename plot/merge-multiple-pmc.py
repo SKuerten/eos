@@ -190,9 +190,9 @@ def merge_old(files, output):
     merge_file.close()
 
 if __name__ == '__main__':
-    base = '/data/eos/2013-fall/2013-12-06/scIII_posthep13hpqcd-'
+    base = '/data/eos/2013-fall/2014-02-03/scIII_posthep13hpqcd'
     # pmc converged after different number of steps
-    nsteps = [4, 8, 5, 6]
-    files = [os.path.join(base + str(i), 'pmc_parameter_samples_%d.hdf5_merge' % nsteps[i])  for i in range(len(nsteps))]
+    solution = ['A', 'B', 'C', 'D']
+    files = [os.path.join(base, sol +'.hdf5')  for sol in solution]
     print(files)
-    merge(files, output='pmc_multiple_merge.hdf5')
+    merge(files, output=os.path.join(base, 'pmc_multiple_merge.hdf5'))
