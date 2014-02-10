@@ -420,11 +420,20 @@ class MarginalContours(object):
                 P.tight_layout()
                 P.savefig(self.out('nuis_1D_FF_%s' % k))
 
-    def subleading_together(self):
+    def subleading_together(self, scenario, indices, bandwidths):
         """
-        Plot prior and posterior 1D for three subleading parameters with common prior
+        Plot prior and posterior 1D for three subleading parameters with common prior.
+
+        :param scenario:
+            string
+
+        :param indices:
+            sequence of parameter indices defining parameter in file
+
+        :param bandwidths:
+            KDE bandwidth, one for each parameter
         """
-        scenario = 'scI_posthep13'
+
         marg = self.margs[scenario]
 
         marg.use_nuisance = True
@@ -436,13 +445,9 @@ class MarginalContours(object):
 
         class Prop(object):
             """properties of each figure"""
-            def __init__(self, name, i, bandwidth=None, legend_label="",
+            def __init__(self, name, legend_label="",
                          style=dict(color=self.scen[scenario].c, linestyle='solid')):
                 self.name = name
-                # index of parameter in hdf5
-                self.i = i
-                # kde bandwidth
-                self.bandwidth = bandwidth
                 self.legend_label = legend_label
                 self.style = style
 
@@ -452,12 +457,12 @@ class MarginalContours(object):
 
 
         props = (Prop("B->K^*ll::A_perp^L_uncertainty@LargeRecoil",
-                      12, bandwidth=0.005, legend_label=r"$\chi=\perp$",
+                      legend_label=r"$\chi=\perp$",
                       style=dict(color='blue', marker='', linestyle='dashed')),
-                 Prop("B->K^*ll::A_par^L_uncertainty@LargeRecoil", 23,  bandwidth=0.01,
+                 Prop("B->K^*ll::A_par^L_uncertainty@LargeRecoil",
                       legend_label=r"$\chi=\,\parallel$",
-                      style=dict(color=self.scen[scenario].c, marker='', linestyle='-.')),
-                 Prop("B->K^*ll::A_0^L_uncertainty@LargeRecoil", 21, bandwidth=0.015,
+                      style=dict(color='OrangeRed', marker='', linestyle='-.')),
+                 Prop("B->K^*ll::A_0^L_uncertainty@LargeRecoil",
                       legend_label=r"$\chi=0$",
                       style=dict(color='green', linestyle='solid')))
 
@@ -471,16 +476,16 @@ class MarginalContours(object):
         wide_figure()
 
         for i,p in enumerate(props):
-            if p.bandwidth is not None:
+            if bandwidths is not None:
                 marg.use_histogram = False
-                marg.kde_bandwidth = p.bandwidth
+                marg.kde_bandwidth = bandwidths[i]
             else:
                 marg.use_histogram = True
 
             # don't skip this plot
             marg.plot_prior = (i == 0)
 
-            marg.one_dimensional(p.i, marginal_style=p.style, prior_style=prior_style,
+            marg.one_dimensional(indices[i], marginal_style=p.style, prior_style=prior_style,
                                  legend_label=p.legend_label, prior_label=prior_label)
 
         P.xlabel(r"$\zeta_{K^{\ast}}^{L\chi}$")
@@ -496,7 +501,7 @@ class MarginalContours(object):
         ax.legend(handles2, labels2)
         P.legend(handles2, labels2, loc='upper right')
         P.tight_layout()
-        P.savefig(self.out('scI_subleading'))
+        P.savefig(self.out(scenario + '_subleading'))
 
     def subleading_separate(self):
         """Plot subleading_separate 1D marginals separately with 1- and 2-sigma regions"""
@@ -758,6 +763,19 @@ class Fall2013(object):
     max_samples = None
     fig_size = 6 # inches, same for x and y
 
+    def figI(self):
+        marg = MarginalContours(self.input_base, self.output_base, max_samples=self.max_samples)
+
+        scenarios = ('sm_posthep13', 'scIII_posthep13')#, 'scIII_posthep13hpqcd')
+        for name in scenarios:
+            marg.scen[name] = Scenario(os.path.join(marg.input_base, 'pmc_' + name + '.hdf5'), 'OrangeRed',
+                                              crop_outliers=200, nbins=150)
+        marg.read_data()
+
+        marg.subleading_together(scenario='sm_posthep13', indices=(9, 20, 18), bandwidths=(0.005, 0.01, 0.015))
+        marg.subleading_together(scenario='scIII_posthep13', indices=(15, 26, 24), bandwidths=(0.01, 0.02, 0.03))
+#         marg.subleading_together(scenario='scIII_posthep13hpqcd', indices=(15, 26, 24), bandwidths=(0.01, 0.02, 0.03))
+
     def figII(self):
 
         marg = MarginalContours(self.input_base, self.output_base, max_samples=self.max_samples)
@@ -930,26 +948,5 @@ if __name__ == '__main__':
     matplotlib.rcParams['axes.linewidth'] = major['width']
 
     f = Fall2013()
+#     f.figI()
     f.all()
-
-    # ##
-    # ACTIONS
-    # ##
-
-
-#                            ignore_scenarios=('all_wide',)),'Vll_lowRec', 'Vll_largeRec', 'Pll'))
-
-#     marg.one_dim_nuisance_KMPW()
-    # marg.subleading_together()
-#     marg.single_scenario(); marg.overlays()
-#     marg.scI_all_vs_excl()
-#     marg.compare_scenarios()
-#    marg.all_nuis_vs_wide()
-#     marg.credibility_regions()
-
-#    pull(output_base, mode=0, SM=False)
-
-#    unc = UncertaintyMarginals(output_base, scenarios=['NP'], n_samples=None)
-#    unc.plot()
-#    unc.plot_large_recoil_single_bins()
-#    unc.table()
