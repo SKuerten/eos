@@ -234,7 +234,7 @@ class MarginalContours(object):
 
                 m.cuts[i] = xrange
                 m.cuts[j] = yrange
-                print('bandwidth for %s, %d %d: %s' % (s, i, j, bandwidth))
+
                 density = m.two_dimensional(i, j)
                 self.__density_cache[(i, j, s, solution)] = density
         P.cla()
@@ -651,83 +651,6 @@ class MarginalContours(object):
                     P.savefig(self.out('%s_one_dim_%d_%d' % (s, d.i, histo)))
                     P.clf()
 
-    def primed(self):
-        """Scenario III marginals for C_i vs C'_i"""
-
-        # overwrite ranges as they changed!
-        self.defs['Re{c7}'] = ParameterDefinition(index=0, name='Re{c7}', min=-0.5, max=0.7)
-        self.defs['Re{c9}'] = ParameterDefinition(index=1, name='Re{c9}', min=-6.5, max=5.5)
-        self.defs['Re{c10}'] = ParameterDefinition(index=2, name='Re{c10}', min=-6, max=6)
-
-        s = Scenario(os.path.join(self.input_base, 'pmc_scIII_posthep13.hdf5'), 'OrangeRed', bandwidth_default=0.005,
-                                  sigma='1+2 sigma', two_sigma_color='LightSalmon', alpha=1, queue_output=False, crop_outliers=50,
-                                  local_mode=[[ -0.337899, 3.30393, -4.48358, -0.0861297, 0.0512656, -0.837369],
-                                              [0.502549, -4.1695, 3.52083, 0.0500648, -2.70563, -0.822219],
-                                              [0.0115065, 3.28042, -1.57617, -0.424717, 3.38051, 2.46494],
-                                              [0.119822, -3.94822, 1.98214, 0.431466, -3.46372, -2.24401]])
-        m = plotScript.factory(self.command_template(s))
-
-
-        # predictions in the SM
-        primed_defs = (ParameterDefinition(index=3, name="Re{c7'}" , min=-0.6, max=0.6),
-                       ParameterDefinition(index=4, name="Re{c9'}" , min=-6, max=6),
-                       ParameterDefinition(index=5, name="Re{c10'}", min=-6, max=6),)
-        for d in primed_defs:
-            m.cuts[d.i] = d.range
-        primed_predictions = (0, 0, 0)
-        bandwidths = (0.01, 0.018, 0.013)
-        mode_labels = (('A', ((-0.275, -0.1), (2.05, -1.25), (-3.5, -1.2))),
-                       ('B', ((0.34, 0.02),  (-3.5, -2.6),   (4.2, -1.5))),
-                       ('C', ((0.01, -0.37), (2.05, 2.5),   (-0.85, 2.25))),
-                       ('D', ((0.1, 0.3), (-4.9, -5),  (2.3, -3.5))))
-
-        fig = P.figure(figsize=(6, 6))
-
-        for i in range(3):
-            m.use_histogram = False
-            m.kde_bandwidth = bandwidths[i]
-            density = m.two_dimensional(i, i + len(self.pars))
-
-            # draw contours
-            P.clf()
-
-            P.plot(self.sm_point[i], primed_predictions[i], **self.sm_point_style)
-            xrange = (self.defs[primed_defs[i].name.replace("'",'')].min, self.defs[primed_defs[i].name.replace("'",'')].max)
-            CS = m.contours_two(xrange, primed_defs[i].range, density, color=s.c)
-#             P.setp(CS.collections[1], alpha=s.alpha, color=s.two_sigma_color)
-
-            # indicate SM prediction
-            P.plot(self.sm_point[i], primed_predictions[i], **self.sm_point_style)
-            for p, (lab, loc) in zip(s.local_mode, mode_labels):
-                P.plot(p[i], p[i+3], **self.best_fit_points_style[0])
-                P.text(loc[i][0], loc[i][1], '$'+lab+'^{\prime}$')
-
-            # don't whiten beyond 2 sigma, so ignore lowest contour fill
-            #P.setp(CS.collections[0], alpha=0.0)
-            CS.collections[0].remove()
-            P.xlabel(m.tr.to_tex(self.pars[i]))
-            P.ylabel(m.tr.to_tex(primed_defs[i].name))
-
-            adjust_subplot(fig)
-            P.savefig(self.out('scIII_%d' % i))
-
-    def nine_nine_prime(self):
-        """Compare C9 vs C9' for posthep13 and posthep13 with hpqcd FF constraints"""
-
-        sc_name = 'scII_posthep13'
-        sc = self.scen[sc_name]
-        def9 = sc.defs[0]
-        def9prime = sc.defs[1]
-        fig = P.figure(figsize=[6]*2)
-        # 1,2, and 3 sigma contours
-        self.single_panel(def9, def9prime, SM_point=True, local_mode=True, scenarios=(sc_name,),
-                          desired_levels=(0.683, 0.954, 0.9973))
-
-        P.xlabel(self.margs[sc_name].tr.to_tex(def9.name))
-        P.ylabel(self.margs[sc_name].tr.to_tex(def9prime.name))
-        adjust_subplot()
-        P.savefig(self.out(sc_name))
-
 class ObservableProperties(object):
 
     def __init__(self, name, index, range=None, n_bins=150, mode_precision=3, plot=False,
@@ -742,399 +665,6 @@ class ObservableProperties(object):
         self.credibility_style = credibility_style
         self.n_ticks = n_ticks
         self.y_labels = y_labels
-
-class UncertaintyMarginals(object):
-    """
-    Plot 1D marginal distribution of SM uncertainty propagation and NP_unobs
-    """
-    def __init__(self, input_base, output_base, scenarios=['SM', 'NP'], n_samples=None):
-        self.output_dir = os.path.join(output_base, "uncert")
-        self.input_base = input_base
-        self.ext = '.pdf'
-        self.scenarios = scenarios
-
-        self.read_data(n_samples)
-
-#        ObservableProperties = namedtuple('ObservableProperties', 'name index range n_bins')
-
-
-        self.observables = {'SM':tuple(),'NP':tuple()}
-
-        SM_styles = dict(histo_style=dict(color='blue', linestyle='solid'),
-                         credibility_style=dict(color='blue', alpha=0.4),)
-
-        # arxiv_v1:
-        # store name and index: name just for storing the file
-        low_recoil_observables = (ObservableProperties(name='H_T_1_14_16', index=10, range=(0.9985, 1),
-                                                       plot=True, n_ticks=4, mode_precision=4, **SM_styles),
-                                  ObservableProperties(name='H_T_2_14_16', index=11, range=(-0.99, -0.97),
-                                                       plot=True, n_ticks=5, **SM_styles),
-                                  ObservableProperties(name='H_T_3_14_16', index=12, range=(-0.99, -0.97),
-                                                       plot=True, n_ticks=5, **SM_styles),
-                                  ObservableProperties(name='H_T_1_14+', index=36, mode_precision=4),
-                                  ObservableProperties(name='H_T_2_14+', index=37, mode_precision=3),
-                                  ObservableProperties(name='H_T_3_14+', index=38, mode_precision=3),
-                                  ObservableProperties(name='H_T_1_16+', index=62, mode_precision=4),
-                                  ObservableProperties(name='H_T_2_16+', index=63, mode_precision=3),
-                                  ObservableProperties(name='H_T_3_16+', index=64, mode_precision=3),
-                                  ObservableProperties(name='A_T_5_14_16', index=7, mode_precision=3),
-                                  ObservableProperties(name='A_T_re_14_16', index=8, mode_precision=3),
-                                  ObservableProperties(name='A_T_5_14+', index=33, mode_precision=3),
-                                  ObservableProperties(name='A_T_re_14+', index=34, mode_precision=3),
-                                  ObservableProperties(name='A_T_5_16+', index=59, mode_precision=3),
-                                  ObservableProperties(name='A_T_re_16+', index=60, mode_precision=3),
-                                  ObservableProperties(name='A_FB_14_16', index=2, mode_precision=3),
-                                  ObservableProperties(name='F_L_14_16', index=3, mode_precision=3),
-                                  ObservableProperties(name='A_FB_14+', index=29, mode_precision=3),
-                                  ObservableProperties(name='F_L_14+', index=30, mode_precision=3),
-                                  ObservableProperties(name='A_FB_16+', index=55, mode_precision=3),
-                                  ObservableProperties(name='F_L_16+', index=56, mode_precision=3),
-                                  )
-
-        large_recoil_observables = (ObservableProperties(name='Br_1_6', index=27, range=(0, 1.e-6), n_bins=250, plot=True,
-                                                         **SM_styles),
-                                    ObservableProperties(name='F_L_1_6', index=29, range=(0, 1), plot=True, **SM_styles),
-                                    ObservableProperties(name='A_T_re_1_6', index=34, range=(-0.2, 0.8), plot=True, **SM_styles),
-                                    ObservableProperties(name='A_FB_2_4', index=2, mode_precision=3),
-                                    ObservableProperties(name='A_FB_1_6', index=29, mode_precision=3),
-                                   )
-
-        self.observables['SM'] = (low_recoil_observables, large_recoil_observables)
-
-        low_n_bins = 120
-        NP_styles = dict(histo_style=dict(color='green', linestyle='dashed'),
-                         credibility_style=dict(color='green', alpha=0.4))
-
-        # arxiv_v1
-        """
-        o1 =                     (ObservableProperties(name='H_T_1_14_16', index=18, range=(0.9988, 1), plot=True,
-                                                        n_ticks=4, n_bins=low_n_bins, mode_precision=4, **NP_styles),
-                                  ObservableProperties(name='H_T_2_14_16', index=19, range=(-0.99, -0.97), plot=True,
-                                                        n_ticks=5, n_bins=low_n_bins, **NP_styles),
-                                  ObservableProperties(name='H_T_3_14_16', index=20, range=(-0.99, -0.97), plot=True,
-                                                        n_ticks=5, n_bins=low_n_bins, **NP_styles),
-                                  ObservableProperties(name='H_T_1_16+', index=21, plot=False, mode_precision=4),
-                                  ObservableProperties(name='H_T_1_14+', index=24, plot=False, mode_precision=4),
-                                  ObservableProperties(name='A_T_re_1_6', index=0, n_bins=low_n_bins,
-                                                       range=(-0.1, 0.8), plot=True, **NP_styles))
-        o2 =                     (ObservableProperties(name='Br_1_6', index=0, range=(0, 1e-6), plot=True,
-                                                       n_ticks=6, n_bins=low_n_bins, **NP_styles),
-                                  ObservableProperties(name='F_L_1_6', index=1, plot=True, n_bins=low_n_bins, **NP_styles),
-                                  )
-        o3 =                     (ObservableProperties(name='H_T_1_1_6', index=5, plot=False),
-                                  ObservableProperties(name='H_T_2_1_6', index=11, plot=False))
-        self.observables = {'SM':(low_recoil_observables, large_recoil_observables),
-                            'NP':(o1, o2, o3)}
-        """
-        # need double tuple for compatibility with SM split across two files
-        self.observables['NP'] = ((ObservableProperties(name='H_T_1_14_16', index=36, range=(0.9988, 1), plot=True,
-                                                        n_ticks=4, n_bins=low_n_bins, mode_precision=4, **NP_styles),
-                                  ObservableProperties(name='H_T_2_14_16', index=37, range=(-0.99, -0.97), plot=True,
-                                                        n_ticks=5, n_bins=low_n_bins, **NP_styles),
-                                  ObservableProperties(name='H_T_3_14_16', index=38, range=(-0.99, -0.97), plot=True,
-                                                        n_ticks=5, n_bins=low_n_bins, **NP_styles),
-                                  ObservableProperties(name='H_T_1_16+', index=39, plot=False, mode_precision=4),
-                                  ObservableProperties(name='H_T_1_14+', index=42, plot=False, mode_precision=4),
-                                    ObservableProperties(name='A_T_re_1_6', index=30, n_bins=50,
-                                                       range=(-0.1, 0.8), plot=True, **NP_styles),
-                                   # use K*ll, not Kll!
-                                    ObservableProperties(name='Br_1_6', index=45, range=(0, 1e-6), plot=True,
-                                                       n_ticks=6, n_bins=low_n_bins, **NP_styles),
-                                    ObservableProperties(name='F_L_1_6', index=46, plot=True, n_bins=low_n_bins, **NP_styles),
-                                    ObservableProperties(name='H_T_1_1_6', index=34, plot=False),
-                                    ObservableProperties(name='H_T_2_1_6', index=35, plot=False)),)
-
-        self.table_single_args = {'SM':dict(skip_SM_prediction=False), 'NP':dict(skip_SM_prediction=True)}
-
-        self.__define_scale_factors()
-
-        self.__observable_props()
-
-    def __define_scale_factors(self):
-
-        if 'SM' not in self.scenarios:
-            return
-
-        # log10
-        self.uncert['SM'][0].scale_factors = {
-        "B->Kll::BR@LowRecoil":7,
-        "B->K^*ll::BR@LowRecoil":7,
-        "B->K^*ll::J_1s@LowRecoil":8,
-        "B->K^*ll::J_1c@LowRecoil":8,
-        "B->K^*ll::J_2s@LowRecoil":8,
-        "B->K^*ll::J_2c@LowRecoil":8,
-        "B->K^*ll::J_3@LowRecoil":8,
-        "B->K^*ll::J_4@LowRecoil":8,
-        "B->K^*ll::J_5@LowRecoil":8,
-        "B->K^*ll::J_6s@LowRecoil":7,
-        "B->K^*ll::J_7@LowRecoil":12,
-        "B->K^*ll::J_8@LowRecoil":11,
-        "B->K^*ll::J_9@LowRecoil":11,
-        "B->K^*ll::A_T^im@LowRecoil":4,
-        "B->K^*ll::H_T^4@LowRecoil":3,
-        "B->K^*ll::H_T^5@LowRecoil":3,
-        }
-
-        self.uncert['SM'][1].scale_factors = {
-        "B->Kll::BR@LargeRecoil":7,
-        "B->K^*ll::BR@LargeRecoil":7,
-        "B->K^*ll::J_1s@LargeRecoil":8,
-        "B->K^*ll::J_1c@LargeRecoil":7,
-        "B->K^*ll::J_2s@LargeRecoil":8,
-        "B->K^*ll::J_2c@LargeRecoil":7,
-        "B->K^*ll::J_3@LargeRecoil":10,
-        "B->K^*ll::J_4@LargeRecoil":8,
-        "B->K^*ll::J_5@LargeRecoil":8,
-        "B->K^*ll::J_6s@LargeRecoil":8,
-        "B->K^*ll::J_7@LargeRecoil":9,
-        "B->K^*ll::J_8@LargeRecoil":9,
-        "B->K^*ll::J_9@LargeRecoil":11,
-#        "B->K^*ll::A_T^2@LargeRecoil":2,
-        "B->K^*ll::A_T^im@LargeRecoil":3,
-#        "B->K^*ll::H_T^4@LargeRecoil":2,
-        "B->K^*ll::H_T^5@LargeRecoil":3,
-        }
-
-    def __observable_props(self):
-        """
-        Set ranges and precision for individual observables.
-        """
-        for scen in self.uncert.iterkeys():
-            for regime in self.observables[scen]:
-                u = self.uncert[scen][self.observables[scen].index(regime)]
-                for o in regime:
-                    if o.range:
-                        u.observable_ranges[o.index] = o.range
-                    if o.mode_precision:
-                        u.mode_precision[o.index] = o.mode_precision
-
-    def out(self, name, ext=None):
-        """ Create output file name"""
-        ext = self.ext if ext is None else ext
-        return os.path.join(self.output_dir, "uncert_prop_%s%s" % (name, ext))
-
-    def plot(self):
-        """
-        Plot 1D probability distributions, with overlay of SM and NP if available
-        """
-
-
-        # determine which observable appears in both scenarios
-        observable_names = {}
-        all_observable_names = Set()
-        for scen in self.uncert.iterkeys():
-            scen_observable_names = Set()
-            for regime in self.observables[scen]:
-                for o in regime:
-                    if not o.plot:
-                        continue
-                    scen_observable_names.add(o.name)
-                    all_observable_names.add(o.name)
-            observable_names[scen] = scen_observable_names
-
-
-        multiples = observable_names[self.uncert.keys()[0]]
-        for scen in self.uncert.keys()[1:]:
-            multiples = multiples & observable_names[scen]
-        singles = all_observable_names - multiples
-
-        print("Multiples: %s" % multiples)
-        print("Singles: %s" % singles)
-
-        multiple_uncerts = {}
-        for name in multiples:
-            multiple_uncerts[name] = []
-
-        # now plot singles
-        for scen in self.uncert.iterkeys():
-            for regime in self.observables[scen]:
-                i = self.observables[scen].index(regime)
-                u = self.uncert[scen][i]
-                for o in regime:
-                    if o.name in singles:
-                        wide_figure(top=0.93)
-                        u.n_bins = o.n_bins
-                        u.single_plot(obs_index=o.index, n_ticks=o.n_ticks, y_labels=o.y_labels)
-                        P.savefig(self.out("%s_%s" % (scen, o.name)))
-                    elif o.name in multiples:
-                        multiple_uncerts[o.name].append((u, o))
-                    else:
-                        pass
-
-        # now plot multiples
-        for name in multiples:
-            wide_figure(ratio=16/9.0, left=0.06, right=0.93, bottom=0.2)
-            for u,o in multiple_uncerts[name]:
-                u.n_bins = o.n_bins
-                args = dict()
-                if o.histo_style:
-                    args['histo_style'] = o.histo_style
-                if o.credibility_style:
-                    args['credibility_style'] = o.credibility_style
-                if o.n_ticks:
-                    args['n_ticks'] = o.n_ticks
-                args['y_labels'] = o.y_labels
-                ret_val = u.single_plot(obs_index=o.index, **args)
-            P.savefig(self.out("overlay_%s" % o.name))
-
-    def plot_binned_predictions(self, modes, one_sigma_intervals, two_sigma_intervals, (q2_min, q2_max, step)=(1,6,1),
-                                line_style=dict(color='black'), one_sigma_style=OrderedDict(color='green', alpha=1),
-                                two_sigma_style=OrderedDict(color='yellow', alpha=1),
-                                mode_thickness=0.001):
-        """
-        Plot integrated observables as function of q^2
-
-        args:
-        mode -- array of size N
-        one_sigma -- array of size N, each a (min, max) interval containing 68%
-        two_sigma -- array of size N, each a (min, max) interval containing 95%
-        q2_min -- minimum value on x-axis
-        q2_max -- maximum value on x-axis
-        step -- difference between two left bin edges: fixed binning
-        """
-
-        # validate input
-        n = int((q2_max - q2_min) / step)
-        assert(len(modes) == n)
-        assert(len(one_sigma_intervals) == n)
-        assert(len(two_sigma_intervals) == n)
-
-        """
-        s1 = one_sigma_style.copy()
-        s2 = two_sigma_style.copy()
-#        s1['edgecolor'] = s2['edgecolor'] ='none'
-#        s1['linewidth'] = s2['linewidth'] = 0.0
-        s1['fill'] = s2['fill'] = True
-        s1['snap'] = s2['snap'] = True
-        bb = matplotlib.patches.BoxStyle('round', pad=0.0, rounding_size=0.0)
-        s1['boxstyle'] = s2['boxstyle'] = bb
-
-        rect = matplotlib.patches.FancyBboxPatch
-#        rect = matplotlib.patches.Rectangle
-        """
-
-        ax = P.gca()
-        for i, q2 in enumerate(np.arange(q2_min, q2_max, step)):
-
-            # line is too long, hand adjust its length
-#            P.plot(((2-0.997)*q2, q2 + 0.9945*step), [modes[i]]*2, **line_style)
-
-            """
-            # unsuccessfull attempt to turn off rounding the corners
-            ax.add_patch(rect((q2, modes[i]), step, one_sigma_intervals[i][1] - modes[i], **s1))
-            ax.add_patch(rect((q2, one_sigma_intervals[i][1]), step, two_sigma_intervals[i][1] -  one_sigma_intervals[i][1], **s2))
-
-#            ax.add_patch(p)
-#            bb = p.get_bbox()
-#            bb.set_pad(0)
-#            bb.set_boxstyle("square")
-            """
-            # no edge color to avoid rounded edge corners
-            P.fill_between((q2, q2 + step), [one_sigma_intervals[i][0]]*2, [one_sigma_intervals[i][1]]*2, edgecolor='none', clip_on=False, **one_sigma_style)
-            P.fill_between((q2, q2 + step), [one_sigma_intervals[i][0]]*2, [two_sigma_intervals[i][0]]*2, edgecolor='none', clip_on=False, **two_sigma_style)
-            P.fill_between((q2, q2 + step), [one_sigma_intervals[i][1]]*2, [two_sigma_intervals[i][1]]*2, edgecolor='none', clip_on=False, **two_sigma_style)
-
-            P.fill_between((q2, q2 + step), [modes[i] - mode_thickness]*2, [modes[i] + mode_thickness]*2, edgecolor='none', clip_on=False, **line_style)
-
-        P.xlim(q2_min, q2_max)
-
-    def plot_large_recoil_single_bins(self):
-        modes = np.arange(1, 6, 1)
-        one_sigma_intervals = [(x - 0.2, x + 0.2) for x in modes]
-        two_sigma_intervals = [(x - 0.4, x + 0.4) for x in modes]
-        self.plot_binned_predictions(modes=modes, one_sigma_intervals=one_sigma_intervals, two_sigma_intervals=two_sigma_intervals)
-        P.ylim(0, 7)
-        P.savefig(self.out("harr"))
-
-        EvolutionProperties = namedtuple('EvolutionProperties', 'name scen file_index indices y_range')
-
-        # file indices of arxiv_v1
-        """
-        props = (EvolutionProperties(name='A_T_5', scen='NP',  file_index=1, indices=range(3,8), y_range=(0, 0.5)),
-                 EvolutionProperties(name='A_T_re', scen='NP', file_index=0, indices=(3,6,9,12,15), y_range=(-1, 1)),
-                 EvolutionProperties(name='A_T_3', scen='NP',  file_index=0, indices=(4,7,10,13,16), y_range=(0, 1.5)),
-                 EvolutionProperties(name='H_T_1', scen='NP',  file_index=2, indices=range(0,5), y_range=(-0.5, 1)),
-                 EvolutionProperties(name='H_T_2', scen='NP',  file_index=2, indices=range(6,11), y_range=(-1, 0.5)),
-                 EvolutionProperties(name='A_T_4', scen='NP',  file_index=0, indices=(5,8,11,14,17), y_range=(0, 3)))
-        """
-        props = (EvolutionProperties(name='A_T_5', scen='NP',  file_index=0, indices=range(3,5*6,6), y_range=(0, 0.5)),
-                 EvolutionProperties(name='A_T_re', scen='NP', file_index=0, indices=range(0,5*6,6), y_range=(-1, 1)),
-                 EvolutionProperties(name='A_T_3', scen='NP',  file_index=0, indices=range(1,5*6,6), y_range=(0, 1.5)),
-                 EvolutionProperties(name='H_T_1', scen='NP',  file_index=0, indices=range(4,5*6,6), y_range=(-0.5, 1)),
-                 EvolutionProperties(name='H_T_2', scen='NP',  file_index=0, indices=range(5,5*6,6), y_range=(-1, 0.5)),
-                 EvolutionProperties(name='A_T_4', scen='NP',  file_index=0, indices=range(2,5*6,6), y_range=(0, 3)))
-
-        for p in props:
-            wide_figure(x_size=6, ratio=1, left=0.2, bottom=0.13)
-            modes = []
-            one_sigma_intervals = []
-            two_sigma_intervals = []
-            for i in p.indices:
-                u = self.uncert[p.scen][p.file_index]
-                template, mode, intervals = u.single_plot(i)
-                P.clf()
-                P.ylabel(plotScript.Translator.to_tex(u.observable_names[i]))
-                modes.append(mode)
-                one_sigma_intervals.append(intervals[0])
-                two_sigma_intervals.append(intervals[1])
-
-            self.plot_binned_predictions(modes=modes, one_sigma_intervals=one_sigma_intervals, two_sigma_intervals=two_sigma_intervals,
-                                         mode_thickness=(p.y_range[1] - p.y_range[0]) / 500.0)
-            # turn on minor ticks on y-axis
-            ax = P.gca()
-            ax.yaxis.set_minor_locator(matplotlib.ticker.AutoMinorLocator())
-            P.xlabel(r"$q^2 [\mathrm{GeV}^2]$")
-
-            P.ylim(p.y_range)
-            P.savefig(self.out(p.name))
-
-    def read_data(self, n_samples):
-
-        n_bins = 180
-
-        inputs = {}
-        self.uncert = {}
-
-        if 'SM' in self.scenarios:
-            inputs['SM'] = ('sc1_SM_lowRec_unc_merge.hdf5', 'sc1_SM_largeRec_unc_merge.hdf5',)
-#            inputs['SM'] = ('sc1_SM_largeRec_unc_merge.hdf5',) # only for last minute changes
-            self.uncert['SM'] = []
-
-        if 'NP' in self.scenarios:
-            inputs['NP'] = ('sc1_NP_unobs_unc.hdf5',)
-            # data was in three separate files for arxiv_v1
-#            inputs['NP'] = ('sc1_NP_unobs_unc.hdf5', 'sc1_NP_unobs_unc_extra.hdf5', 'sc1_NP_unobs_unc_H_T_largeRec.hdf5')
-            self.uncert['NP'] = []
-
-        for scen, input_files in inputs.iteritems():
-            for f in input_files:
-                # need list of strings
-                cmd_line = self.input_base + f
-                cmd_line += " --1D-bins %d" % n_bins
-                if n_samples:
-                    cmd_line += " --select 0 %d" % n_samples
-                u = plotUncertainty.factory(cmd_line.split())
-                u.print_uncertainty = False
-
-                self.uncert[scen].append(u)
-
-    def table(self):
-        """Create latex table of uncertainties"""
-
-        for scen, uncerts in self.uncert.iteritems():
-            print(uncerts[0].observable_names)
-            f = open(os.path.join(self.output_dir, 'uncertainty_%s_table.template.tex' % scen))
-            input_template = f.read()
-            f.close()
-
-            for regime in uncerts:
-                input_template = regime.plot_all(input_template=input_template, single_args=self.table_single_args[scen])
-
-            f = open(os.path.join(self.output_dir, 'uncertainty_%s_table.tex' % scen), 'w')
-            f.write(input_template)
-            f.close()
-
-        return
 
 def pull(input_base, output_base, ext='.pdf', mode=0, SM=False):
     """
@@ -1216,107 +746,189 @@ lrwxrwxrwx 1 beaujean beaujean   56 Jul 12 13:09 pmc_final_scI_all.hdf5 -> ../20
 
     return (input_base, output_base)
 
-def fall2013():
+class Fall2013(object):
 
     # set up object
     input_base, output_base = input_output()
-    marg = MarginalContours(input_base, output_base, max_samples=1e3)
+    max_samples = None
 
-    ###
-    # parameter definitions
-    ###
-    def9      = ParameterDefinition(name='Re{c9}',  min=1, max=6, index=0)
-    def9prime = ParameterDefinition(name="Re{c9'}", min=-1, max=4, index=1)
+    def figII(self):
 
-    ###
-    # scenarios
-    ###
+        marg = MarginalContours(self.input_base, self.output_base, max_samples=self.max_samples)
 
-    # sc_name = 'scII_posthep13hpqcd'; local_mode = [[ 3.5210443, 1.2040]]
-    sc_name = 'scII_posthep13'; local_mode = [[ 3.41, 1.46]]
-    marg.scen[sc_name] = Scenario(os.path.join(marg.input_base, 'pmc_%s.hdf5' % sc_name), 'OrangeRed', bandwidth_default=0.017,
-                              sigma='1+2 sigma', two_sigma_color='LightSalmon', alpha=1, queue_output=False, crop_outliers=50,
-                              local_mode=local_mode, defs=[def9, def9prime])
+        ###
+        # scenarios
+        ###
 
-    marg.scen['scI_posthep13'] = Scenario(os.path.join(input_base, 'pmc_scI_posthep13.hdf5'), 'OrangeRed',
-                                    sigma='1+2 sigma', two_sigma_color='LightSalmon', alpha=1, queue_output=False, crop_outliers=50,
-                                    local_mode=[[-0.342938, 3.94893, -4.61573],
-                                                [0.505892, -5.00182, 4.50871]])
-#     marg.read_data()
-#     marg.subleading_together()
+        marg.scen['scI_posthep13'] = Scenario(os.path.join(marg.input_base, 'pmc_scI_posthep13.hdf5'), 'OrangeRed',
+                                        sigma='1+2 sigma', two_sigma_color='LightSalmon', alpha=1, queue_output=False, crop_outliers=50,
+                                        local_mode=[[-0.342938, 3.94893, -4.61573],
+                                                    [0.505892, -5.00182, 4.50871]])
+    #     marg.read_data()
+    #     marg.subleading_together()
 
-    marg.scen['scI_quim1'] = Scenario(os.path.join(input_base, 'pmc_scI_quim1.hdf5'), 'Blue',
-                                      sigma='1+2 sigma', two_sigma_color='LightBlue', alpha=1, queue_output=False, crop_outliers=50,
-                                      local_mode=[[-0.345514, 2.99263, -4.16734],
-                                                  [ 0.509072, -4.02532, 4.22568]])
-    marg.scen['scI_all_nuis'] = Scenario(os.path.join(input_base, 'pmc_scI_all_nuis.hdf5'), 'Grey',
-                                         sigma='1+2 sigma', two_sigma_color='LightGrey', alpha=1, crop_outliers=200,
-                                      local_mode=[[-0.294991910838,    3.731820480717,  -4.140554057902],
-                                                  [ 0.41787049285,  -4.639111764728,  3.994616452063]])
+        marg.scen['scI_quim1'] = Scenario(os.path.join(marg.input_base, 'pmc_scI_quim1.hdf5'), 'Blue',
+                                          sigma='1+2 sigma', two_sigma_color='LightBlue', alpha=1, queue_output=False, crop_outliers=50,
+                                          local_mode=[[-0.345514, 2.99263, -4.16734],
+                                                      [ 0.509072, -4.02532, 4.22568]])
+        marg.scen['scI_all_nuis'] = Scenario(os.path.join(marg.input_base, 'pmc_scI_all_nuis.hdf5'), 'Grey',
+                                             sigma='1+2 sigma', two_sigma_color='LightGrey', alpha=1, crop_outliers=200,
+                                          local_mode=[[-0.294991910838,    3.731820480717,  -4.140554057902],
+                                                      [ 0.41787049285,  -4.639111764728,  3.994616452063]])
 
-    marg.read_data()
+        marg.read_data()
 
-    ###
-    # settings for comparing scenarios
-    ###
-    name = 'Re{c7}'
-    nticks = 5
-    par_def0 = ParameterDefinition(name=name, min=-0.5, max=-0.1, index=0)
-    par_def0.major_locator = ticker.FixedLocator(np.linspace(par_def0.min, par_def0.max, nticks))
-    par_def1 = ParameterDefinition(name=name, min=0.2, max=0.6, index=0)
-    par_def1.major_locator = ticker.FixedLocator(np.linspace(par_def1.min, par_def1.max, nticks))
+        ###
+        # settings for comparing scenarios
+        ###
+        name = 'Re{c7}'
+        nticks = 5
+        par_def0 = ParameterDefinition(name=name, min=-0.5, max=-0.1, index=0)
+        par_def0.major_locator = ticker.FixedLocator(np.linspace(par_def0.min, par_def0.max, nticks))
+        par_def1 = ParameterDefinition(name=name, min=0.2, max=0.6, index=0)
+        par_def1.major_locator = ticker.FixedLocator(np.linspace(par_def1.min, par_def1.max, nticks))
 
-    # 0 = SM, 1 = flipped sign
-    marg.comparison_defs[('Re{c7}' , 0)] = par_def0
-    marg.comparison_defs[('Re{c7}' , 1)] = par_def1
-    marg.comparison_defs[('Re{c9}' , 0)] = ParameterDefinition(name='Re{c9}', min=+1, max=+6, index=1)
-    marg.comparison_defs[('Re{c9}' , 1)] = ParameterDefinition(name='Re{c9}', min=-7, max=-2, index=1)
-    marg.comparison_defs[('Re{c10}', 0)] = ParameterDefinition(name='Re{c10}', min=-6.5, max=-1.5, index=2)
-    marg.comparison_defs[('Re{c10}', 1)] = ParameterDefinition(name='Re{c10}', min=+1.5, max=+6.5, index=2)
+        # 0 = SM, 1 = flipped sign
+        marg.comparison_defs[('Re{c7}' , 0)] = par_def0
+        marg.comparison_defs[('Re{c7}' , 1)] = par_def1
+        marg.comparison_defs[('Re{c9}' , 0)] = ParameterDefinition(name='Re{c9}', min=+1, max=+6, index=1)
+        marg.comparison_defs[('Re{c9}' , 1)] = ParameterDefinition(name='Re{c9}', min=-7, max=-2, index=1)
+        marg.comparison_defs[('Re{c10}', 0)] = ParameterDefinition(name='Re{c10}', min=-6.5, max=-1.5, index=2)
+        marg.comparison_defs[('Re{c10}', 1)] = ParameterDefinition(name='Re{c10}', min=+1.5, max=+6.5, index=2)
 
-    # define bandwidths for each individual plot
-    bw = 0.0045
-    cb = marg.comparison_bandwidths
-    cb[('scI_posthep13', 0, 'Re{c7}', 'Re{c9}')] = bw * 1.4  # top
-    cb[('scI_posthep13', 1, 'Re{c7}', 'Re{c9}')] = bw * 1.4  # bottom
-    cb[('scI_posthep13', 1, 'Re{c7}', 'Re{c10}')] = bw * 1.6  # bottom
-    cb[('scI_posthep13', 0, 'Re{c7}', 'Re{c10}')] = bw * 1.6  # top
-    cb[('scI_posthep13', 1, 'Re{c9}', 'Re{c10}')] = bw * 1.7  # bottom
-    cb[('scI_posthep13', 0, 'Re{c9}', 'Re{c10}')] = bw * 1.4  # top
+        # define bandwidths for each individual plot
+        bw = 0.0045
+        cb = marg.comparison_bandwidths
+        cb[('scI_posthep13', 0, 'Re{c7}', 'Re{c9}')] = bw * 1.4  # top
+        cb[('scI_posthep13', 1, 'Re{c7}', 'Re{c9}')] = bw * 1.4  # bottom
+        cb[('scI_posthep13', 1, 'Re{c7}', 'Re{c10}')] = bw * 1.6  # bottom
+        cb[('scI_posthep13', 0, 'Re{c7}', 'Re{c10}')] = bw * 1.6  # top
+        cb[('scI_posthep13', 1, 'Re{c9}', 'Re{c10}')] = bw * 1.7  # bottom
+        cb[('scI_posthep13', 0, 'Re{c9}', 'Re{c10}')] = bw * 1.4  # top
 
-    cb[('scI_quim1', 0, 'Re{c7}', 'Re{c9}')] = bw * 1.4  # top
-    cb[('scI_quim1', 1, 'Re{c7}', 'Re{c9}')] = bw * 1.4  # bottom
-    cb[('scI_quim1', 1, 'Re{c7}', 'Re{c10}')] = bw * 1.6  # bottom
-    cb[('scI_quim1', 0, 'Re{c7}', 'Re{c10}')] = bw * 1.6  # top
-    cb[('scI_quim1', 1, 'Re{c9}', 'Re{c10}')] = bw * 1.5  # bottom
-    cb[('scI_quim1', 0, 'Re{c9}', 'Re{c10}')] = bw * 1.4  # top
+        cb[('scI_quim1', 0, 'Re{c7}', 'Re{c9}')] = bw * 1.4  # top
+        cb[('scI_quim1', 1, 'Re{c7}', 'Re{c9}')] = bw * 1.4  # bottom
+        cb[('scI_quim1', 1, 'Re{c7}', 'Re{c10}')] = bw * 1.6  # bottom
+        cb[('scI_quim1', 0, 'Re{c7}', 'Re{c10}')] = bw * 1.6  # top
+        cb[('scI_quim1', 1, 'Re{c9}', 'Re{c10}')] = bw * 1.5  # bottom
+        cb[('scI_quim1', 0, 'Re{c9}', 'Re{c10}')] = bw * 1.4  # top
 
-    cb[('scI_all_nuis', 0, 'Re{c7}', 'Re{c9}')] = bw * 1.4  # top
-    cb[('scI_all_nuis', 1, 'Re{c7}', 'Re{c9}')] = bw * 1.4  # bottom
-    cb[('scI_all_nuis', 1, 'Re{c7}', 'Re{c10}')] = bw * 1.6  # bottom
-    cb[('scI_all_nuis', 0, 'Re{c7}', 'Re{c10}')] = bw * 1.6  # top
-    cb[('scI_all_nuis', 1, 'Re{c9}', 'Re{c10}')] = bw * 1.5  # bottom
-    cb[('scI_all_nuis', 0, 'Re{c9}', 'Re{c10}')] = bw * 1.4  # top
+        cb[('scI_all_nuis', 0, 'Re{c7}', 'Re{c9}')] = bw * 1.4  # top
+        cb[('scI_all_nuis', 1, 'Re{c7}', 'Re{c9}')] = bw * 1.4  # bottom
+        cb[('scI_all_nuis', 1, 'Re{c7}', 'Re{c10}')] = bw * 1.6  # bottom
+        cb[('scI_all_nuis', 0, 'Re{c7}', 'Re{c10}')] = bw * 1.6  # top
+        cb[('scI_all_nuis', 1, 'Re{c9}', 'Re{c10}')] = bw * 1.5  # bottom
+        cb[('scI_all_nuis', 0, 'Re{c9}', 'Re{c10}')] = bw * 1.4  # top
 
-    # ##
-    # ACTIONS
-    # ##
-    marg.single_scenario()
-    combinations = (('scI_quim1',), ('scI_posthep13',), ('scI_posthep13', 'scI_quim1'),
-                    )
-#                     ('scI_all_nuis',),
-#                     ('scI_all_nuis', 'scI_posthep13'), ('scI_all_nuis', 'scI_quim1'))
+        marg.single_scenario()
+        combinations = (('scI_quim1',), ('scI_posthep13',), ('scI_posthep13', 'scI_quim1'),
+                        )
+    #                     ('scI_all_nuis',),
+    #                     ('scI_all_nuis', 'scI_posthep13'), ('scI_all_nuis', 'scI_quim1'))
 
-    marg.compare_scenarios(combinations)
+        marg.compare_scenarios(combinations)
 
 #     marg.subleading_separate()
 
-    # scIII plot
-    marg.primed()
+    def figIII(self):
+        """Scenario III marginals for C_i vs C'_i"""
 
-    # scII plot
-    marg.read_data()
-    marg.nine_nine_prime()
+        marg = MarginalContours(self.input_base, self.output_base, max_samples=self.max_samples)
+
+        defs = (ParameterDefinition(index=0, name='Re{c7}', min=-0.5, max=0.7),
+                ParameterDefinition(index=1, name='Re{c9}', min=-6.5, max=5.5),
+                ParameterDefinition(index=2, name='Re{c10}', min=-6, max=6))
+
+        name = 'scIII_posthep13'
+        s = Scenario(os.path.join(self.input_base, 'pmc_' + name + '.hdf5'), 'OrangeRed', bandwidth_default=0.005,
+                                  sigma='1+2 sigma', two_sigma_color='LightSalmon', alpha=1, queue_output=False, crop_outliers=50,
+                                  local_mode=[[ -0.337899, 3.30393, -4.48358, -0.0861297, 0.0512656, -0.837369],
+                                              [0.502549, -4.1695, 3.52083, 0.0500648, -2.70563, -0.822219],
+                                              [0.0115065, 3.28042, -1.57617, -0.424717, 3.38051, 2.46494],
+                                              [0.119822, -3.94822, 1.98214, 0.431466, -3.46372, -2.24401]])
+        s.set_bandwidth(0, 3, 0.01)
+        s.set_bandwidth(1, 4, 0.018)
+        s.set_bandwidth(2, 5, 0.013)
+
+        marg.scen[name] = s
+        marg.read_data()
+
+        # predictions in the SM
+        primed_defs = (ParameterDefinition(index=3, name="Re{c7'}" , min=-0.6, max=0.6),
+                       ParameterDefinition(index=4, name="Re{c9'}" , min=-6, max=6),
+                       ParameterDefinition(index=5, name="Re{c10'}", min=-6, max=6),)
+#         for d in primed_defs:
+#             m.cuts[d.i] = d.range
+        primed_predictions = (0, 0, 0)
+
+        mode_labels = (('A', ((-0.275, -0.1), (2.05, -1.25), (-3.5, -1.2))),
+                       ('B', ((0.34, 0.02),  (-3.5, -2.6),   (4.2, -1.5))),
+                       ('C', ((0.01, -0.37), (2.05, 2.5),   (-0.85, 2.25))),
+                       ('D', ((0.1, 0.3), (-4.9, -5),  (2.3, -3.5))))
+
+        fig = P.figure(figsize=(6, 6))
+
+        for i in range(3):
+            marg.single_panel(defs[i], primed_defs[i], scenarios=(name,))
+
+#             m.use_histogram = False
+#             m.kde_bandwidth = bandwidths[i]
+#             density = m.two_dimensional(i, i + len(self.pars))
+#
+#             # draw contours
+#             P.clf()
+#
+#             P.plot(self.sm_point[i], primed_predictions[i], **self.sm_point_style)
+#             xrange = (defs[primed_defs[i].name.replace("'",'')].min, defs[primed_defs[i].name.replace("'",'')].max)
+#             CS = m.contours_two(xrange, primed_defs[i].range, density, color=s.c)
+    #             P.setp(CS.collections[1], alpha=s.alpha, color=s.two_sigma_color)
+
+            # indicate SM prediction
+#             P.plot(self.sm_point[i], primed_predictions[i], **self.sm_point_style)
+            for p, (lab, loc) in zip(s.local_mode, mode_labels):
+#                 P.plot(p[i], p[i+3], **self.best_fit_points_style[0])
+                P.text(loc[i][0], loc[i][1], '$'+lab+'^{\prime}$')
+
+            # don't whiten beyond 2 sigma, so ignore lowest contour fill
+            #P.setp(CS.collections[0], alpha=0.0)
+#             CS.collections[0].remove()
+#             P.xlabel(m.tr.to_tex(self.pars[i]))
+#             P.ylabel(m.tr.to_tex(primed_defs[i].name))
+
+            adjust_subplot(fig)
+            P.savefig(marg.out('scIII_%d' % i))
+
+    def figIV(self):
+        '''scII plot'''
+
+        marg = MarginalContours(self.input_base, self.output_base, max_samples=self.max_samples)
+
+        ###
+        # parameter definitions
+        ###
+        def9      = ParameterDefinition(name='Re{c9}',  min=1, max=6, index=0)
+        def9prime = ParameterDefinition(name="Re{c9'}", min=-1, max=4, index=1)
+
+                # sc_name = 'scII_posthep13hpqcd'; local_mode = [[ 3.5210443, 1.2040]]
+        sc_name = 'scII_posthep13'; local_mode = [[ 3.41, 1.46]]
+        marg.scen[sc_name] = Scenario(os.path.join(marg.input_base, 'pmc_%s.hdf5' % sc_name), 'OrangeRed', bandwidth_default=0.017,
+                                  sigma='1+2 sigma', two_sigma_color='LightSalmon', alpha=1, queue_output=False, crop_outliers=50,
+                                  local_mode=local_mode, defs=[def9, def9prime])
+        marg.read_data()
+
+        fig = P.figure(figsize=[6]*2)
+        # 1,2, and 3 sigma contours
+        marg.single_panel(def9, def9prime, SM_point=True, local_mode=True, scenarios=(sc_name,),
+                          desired_levels=(0.683, 0.954, 0.9973), label=True)
+        adjust_subplot()
+        P.savefig(marg.out(sc_name))
+
+    def all(self):
+        import inspect
+
+        for m in inspect.getmembers(self, predicate=inspect.ismethod):
+            if m[0].startswith('fig'):
+                m[1]()
 
 if __name__ == '__main__':
     matplotlib.rcParams['text.usetex'] = True
@@ -1332,7 +944,9 @@ if __name__ == '__main__':
     matplotlib.rc('ytick.minor', **minor)
     matplotlib.rcParams['axes.linewidth'] = major['width']
 
-    fall2013()
+    f = Fall2013()
+    f.all()
+
     # ##
     # ACTIONS
     # ##
