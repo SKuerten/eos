@@ -473,8 +473,6 @@ class MarginalContours(object):
         prior_style = dict(color='black', linestyle='dotted', linewidth=line_width)
         prior_label = r"$\mathrm{prior}$"
 
-        wide_figure()
-
         for i,p in enumerate(props):
             if bandwidths is not None:
                 marg.use_histogram = False
@@ -772,7 +770,9 @@ class Fall2013(object):
                                               crop_outliers=200, nbins=150)
         marg.read_data()
 
+        wide_figure(self.fig_size)
         marg.subleading_together(scenario='sm_posthep13', indices=(9, 20, 18), bandwidths=(0.005, 0.01, 0.015))
+        wide_figure(self.fig_size)
         marg.subleading_together(scenario='scIII_posthep13', indices=(15, 26, 24), bandwidths=(0.01, 0.02, 0.03))
 #         marg.subleading_together(scenario='scIII_posthep13hpqcd', indices=(15, 26, 24), bandwidths=(0.01, 0.02, 0.03))
 
@@ -948,5 +948,5 @@ if __name__ == '__main__':
     matplotlib.rcParams['axes.linewidth'] = major['width']
 
     f = Fall2013()
-#     f.figI()
-    f.all()
+    f.figI()
+#    f.all()
