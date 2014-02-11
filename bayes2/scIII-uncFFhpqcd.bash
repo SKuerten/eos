@@ -15,10 +15,10 @@ export PMC_FINAL_CHUNKSIZE=100000
 export PMC_GROUP_BY_RVALUE=1.5
 export PMC_INITIALIZATION="$PMC_INITIALIZATION --pmc-r-value-no-nuisance 0"
 
-export UNC_SAMPLES=100000
+export UNC_SAMPLES=250000
 export UNC_WORKERS=1
 export UNC_PMC_INPUT="
-    --pmc-input ${BASE_NAME}/../pmc_scIII_posthep13hpqcd_A.hdf5 0 ${UNC_SAMPLES}
+    --pmc-input ${BASE_NAME}/scIII_posthep13hpqcd/pmc_scIII_posthep13hpqcd_D.hdf5 0 ${UNC_SAMPLES}
 "
 
 main $@
