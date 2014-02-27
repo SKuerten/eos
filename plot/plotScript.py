@@ -1404,14 +1404,14 @@ class MarginalDistributions:
             # 'Combining error ellipses' by John E. Davis
             correlation = np.array([[1.0, cov[par1,par2] / np.sqrt(cov[par1,par1] * cov[par2,par2])], [0.0, 1.0]])
             correlation[1,0] = correlation[0,1]
-            assert( -1 < correlation[0,1] and correlation[0,1] < 1)
+            assert( np.abs(correlation[0,1]) <= 1)
 
             ew, ev = linalg.eigh(submatrix)
             assert(ew.min() > 0)
 
             # rotation angle of major axis with x-axis
-            if submatrix[0,0] ==  submatrix[1,1]:
-                theta = 0
+            if submatrix[0,0] == submatrix[1,1]:
+                theta = np.sign(correlation[0, 1]) * np.pi / 4
             else:
                 theta = 0.5 * np.arctan( 2 * submatrix[0,1] / (submatrix[1,1] - submatrix[0,0]))
 
