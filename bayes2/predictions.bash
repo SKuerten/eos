@@ -46,6 +46,10 @@ export PREDICTIONS_uncVLL="
 export PREDICTIONS_uncVLLflat=${PREDICTIONS_uncVLL}
 export PREDICTIONS_uncVLLwide=${PREDICTIONS_uncVLL}
 
+export PREDICTIONS_uncPLL="
+    --kinematics s_min 14.18 --kinematics s_max 22.86 --observable B->Kll::BRavg@LowRecoil,q=u,l=mu,form-factors=KMPW2010,model=WilsonScan
+"
+
 export PREDICTIONS_uncINCL="
     --kinematics E_min 1.8 --observable B->X_sgamma::BR(E_min)@NLO,model=WilsonScan
     --kinematics s_min 1 --kinematics s_max 6 --observable B->X_sll::BR@HLMW2005,model=WilsonScan
