@@ -17,7 +17,7 @@ for i in $(seq -f %01.0f $low $high); do
 #@ class = serial
 ##@ node = 1
 ##@ total_tasks = 1
-##@ node_usage = shared
+#@ node_usage = shared
 #@ resources = ConsumableCpus(1)
 #
 ###                    hh:mm:ss

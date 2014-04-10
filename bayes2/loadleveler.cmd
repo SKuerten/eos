@@ -3,7 +3,7 @@
 scenario=$1; shift
 constraints=$1; shift
 
-for i in $(seq -f %03.0f 1 25); do
+for i in $(seq -f %03.0f 1 10); do
     file=j${i}.job
     # beware of shell escaping: loadlever variables
     # must not be expanded by this shell
@@ -27,7 +27,7 @@ for i in $(seq -f %03.0f 1 25); do
 export KMP_AFFINITY=granularity=core,compact,1
 
 # output file directory
-export BASE_NAME=$BASE_NAME/2013-08-20
+export BASE_NAME=$BASE_NAME/2014-01-31
 
 ./${scenario}-${constraints}.bash pre $i" > $file
 
