@@ -11,5 +11,20 @@ How to add a new scenario foo with data bar:
    parameters to describe the observables in the constraints.
 4. Create a new executable file foo_bar.bash, in which the default options for prerun and main run
    can be overridden.
-5. Start the script with ./foo_bar.bash pre INDEX
-   NOTE: Don't use INDEX=0003, prefer INDEX=3 instead
+5. To make predictions, add $PREDICTIONS_bar to predictions.bash.
+5. Make the script executable and run the script with
+
+   chmod +x foo_bar.bash
+   BASE_NAME=$BASE_NAME/2014-04-11 ./foo_bar.bash pre INDEX
+
+   NOTE: Don't use INDEX=0003, prefer INDEX=3 instead.
+6. Check the output in the log file, and make sure all (nuisance!) parameters, constraints etc. appear
+7. Getting ready for the prerun: turn down the sample number and update size as in
+   export MCMC_PRERUN_SAMPLES=4
+   export MCMC_PRERUN_UPDATE_SIZE=4
+
+   then fire it up:
+
+   BASE_NAME=$BASE_NAME/2014-04-11 ./loadleveler-single.cmd scII posthep13hpqcdSLflat pre 0 5
+
+   Make sure all files are fine, then turn up the volume and resubmit.

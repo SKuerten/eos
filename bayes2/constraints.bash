@@ -302,6 +302,8 @@ export CONSTRAINTS_posthep13hpqcd="
     ${CONSTRAINTS_B_TO_VLL_FF_HPQCD}
 "
 
+export CONSTRAINTS_posthep13hpqcdSLflat=${CONSTRAINTS_posthep13hpqcd}
+
 export CONSTRAINTS_posthep13noFLBabarAtlas="
     ${CONSTRAINTS_B_MASS_SPLITTING}
     ${CONSTRAINTS_B_TO_XSGAMMA}

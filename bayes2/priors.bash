@@ -104,6 +104,11 @@ export NUISANCE_B_TO_PLL_SUBLEADING_WIDE="
     --nuisance    B->Pll::Lambda_pseudo@LargeRecoil             -2.0   2.0  ${N_SIGMAS}     --prior    gaussian   -1.50      0.0       1.50
 "
 
+export NUISANCE_B_TO_PLL_SUBLEADING_FLAT="
+    --nuisance    B->Pll::Lambda_pseudo@LowRecoil               -0.45  0.45 --prior    flat
+    --nuisance    B->Pll::Lambda_pseudo@LargeRecoil             -1.00  1.00 --prior    flat
+"
+
 export NUISANCE_B_TO_XS_HQE="
     --nuisance    B->B::mu_pi^2@1GeV                             0.0   2.0  ${N_SIGMAS}     --prior    gaussian    0.35      0.45      0.55
     --nuisance    B->B::mu_G^2@1GeV                              0.0   2.0  ${N_SIGMAS}     --prior    log-gamma   0.33      0.35      0.38
@@ -187,6 +192,19 @@ export NUISANCE_posthep13=${NUISANCE_all}
 export NUISANCE_posthep13noFLBabarAtlas=${NUISANCE_all}
 export NUISANCE_posthep13hpqcd=${NUISANCE_all}
 export NUISANCE_posthep13hpqcdnoFLBabarAtlas=${NUISANCE_all}
+
+export NUISANCE_posthep13hpqcdSLflat="
+    ${NUISANCE_CKM}
+    ${NUISANCE_QUARK_MASSES}
+    ${NUISANCE_DECAY_CONSTANTS}
+    ${NUISANCE_B_TO_VPERPLL_FORM_FACTORS}
+    ${NUISANCE_B_TO_VPERPLL_SUBLEADING_FLAT}
+    ${NUISANCE_B_TO_VPARALL_FORM_FACTORS}
+    ${NUISANCE_B_TO_VPARALL_SUBLEADING_FLAT}
+    ${NUISANCE_B_TO_PLL_FORM_FACTORS}
+    ${NUISANCE_B_TO_PLL_SUBLEADING_FLAT}
+    ${NUISANCE_B_TO_XS_HQE}
+"
 
 export NUISANCE_posthep13wide="
     ${NUISANCE_CKM}

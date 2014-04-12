@@ -1,5 +1,9 @@
 #!/bin/bash
 
+# examples:
+# BASE_NAME=$BASE_NAME/2014-02-07 ./loadleveler-single.cmd scI posthep13hpqcdnoFLBabarAtlas gof 0 1
+# BASE_NAME=$BASE_NAME/2014-02-07 ./loadleveler-single.cmd scIII posthep13hpqcdSLflat pre 0 10
+
 scenario=$1; shift
 constraints=$1; shift
 action=$1; shift
