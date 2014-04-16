@@ -1,6 +1,6 @@
 """Compute Bayes factors between all combinations of models"""
 
-from __future__ import division
+from __future__ import division, print_function
 import numpy as np
 from numpy import exp, log
 
@@ -8,10 +8,37 @@ from numpy import exp, log
 
 # log evidence for solution A(')
 zposthep = {'I':560.982, 'II':571.304, 'III':560.424, 'sm':571.852}
-zhpcqcd = {'I':565.70, 'II':580.676, 'III':569.629, 'sm':576.61}
+zhpcqcd  = {'I':565.70,  'II':580.676, 'III':569.629, 'sm':576.61}
+zhpcqcdflat = {'II':580.708, 'III':573.749, 'sm':577.58}
+
+# these ranges should be just large enough to contain solution A(')
+desired_ranges = {'C7':0.5, 'C9':3.75, 'C10':3.75, "C7'":0.5, "C9'":5, "C10'":3.75}
 
 # rescale prior volume a posteriori s.t. I-III on the same page
-ratio = {'I':1/8**3, 'II':1/4**2, 'III':1/4**6, 'sm':1}
+# ratio = {'I':1/8**3, 'II':1/3 * 1/4, 'III':1/4**5 * 1/3, 'sm':1}
+# print(ratio)
+actual_ranges_hpqcd = {'I': {'C7':4, 'C9':30, 'C10':30},
+                       'II': {'C9':15, "C9'":15},
+                       'III': {'C7':2, 'C9':15, 'C10':15, "C7'":2, "C9'":15, "C10'":15}}
+actual_ranges_hpqcd_flat = {'II': {'C9':15, "C9'":15},
+                            'III': {'C7':1, 'C9':7.5, 'C10':7.5, "C7'":0.8, "C9'":8, "C10'":6}}
+
+def compute_ratios(actual_ranges):
+    ratios = {}
+    for scen, ranges in actual_ranges.iteritems():
+        r = 1.
+        for C in ranges.keys():
+            r *= desired_ranges[C] / ranges[C]
+
+        ratios[scen] = r
+    return ratios
+
+ratio = compute_ratios(actual_ranges_hpqcd)
+ratio_flat = compute_ratios(actual_ranges_hpqcd_flat)
+
+# add the sm, which is unscaled
+for r in ratio, ratio_flat:
+    r['sm'] = 1
 
 # naive Bayes factors
 def bayes(z, ratio=None):
@@ -21,7 +48,6 @@ def bayes(z, ratio=None):
         if ratio:
             zref -= log(ratio[reference])
         for sc in z.keys()[i+1:]:
-
             zsc = z[sc]
             if ratio:
                 zsc -= log(ratio[sc])
@@ -38,25 +64,29 @@ def bayes(z, ratio=None):
             print("%s vs %s: %g" % (out_sc, out_ref, factor))
 
 print("Compute Bayes factors for...\n")
+
+print('desired ranges', desired_ranges)
+
 print("posthep13")
 print("---------")
-print("naive")
-bayes(zposthep)
 
-print
+print()
 print("volume corrected")
 bayes(zposthep, ratio)
 
 print("\n\nposthep13hpqcd")
 print("---------")
-print("naive")
-bayes(zhpcqcd)
 
-print
+print()
 print("volume corrected")
 bayes(zhpcqcd, ratio)
 
-print
+print("\n\nposthep13hpqcdflat")
+print("---------")
+print("volume corrected")
+bayes(zhpcqcdflat, ratio_flat)
+
+print()
 print('NOTE: in each file, 200 highest weights are cropped.')
 
 def ratios():
