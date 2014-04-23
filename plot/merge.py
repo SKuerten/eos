@@ -17,10 +17,12 @@ def natural_sort_key(key):
 
 def invalid_chain(file, chain, cut_off=None):
     """Check if mode larger than cut off"""
-    if cut_off is None:
-        return False
     # last value of the last mode is the best found in all updates sequences
     mode = file['/prerun/chain #%d/stats/mode' % chain][-1][-1]
+
+    if cut_off is None:
+        print('chain %d has mode %g' % (chain, mode))
+        return False
 
     if mode > cut_off:
         return False
