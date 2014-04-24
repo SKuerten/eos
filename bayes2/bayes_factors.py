@@ -12,7 +12,7 @@ zhpcqcd  = {'I':565.70,  'II':580.676, 'III':569.629, 'sm':576.61}
 zhpcqcdflat = {'II':580.708, 'III':573.749, 'sm':577.58}
 
 # these ranges should be just large enough to contain solution A(')
-desired_ranges = {'C7':0.5, 'C9':3.75, 'C10':3.75, "C7'":0.5, "C9'":5, "C10'":3.75}
+desired_ranges = {'C7':0.4, 'C9':4, 'C10':4, "C7'":0.4, "C9'":4, "C10'":4}
 
 # rescale prior volume a posteriori s.t. I-III on the same page
 # ratio = {'I':1/8**3, 'II':1/3 * 1/4, 'III':1/4**5 * 1/3, 'sm':1}
@@ -94,11 +94,11 @@ def ratios():
     z1 = {'A':zposthep['III'], 'B':560.475, 'C':558.288, 'D':559.493}
     z2 = {'A':zhpcqcd['III'], 'B':569.175, 'C':567.448, 'D':568.439}
 
-    for z in (z1, z2):
+    for z, name in zip((z1, z2), ('posthep13', 'posthep13hpqcd')):
         zv = np.array([z[k] for k in sorted(z.keys())])
         zv = exp(zv)
         print('')
-        print('Posterior mass ratios of the four solutions in scenario III')
+        print('Posterior mass ratios of the four solutions in scenario III ' + name)
         print(sorted(z.keys()))
         print(zv / zv.sum())
 
