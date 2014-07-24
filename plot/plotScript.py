@@ -953,14 +953,14 @@ class MarginalDistributions:
                 posterior_level = probability_array[bin_index]
 
                 (prob_greater_equal, prob_greater_than) = self.find_hist_limits(probability_array, density=posterior_level)
-                sigmas_ge = Gaussian.ppf((prob_greater_equal + 1) / 2.0, location=0, scale=1)
-                sigmas_gt = Gaussian.ppf((prob_greater_than + 1) / 2.0, location=0, scale=1)
+                sigmas_ge = Gaussian.ppf((prob_greater_equal + 1) / 2.0)#, location=0, scale=1)
+                sigmas_gt = Gaussian.ppf((prob_greater_than + 1) / 2.0)#, location=0, scale=1)
 
                 print("GoF: point (%g) at %g%% level (w/o overcovering: at %g%% level). On the Gaussian scale, that's at %g [%g] sigmas" %
                       (value, prob_greater_equal * 100, prob_greater_than * 100, sigmas_ge, sigmas_gt))
 
-                # deactivate: not useful with KDE
-#                 P.plot([value, value], [0.0, posterior_level], linestyle='dashed', linewidth=0.8)
+                # indicate GOF point
+                P.scatter(value, 0, marker='*', s=200, color='salmon')
 
             except KeyError:
                 pass
@@ -1203,8 +1203,8 @@ class MarginalDistributions:
 
                 (prob_greater_equal, prob_greater_than) = self.find_hist_limits(probability_array, density=posterior_level)
 
-                sigmas_ge = Gaussian.ppf((prob_greater_equal + 1) / 2.0, location=0, scale=1)
-                sigmas_gt = Gaussian.ppf((prob_greater_than + 1) / 2.0, location=0, scale=1)
+                sigmas_ge = Gaussian.ppf((prob_greater_equal + 1) / 2.0)#, location=0, scale=1)
+                sigmas_gt = Gaussian.ppf((prob_greater_than + 1) / 2.0)#, location=0, scale=1)
                 print("GoF: point %s at %g%% level (w/o overcovering: at %g%% level). On the Gaussian scale, that's at %g [%g] sigmas" %
                       (str(value), prob_greater_equal * 100, prob_greater_than * 100, sigmas_ge, sigmas_gt))
 
@@ -1736,7 +1736,6 @@ def factory(cmd_line=None):
         marg.output_dir =  args.__dict__['output_dir']
     if args.__dict__['gof'] is not None:
         for pair in args.__dict__['gof']:
-            print(pair)
             marg.gof_point[int(pair[0])] = float(pair[1])
 
     if cmd_line is not None:
