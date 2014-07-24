@@ -30,7 +30,7 @@ for i in $(seq -f %01.0f $low $high); do
 #@ initialdir = \$(home)/workspace/eos-scripts/bayes2
 #@ output = /gpfs/work/pr85tu/ru72xaf2/log/\$(jobid).out
 #@ error  = /gpfs/work/pr85tu/ru72xaf2/log/\$(jobid).err
-#@ notification=always
+#@ notification=error
 #@ notify_user=Frederik.Beaujean@lmu.de
 #@ queue
 . /etc/profile
