@@ -258,12 +258,20 @@ export CONSTRAINTS_B_TO_VLL_FF="
 "
 
 export CONSTRAINTS_B_TO_VLL_FF_HPQCD="
+    --global-option model WilsonScan
+    --global-option scan-mode cartesian
+
+    --global-option form-factors KMPW2010
+
     --constraint B->K^*::V@HPQCD-2013B
     --constraint B->K^*::A_1@HPQCD-2013B
     --constraint B->K^*::A_12@HPQCD-2013B
 "
 
 export CONSTRAINTS_B_MASS_SPLITTING="
+    --global-option model WilsonScan
+    --global-option scan-mode cartesian
+
     --constraint B^0::M_B^*-M_B@PDG-2012
 "
 
