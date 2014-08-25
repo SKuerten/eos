@@ -18,7 +18,7 @@ export SGE_FINAL_QUEUE=short
 export PMC_POLLING_INTERVAL=5
 
 export PMC_RESOURCE_MANAGER=loadleveler
-export LL_QUEUE=test
+export LL_QUEUE=shorttest
 export LL_FINAL_QUEUE=${LL_QUEUE}
 
 main $@

@@ -16,7 +16,7 @@ export PMC_INITIALIZATION="$PMC_INITIALIZATION --pmc-r-value-no-nuisance 0"
 export PMC_CONVERGENCE="$PMC_CONVERGENCE --pmc-crop-highest-weights 50"
 export PMC_SKIP_INITIAL=0.2
 
-export PMC_NUMBER_OF_JOBS=100
+export PMC_NUMBER_OF_JOBS=150
 export PMC_RESOURCE_MANAGER=loadleveler
 export LL_QUEUE=test
 export LL_FINAL_QUEUE=serial

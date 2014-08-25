@@ -16,7 +16,7 @@ for i in $(seq -f %01.0f $low $high); do
     # must not be expanded by this shell
     echo "#! /bin/bash
 #
-#@ group =  pr85tu
+#@ group = pr85tu
 #@ job_type = serial
 #@ class = serial
 ##@ node = 1
@@ -25,7 +25,7 @@ for i in $(seq -f %01.0f $low $high); do
 #@ resources = ConsumableCpus(1)
 #
 ###                    hh:mm:ss
-#@ wall_clock_limit = 15:15:50
+#@ wall_clock_limit = 47:55:50
 #@ job_name = eos-\$(jobid)
 #@ initialdir = \$(home)/workspace/eos-scripts/bayes2
 #@ output = /gpfs/work/pr85tu/ru72xaf2/log/\$(jobid).out
