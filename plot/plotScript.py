@@ -1805,4 +1805,5 @@ def main():
 if __name__ == '__main__':
     np.set_printoptions(precision=6)
     matplotlib.rcParams['text.latex.unicode'] = True
+    matplotlib.rcParams['image.cmap'] = 'gist_heat_r'
     main()

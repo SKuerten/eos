@@ -195,7 +195,7 @@ class MCMC_Output(SamplingOutput):
         full_length = len(hdf5_file[prefix + '/chain #' + first_chain + "/samples"])
 
         #adjust which range is drawn, default: full range
-        if self.select[0] is  None and self.skip_initial is not None:
+        if self.skip_initial > 0:
             self.select[0] = int(self.skip_initial * full_length)
 
         merged_chains = hdf5_file[prefix + '/chain #' + first_chain + "/samples"][self.select[0]:self.select[1]]
@@ -215,7 +215,9 @@ class MCMC_Output(SamplingOutput):
 
         # read all remaining chains
         for chain in chains[1:]:
-            data = hdf5_file[prefix + '/chain #%d/samples' % chain][self.select[0]:self.select[1]]
+            c = hdf5_file[prefix + '/chain #%d/samples' % chain]
+            assert len(c) == full_length, 'Length of chain %d (%d) differs from length of chain %s (%d)' % (chain, len(c), first_chain, full_length)
+            data = c[self.select[0]:self.select[1]]
             merged_chains = np.concatenate((merged_chains, data), axis=0)
             modes.append(hdf5_file[prefix + '/chain #%d/stats/mode' % chain][-1])
             n_chains_parsed += 1
