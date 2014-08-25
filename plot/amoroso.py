@@ -1,3 +1,4 @@
+#! /usr/bin/env python
 """
 Investigate the Amoroso and log gamma distribution.
 
@@ -432,6 +433,26 @@ def solve_amoroso_2012(a, x_10, x_50, x_90, initial_guess):
 def solve_amoroso_mode68(a, mode, sigma_plus, sigma_minus, initial_guess, experiment):
     """
     Fit the Amoroso distribution to info from LHCb and CMS July 2013 results
+
+    :param a:
+
+        minimum value, PDF=0 for x <= a. Typically a = 0.
+
+    :param mode:
+
+        position of most likely value reported by experiment
+
+    :param sigma_plus, sigma_minus:
+
+        uncertainty for x >[<] mode
+
+    :param initial_guess:
+
+        Initial guess for the parameters alpha and beta.
+
+    :param experiment:
+
+        String; used for labels and file name of plot.
     """
     print(constraints_amoroso_mode68(initial_guess, a, mode, sigma_plus, sigma_minus))
     (x, infodict, ier, mesg) = fsolve(constraints_amoroso_mode68, initial_guess,
@@ -454,7 +475,7 @@ def solve_amoroso_mode68(a, mode, sigma_plus, sigma_minus, initial_guess, experi
                                cdf_amoroso(mode + sigma_plus, a, theta, alpha, beta) -
                                cdf_amoroso(mode - sigma_minus, a, theta, alpha, beta),))
 
-    x_max = 7
+    x_max = 3 * mode
     x = np.linspace(a, x_max, 1000)
     y1 = [pdf_amoroso(x_i, a, theta, alpha, beta) for x_i in x]
     y2 = [cdf_amoroso(x_i, a, theta, alpha, beta) for x_i in x]
@@ -462,7 +483,7 @@ def solve_amoroso_mode68(a, mode, sigma_plus, sigma_minus, initial_guess, experi
     P.plot(x, y1, label='%s pdf' % experiment)
     P.plot(x, y2, label='%s cdf' % experiment)
 
-    P.legend()
+    P.legend(loc='center right')
     P.title(r"$\theta = " + ("%g" % theta) + r", \alpha = " + ("%g" % alpha) + r", \beta = " + ("%g" % beta) + "$\n"
             + "mode at $" + "%g" % mode + "$")
     P.axhline(0.95, 0, 1, linestyle='--', color='black')
@@ -475,7 +496,7 @@ def solve_amoroso_mode68(a, mode, sigma_plus, sigma_minus, initial_guess, experi
 #    P.xticks(np.linspace(a, a + 2 * x_95, 10))
 #    P.grid()
     P.xlabel(r"BR$(B_s \to \mu \mu)$")
-    P.savefig("B_s_%s.pdf" % experiment)
+    P.savefig("%s.pdf" % experiment)
     P.show()
 
 def plot_around():
@@ -800,7 +821,12 @@ if __name__ == '__main__':
 #     solve_log_gamma3(nu=0, theta=1, alpha=1, a_initial=-1, b_initial=1)
 
 
-    # CMS 2013
-#     solve_amoroso_mode68(0.0, mode=3.0, sigma_plus=1.0, sigma_minus=0.9, initial_guess=[2.2682156277, 1.7296007586], experiment='CMS 1307.5025')
-    solve_amoroso_mode68(0.0, mode=2.9, sigma_plus=np.sqrt(1.1 ** 2 + 0.3 ** 2), sigma_minus=np.sqrt(1.0 ** 2 + 0.1 ** 2),
-                        initial_guess=[2.2682156277, 1.7296007586], experiment='LHCb 1307.5024')
+    # B_s -> mu mu  2013
+    # solve_amoroso_mode68(0.0, mode=3.0, sigma_plus=1.0, sigma_minus=0.9, initial_guess=[2.2682156277, 1.7296007586], experiment='CMS 1307.5025')
+    # solve_amoroso_mode68(0.0, mode=2.9, sigma_plus=np.sqrt(1.1 ** 2 + 0.3 ** 2), sigma_minus=np.sqrt(1.0 ** 2 + 0.1 ** 2),
+    #                     initial_guess=[2.2682156277, 1.7296007586], experiment='LHCb 1307.5024')
+    solve_amoroso_mode68(0.0, mode=2.9, sigma_plus=0.7, sigma_minus=0.7,
+                        initial_guess=[2.2682156277, 1.7296007586], experiment=r'$B_s \to \mu \mu$ CMS + LHCb 2013')
+    P.figure()
+    solve_amoroso_mode68(0.0, mode=3.6, sigma_plus=1.6, sigma_minus=1.4,
+                        initial_guess=[2.2682156277, 1.7296007586], experiment=r'$B_d \to \mu \mu$ CMS + LHCb 2013')
