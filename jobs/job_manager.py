@@ -1470,12 +1470,27 @@ class LL_Iterator(PMC_Iterator):
         # submit file
         ###
         cmd = 'llsubmit ' + submit_file_name
-        status, output = commands.getstatusoutput(cmd)
-
         self.clean_files.append(submit_file_name)
 
+        # try a few times to avoid
+        # llsubmit: 2512-116 Unable to submit a job to the schedd machine.
+        # llsubmit: 2512-051 This job has not been submitted to LoadLeveler.
+        repeat = 3
+        wait_for = 2
+        for i in range(repeat):
+            status, output = commands.getstatusoutput(cmd)
+
+            if status == 0:
+                break
+
+            if "Unable to submit a job to the schedd machine" in output:
+                time.sleep(wait_for)
+                continue
+            else:
+                raise Exception("Couldn't submit to LL queue: \n Tried '%s'\n\n and received:\n\n %s" % (cmd, output))
+
         if status != 0 or not output:
-            raise Exception("Couldn't submit to LL queue: \n Tried '%s'\n\n and received:\n\n %s" % (cmd, output))
+            raise Exception("Couldn't submit %s to LL queue: \n Tried %d times in intervals of %d s and received:\n\n %s" % (submit_file_name, repeat, wait_for, output))
 
         # extract job index from a line like
         # llsubmit: The job "xcat.163140" has been submitted.
