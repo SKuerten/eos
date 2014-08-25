@@ -35,7 +35,7 @@ BINOPT=",model=SM,form-factors=BZ2004v2,l=mu,q=d"
 echo "B^- -> K^- ll @ Low Recoil"
 BINOPT=",model=SM,form-factors=BZ2004v2,l=mu,q=u"
 ./src/clients/eos-evaluate \
-    --parameter "mass::K0" 0.49368 \
+    --parameter "mass::K_d" 0.49368 \
     --kinematics s_min  14.18 --kinematics s_max 16.00 --observable "B->Kll::BRavg@LowRecoil$BINOPT" \
     --kinematics s_min  14.18 --kinematics s_max 16.00 --observable "B->Kll::F_H@LowRecoil$BINOPT" \
     --kinematics s_min  16.00 --kinematics s_max 18.00 --observable "B->Kll::BRavg@LowRecoil$BINOPT" \
@@ -94,7 +94,7 @@ BINOPT=",model=SM,form-factors=BZ2004v2,l=mu,q=d"
 echo "B^- -> K^- ll @ Large Recoil"
 BINOPT=",model=SM,form-factors=BZ2004v2,l=mu,q=u"
 ./src/clients/eos-evaluate \
-    --parameter "mass::K0" 0.49368 \
+    --parameter "mass::K_d" 0.49368 \
     --kinematics s_min  1.000 --kinematics s_max  6.00 --observable "B->Kll::BRavg@LargeRecoil$BINOPT" \
     --kinematics s_min  1.000 --kinematics s_max  6.00 --observable "B->Kll::F_H@LargeRecoil$BINOPT" \
     --kinematics s_min  0.045 --kinematics s_max  2.00 --observable "B->Kll::BRavg@LargeRecoil$BINOPT" \
