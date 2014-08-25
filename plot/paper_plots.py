@@ -156,7 +156,14 @@ class MarginalContours(object):
         best_fit_point_style['marker'] = 'x'
         best_fit_point_style['markeredgewidth'] = 3.0
 
-        self.best_fit_points_style = [best_fit_point_style]*2
+        next_best_fit_point_style = dict(best_fit_point_style)
+        next_best_fit_point_style['marker'] = '+'
+        next_best_fit_point_style['color'] = 'Blue'
+
+        self.best_fit_points_style = [[best_fit_point_style]*2, [next_best_fit_point_style]*2]
+
+        # highest to lowest contour
+        self.contour_styles = [dict(linestyle='solid'), dict(linestyle='dashed'), dict(linestyle='dashdot')]
 
         self.max_samples = max_samples
         self.read_data()
@@ -232,7 +239,7 @@ class MarginalContours(object):
         P.cla()
 
     def single_panel(self, def1, def2, scenarios,
-                     solution=None, SM_point=True, local_mode=True,
+                     solution=None, SM_point=True, local_mode=[True],
                      desired_levels=None, label=True):
         """
         Single marginal plot to compare two scenarios
@@ -258,15 +265,21 @@ class MarginalContours(object):
             # retrieve original range used to create prob_density
             # then zoom will work correctly
             density, xrange, yrange = self.__density_cache[(i, j, s, solution)]
+            line = bool(k)
             artist = self.margs[s].contours_two(xrange, yrange, density,
-                                                color=self.scen[s].c, line=bool(k), grid=True,
+                                                color=self.scen[s].c, line=line, grid=True,
                                                 desired_levels=desired_levels)
+            if line:
+                for n, l in enumerate(desired_levels):
+                    P.setp(artist.collections[n], **self.contour_styles[-n-1])
 
         if SM_point:
             P.plot(self.sm_point.get(def1.name, 0.), self.sm_point.get(def2.name, 0.), **self.sm_point_style)
-        if local_mode:
-            for style, p in zip(self.best_fit_points_style, self.scen[scenarios[0]].local_mode):
-                P.plot(p[i], p[j], **style)
+        if any(local_mode):
+            for n, s in enumerate(scenarios):
+                if local_mode[n]:
+                    for style, p in zip(self.best_fit_points_style[n], self.scen[s].local_mode):
+                        P.plot(p[i], p[j], **style)
 
         ax = P.gca()
 
@@ -913,18 +926,23 @@ class Fall2013(object):
         def9      = ParameterDefinition(name='Re{c9}',  min=1, max=6, index=0)
         def9prime = ParameterDefinition(name="Re{c9'}", min=-1, max=4, index=1)
 
-                # sc_name = 'scII_posthep13hpqcd'; local_mode = [[ 3.5210443, 1.2040]]
-        sc_name = 'scII_posthep13'; local_mode = [[ 3.41, 1.46]]
-        marg.scen[sc_name] = Scenario(os.path.join(marg.input_base, 'pmc_%s.hdf5' % sc_name), 'OrangeRed', bandwidth_default=0.017,
-                                      queue_output=False, crop_outliers=50, local_mode=local_mode, defs=[def9, def9prime])
+        sc_names = ('scII_posthep13', 'scII_posthep13hpqcd')
+        local_modes = ([[3.559, 1.035]], [[3.741, 0.663]])
+        marg.scen[sc_names[0]] = Scenario(os.path.join('/data/eos/2013-fall-erratum', 'pmc_%s.hdf5' % sc_names[0]), 'OrangeRed',
+                                          bandwidth_default=0.025,
+                                          queue_output=False, crop_outliers=200, local_mode=local_modes[0], defs=[def9, def9prime])
+        marg.scen[sc_names[1]] = Scenario(os.path.join('/data/eos/2013-fall-erratum', 'pmc_%s.hdf5' % sc_names[1]), 'Blue',
+                                          bandwidth_default=0.017,
+                                          queue_output=False, crop_outliers=200, local_mode=local_modes[1], defs=[def9, def9prime])
+
         marg.read_data()
 
         square_figure(self.fig_size)
         # 1,2, and 3 sigma contours
-        marg.single_panel(def9, def9prime, SM_point=True, local_mode=True, scenarios=(sc_name,),
+        marg.single_panel(def9, def9prime, SM_point=True, local_mode=[True, True], scenarios=sc_names,
                           desired_levels=(0.683, 0.954, 0.9973), label=True)
         adjust_subplot()
-        P.savefig(marg.out(sc_name))
+        P.savefig(marg.out('scII'))
 
     def all(self):
         import inspect
@@ -948,5 +966,5 @@ if __name__ == '__main__':
     matplotlib.rcParams['axes.linewidth'] = major['width']
 
     f = Fall2013()
-    f.figI()
+    f.figIV()
 #    f.all()
