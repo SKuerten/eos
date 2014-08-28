@@ -5,4 +5,4 @@
 . ../bayes2/priors.bash
 . ../bayes2/scan.bash
 
-python test.py
+python eos-scan-mc.py
