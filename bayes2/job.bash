@@ -267,6 +267,66 @@ gof() {
         > ${BASE_NAME}/${scenario}_${data}/gof_${idx}.log 2>&1
 }
 
+export EOS_opt_maxeval=10000
+export EOS_opt_maxeval_local=2000
+export EOS_opt_tol=1e-14
+export EOS_opt_tol_local=$EOS_opt_tol
+
+py_opt() {
+   scenario=${1}
+    if [[ -z ${scenario} ]] ; then
+        echo "No scenario given!"
+        exit -1
+    fi
+    echo "[scenario = ${scenario}]"
+    shift
+
+    data=${1}
+    if [[ -z ${data} ]] ; then
+        echo "No data given!"
+        exit -1
+    fi
+    echo "[data = ${data}]"
+    shift
+
+    idx=${1}
+    if [[ -z ${idx} ]] ; then
+        echo "No gof index given!"
+        exit -1
+    fi
+    shift
+
+    alg=${1}
+    if [[ -z ${alg} ]] ; then
+        echo "No nlopt algorithm specified!"
+        exit -1
+    fi
+    shift
+
+    local_alg=${1}
+    shift
+
+    EOS_scan=SCAN_${scenario}
+    export EOS_scan=${!EOS_scan}
+    EOS_constraints=CONSTRAINTS_${data}
+    export EOS_constraints=${!EOS_constraints}
+    EOS_nuisance=NUISANCE_${data}
+    export EOS_nuisance=${!EOS_nuisance}
+    EOS_mode=GOF_MODE_${idx}
+    export EOS_mode=${!EOS_mode}
+
+    mkdir -p ${BASE_NAME}/${scenario}_${data}
+
+    cmd="--goodness-of-fit"
+    if [[ "$opt" -eq 1 ]] ; then
+        cmd="${cmd} --optimize"
+    fi
+    cmd="${cmd} ${!mode}"
+
+    ../py-eos/optimize.py --algorithm $alg --local-algorithm $local_alg \
+        > ${BASE_NAME}/${scenario}_${data}/py_opt_${alg}_${local_alg}_${idx}.log 2>&1
+}
+
 export UNC_SAMPLES=100000
 export UNC_WORKERS=1 # set equal to number of threads
 export UNC_STORE_PAR=1
@@ -386,6 +446,9 @@ main() {
             ;;
         gof)
             gof ${scenario} ${data} $@
+            ;;
+        py-opt)
+            py_opt ${scenario} ${data} $@
             ;;
         unc)
             unc ${scenario} ${data} $@
