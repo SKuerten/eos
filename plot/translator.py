@@ -1,5 +1,5 @@
 def wilson(i):
-    return '\\mathcal{C}_{%d}' % i
+    return '\\mathcal{C}_{%s}' % str(i)
 
 def subleading(transversity, helicity, particle=r'K^{\ast}'):
     return r"$\zeta_{%s}^{%s_{%s}}$" % (particle, helicity, transversity)
@@ -34,6 +34,30 @@ class EOS_Translator:
                   "Im{c7'}":r"$\Im\left(%s^{\prime}\right)$" % wilson(7) ,
                   "Im{c9'}":r"$\Im\left(%s^{\prime}\right)$" % wilson(9) ,
                   "Im{c10'}":r"$\Im\left(%s^{\prime}\right)$" % wilson(10) ,
+                  "Re{cS}":"$%s$" % wilson('S'),
+                  "Re{cP}":"$%s$" % wilson('P'),
+                  "Re{cT}":"$%s$"% wilson('T'),
+                  "Re{cT5}":"$%s$"% wilson('T5'),
+                  "Im{cS}":"$%s$" % wilson('S'),
+                  "Im{cP}":"$%s$" % wilson('P'),
+                  "Im{cT}":"$%s$"% wilson('T'),
+                  "Im{cT5}":"$%s$"% wilson('T5'),
+                  "Abs{cS}":r"$\left|%s\right|$" % wilson('S'),
+                  "Abs{cP}":r"$\left|%s\right|$" % wilson('P'),
+                  "Abs{cT}":r"$\left|%s\right|$" % wilson('T'),
+                  "Abs{cT5}":r"$\left|%s\right|$"% wilson('T5'),
+                  "Arg{cS}":r"$\arg \, %s$" % wilson('S'),
+                  "Arg{cP}":r"$\arg \, %s$" % wilson('P'),
+                  "Arg{cT}":r"$\arg \, %s$"% wilson('T'),
+                  "Arg{cT5}":r"$\arg \, %s$"% wilson('T5'),
+                  "Re{cS'}":"$%s^{\prime}$" % wilson('S'),
+                  "Re{cP'}":"$%s^{\prime}$" % wilson('P'),
+                  "Im{cS'}":r"$\Im\left(%s^{\prime}\right)$" % wilson('S') ,
+                  "Im{cP'}":r"$\Im\left(%s^{\prime}\right)$" % wilson('P') ,
+                  "Abs{cS'}":r"$\left|%s^{\prime}\right|$" % wilson('S'),
+                  "Abs{cP'}":r"$\left|%s^{\prime}\right|$" % wilson('P'),
+                  "Arg{cS'}":r"$\arg \, %s^{\prime}$" % wilson('S'),
+                  "Arg{cP'}":r"$\arg \, %s^{\prime}$" % wilson('P'),
                   # masses
                   "mass::b(MSbar)":r"$m_{b}$",
                   "mass::c":r"$m_{c}$",
