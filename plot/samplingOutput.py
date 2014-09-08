@@ -299,6 +299,16 @@ class MCMC_Output(SamplingOutput):
         else:
             return 'All chains'
 
+def crop(weights, n):
+    '''Set the `n` highest elements in `weights` to zero. Modify in place.'''
+    print('\033[91m' + 'WARNING: filtering highest %d weights' % n + '\033[0m')
+
+    weight_clone = np.array(self.weights)
+    weight_clone.sort()
+    # need additional if counting backwards
+    cut_off = weight_clone[-n - 1]
+    weights[weights > cut_off] = 0.0
+
 class PMC_Output(SamplingOutput):
     def _read(self, *args, **kwargs):
         # todo check automatically
@@ -383,32 +393,8 @@ class PMC_Output(SamplingOutput):
 
             # reset highest 'outliers'
             if self.crop_outliers > 0:
-                weight_clone = np.array(self.weights)
-                weight_clone.sort()
-                # need additional if counting backwards
-                cut_off = weight_clone[-self.crop_outliers - 1]
-                filter = self.weights > cut_off
-                """
-                posterior_clone = np.array(posterior)
-                posterior_clone.sort()
-                cut_off = np.log(crop_outliers) + posterior[i_max]
-                print(cut_off)
-                filter = posterior < cut_off
-                print("posterior of crops")
-                print(posterior[filter][0:10])
-                print(self.weights[filter][0:10])
-                """
+                crop(self.weights, self.crop_outliers)
 
-                if posterior is not None:
-                    print("P_{min} = %g, P_{max} = %g" % (np.min(posterior[filter][0:10]), np.max(posterior[filter][0:10])))
-                    print("mean posterior of all samples = %g " % np.mean(posterior))
-                    print("mean posterior of filtered samples = %g " % np.mean(posterior[filter]))
-                    print(self.weights[filter][0:10])
-
-                self.weights[filter] = 0.0
-                print('\033[91m' + 'WARNING: filtering highest %d points from components' % len(np.where(filter)[0]) + '\033[0m')
-
-            print("Samples have a total shape of %s " % str(samples.shape))
             print("Non-zero weights: %d " % len(np.where(self.weights > 0.0)[0]))
 
         # read statistics
@@ -730,6 +716,40 @@ class EmceeOutput(SamplingOutput):
                     print("Skipping, probably because acor reports that " +
                           "The autocorrelation time is too long relative to the variance in dimension 1.")
 
+def jahn_read_defs_priors():
+    '''Read parameter definitions and priors by importing the module `target`.'''
+
+    # par defs
+    import eos, target
+
+    par_defs = []
+    priors = []
+    for i, prior in enumerate(target.priors):
+        par_defs.append(ParameterDefinition(prior.name, prior.range_min, prior.range_max,
+                                            nuisance=prior.nuisance, index=i))
+
+    f = priorDistributions.PriorFactory()
+    i = 0
+
+    for line in repr(target.ana).splitlines():
+        if not line.startswith('Parameter:'):
+            continue
+        try:
+            # remove ", value = 0.2373" from end of line
+            prior_name, prior = f.create(line[:line.rfind(',')])
+            assert(prior_name == par_defs[i].name), prior_name + " vs " + par_defs[i].name
+        except KeyError as e:
+            prior = None
+            print('Warning: in constructing prior for %s: %s' % (line, e.message))
+        # if it not an analysis, there is no prior
+        except IndexError:
+            prior = None
+
+        i += 1
+        priors.append(prior)
+
+    return par_defs, priors
+
 class JahnMCMCOutput(SamplingOutput):
     '''Read Markov chains created by pypmc and stored with numpy.save.
 
@@ -765,36 +785,46 @@ class JahnMCMCOutput(SamplingOutput):
         # read all parameters
         merged_chains = np.vstack(data[chains, self.select[0]:self.select[1], :])
 
-        # par defs
-        import eos, target
-
-        par_defs = []
-        priors = []
-        for i, prior in enumerate(target.priors):
-            par_defs.append(ParameterDefinition(prior.name, prior.range_min, prior.range_max,
-                                                nuisance=prior.nuisance, index=i))
-
-        f = priorDistributions.PriorFactory()
-        i = 0
-        for line in repr(target.ana).splitlines():
-            if not line.startswith('Parameter:'):
-                continue
-            try:
-                # remove ", value = 0.2373" from end of line
-                prior_name, prior = f.create(line[:line.rfind(',')])
-                assert(prior_name == par_defs[i].name), prior_name + " vs " + par_defs[i].name
-            except KeyError as e:
-                prior = None
-                print('Warning: in constructing prior for %s: %s' % (line, e.message))
-            # if it not an analysis, there is no prior
-            except IndexError:
-                prior = None
-
-            i += 1
-            priors.append(prior)
+        par_defs, priors = jahn_read_defs_priors()
 
         # all weights equal
         self.weights = np.ones(len(merged_chains))
         self.samples = merged_chains
         self.par_defs = par_defs
         self.priors = priors
+
+class JahnISOutput(SamplingOutput):
+    '''Read importance sampling created by pypmc and stored with numpy.save.
+
+    Imports a python module `target` that has the metadata on
+    parameter definitions and priors.
+
+    '''
+
+    def _read(self, *args, **kwargs):
+        self.crop_outliers = kwargs.get('crop_outliers', 0)
+        self.equal_weights = kwargs.get('equal_weights', False)
+        self.step = kwargs.get('step', None) # TODO use
+        self.selected_components = kwargs.get('components', None) # TODO use
+
+        # format: weight, par0, par1, ...
+        data = np.vstack(np.load(self.input_file_name))
+        samples = data[self.select[0]:self.select[1], 1:]
+
+        if self.equal_weights:
+            weights = np.ones(len(samples))
+        else:
+            weights = data[self.select[0]:self.select[1], 0]
+
+        if self.crop_outliers > 0:
+            crop(weights, self.crop_outliers)
+
+        par_defs, priors = jahn_read_defs_priors()
+
+        # assign members
+        self.weights = weights
+        self.samples = samples
+        self.par_defs = par_defs
+        self.priors = priors
+        self.stats = None
+        self.components = None

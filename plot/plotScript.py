@@ -1687,7 +1687,10 @@ def factory(cmd_line=None):
     elif args.nest:
         OutputClass = MultinestOutput
     else:
-        OutputClass = PMC_Output
+        if args.i.endswith('.npy'):
+            OutputClass = JahnISOutput
+        else:
+            OutputClass = PMC_Output
 
     output = OutputClass(args.i, **kwargs)
     input_source_default = 'pmc'
