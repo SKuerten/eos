@@ -328,6 +328,7 @@ class MarginalDistributions:
                  projection=False):
 
         self.out = sampling_output
+        print 'data shape:', self.out.samples.shape
 
         #alternatively use KDE
         self.use_histogram = not use_KDE
@@ -407,27 +408,7 @@ class MarginalDistributions:
         # Integration options
         ###
         self.cuts = {}
-        """
-        #parse the data
-        self.select = select
-        if self.input_source == 'pmc':
-            self.out.samples, self.out.par_defs, self.priors, self.stats, self.components = self.read_data_pmc(pmc_queue_output, pmc_equal_weights, pmc_crop_outliers, hc_comp)
-            self.modes = None
-            self.global_mode_index = None
-        elif self.input_source == 'mcmc':
-            self.out.samples, self.out.par_defs, self.priors, self.modes = self.read_data_mcmc(chains, prerun, skip_initial)
-            self.extract_chain_modes()
-            self.stats = None
-            self.components = None
-        elif self.input_source == 'multinest':
-            self.out.samples, self.weights, self.out.par_defs, self.priors, self.evidence, self.evidence_error = self.read_data_multinest()
-            self.modes = None
-            self.global_mode_index = None
-            self.stats = None
-            self.components = None
-        else:
-            raise Exception("Unknown input source '%s'" % self.input_source)
-        """
+
         self.find_min_max()
 
         self.sigma = np.ones((self.out.npar()))
@@ -1546,13 +1527,13 @@ class MarginalDistributions:
                 for x, y in self.single_2D:
                     P.figure(figsize=(6,6))
                     two_dim(x, y)
+                    P.tight_layout()
                     if n_single_plots > 1:
                         pdf_file.savefig()
                         P.close()
             if n_single_plots > 1:
                 pdf_file.close()
             else:
-                print 'harr'
                 P.savefig(self.plot_file_name)
             return
 
@@ -1593,7 +1574,9 @@ class MarginalDistributions:
 
                 #aspect ratio 1/1
                 P.figure(figsize=(6,6))
-                if two_dim(par1, par2) is not False:
+                plotted = two_dim(par1, par2)
+                P.tight_layout()
+                if plotted is not False:
                     print("plot #%d" % counter)
                     self.pdf_file.savefig()
                 P.close()

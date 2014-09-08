@@ -173,7 +173,6 @@ class MCMC_Output(SamplingOutput):
         if hasattr(self.chains, '__len__') and len(self.chains) == 1:
             self.single_chain = str(self.chains[0])
 
-        print("Opening " + self.input_file_name)
         hdf5_file = h5py.File(self.input_file_name, 'r')
 
         n_chains_parsed = 0
@@ -244,7 +243,7 @@ class MCMC_Output(SamplingOutput):
 
         Assumes that each chain of same length.
         """
-        print("There are %d chains, with a merged shape of %s" % (self.n_chains, self.samples.shape))
+        print("There are %d chains" % self.n_chains)
         for i in range(self.n_chains):
             mode = []
             if len(self._modes) > 0:
@@ -376,7 +375,6 @@ class PMC_Output(SamplingOutput):
             if posterior is not None:
                 i_max = np.argmax(posterior)
                 print("Found maximum posterior = %g with weight %g at" % (posterior[i_max], self.weights[i_max]))
-                print(samples[i_max][:-3])
 
             # plot only a single component
             if self.selected_components is not None:
