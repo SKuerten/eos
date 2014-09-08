@@ -1668,7 +1668,10 @@ def factory(cmd_line=None):
 
     OutputClass = None
     if args.mcmc:
-        OutputClass = MCMC_Output
+        if args.i.endswith('.npy'):
+            OutputClass = JahnMCMCOutput
+        else:
+            OutputClass = MCMC_Output
     elif args.emcee:
         OutputClass = EmceeOutput
     elif args.nest:

@@ -730,7 +730,71 @@ class EmceeOutput(SamplingOutput):
                     print("Skipping, probably because acor reports that " +
                           "The autocorrelation time is too long relative to the variance in dimension 1.")
 
+class JahnMCMCOutput(SamplingOutput):
+    '''Read Markov chains created by pypmc and stored with numpy.save.
 
-#         bad_ind = np.where(self.samples.T[4] > 0.2)[0]
-#         print("bad element at %d" % bad_ind[-1])
-#         print(self.samples[bad_ind[-1]])
+    Imports a python module `target` that has the metadata on
+    parameter definitions and priors.
+
+    '''
+    def _read(self, *args, **kwargs):
+        self.chains = kwargs.get('chains', None)
+        self.prerun = kwargs.get('prerun', True)
+        self.skip_initial = kwargs.get('skip_initial', 0.2)
+
+        self.single_chain = None
+        if hasattr(self.chains, '__len__') and len(self.chains) == 1:
+            self.single_chain = str(self.chains[0])
+
+        # shape = (n_chains, n_samples, n_par)
+        data = np.load(self.input_file_name)
+
+        # select all chains
+        if self.chains:
+            chains = self.chains
+        else:
+            chains = range(data.shape[0])
+
+        self.n_chains = len(chains)
+        full_length = data.shape[1]
+
+        #adjust which range is drawn, default: full range
+        if self.skip_initial > 0:
+            self.select[0] = int(self.skip_initial * full_length)
+
+        # read all parameters
+        merged_chains = np.vstack(data[chains, self.select[0]:self.select[1], :])
+
+        # par defs
+        import eos, target
+
+        par_defs = []
+        priors = []
+        for i, prior in enumerate(target.priors):
+            par_defs.append(ParameterDefinition(prior.name, prior.range_min, prior.range_max,
+                                                nuisance=prior.nuisance, index=i))
+
+        f = priorDistributions.PriorFactory()
+        i = 0
+        for line in repr(target.ana).splitlines():
+            if not line.startswith('Parameter:'):
+                continue
+            try:
+                # remove ", value = 0.2373" from end of line
+                prior_name, prior = f.create(line[:line.rfind(',')])
+                assert(prior_name == par_defs[i].name), prior_name + " vs " + par_defs[i].name
+            except KeyError as e:
+                prior = None
+                print('Warning: in constructing prior for %s: %s' % (line, e.message))
+            # if it not an analysis, there is no prior
+            except IndexError:
+                prior = None
+
+            i += 1
+            priors.append(prior)
+
+        # all weights equal
+        self.weights = np.ones(len(merged_chains))
+        self.samples = merged_chains
+        self.par_defs = par_defs
+        self.priors = priors
