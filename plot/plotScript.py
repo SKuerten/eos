@@ -1521,31 +1521,45 @@ class MarginalDistributions:
             epilog = self.proposal_weights
             ext = '_prop'
 
-        self.pdf_file_name = self.__output_base_name + ext + self.single_ext
+        self.plot_file_name = self.__output_base_name + ext + self.single_ext
 
         # plot only a few distributions if desired
-        if self.single_1D is not None or self.single_2D is not None:
-            pdf_file = PdfPages(self.pdf_file_name)
+        n_single_plots = 0
+        if self.single_1D is not None:
+            n_single_plots += len(self.single_1D)
+        if self.single_2D is not None:
+            n_single_plots += len(self.single_2D)
+        if n_single_plots:
+            if n_single_plots > 1:
+                assert self.single_ext == '.pdf'
+                pdf_file = PdfPages(self.plot_file_name)
+
             if self.single_1D is not None:
                 for x in self.single_1D:
                     P.figure()
                     one_dim(x)
-                    pdf_file.savefig()
-                    P.close()
+                    if n_single_plots > 1:
+                        pdf_file.savefig()
+                        P.close()
 
             if self.single_2D is not None:
                 for x, y in self.single_2D:
                     P.figure(figsize=(6,6))
                     two_dim(x, y)
-                    pdf_file.savefig()
-                    P.close()
-            pdf_file.close()
+                    if n_single_plots > 1:
+                        pdf_file.savefig()
+                        P.close()
+            if n_single_plots > 1:
+                pdf_file.close()
+            else:
+                print 'harr'
+                P.savefig(self.plot_file_name)
             return
 
         # default mode: plot all
 
-        print("saving output to %s" % self.pdf_file_name)
-        self.pdf_file = PdfPages(self.pdf_file_name)
+        print("saving output to %s" % self.plot_file_name)
+        self.pdf_file = PdfPages(self.plot_file_name)
 
         nCols = len(self.out.par_defs)
 
@@ -1581,10 +1595,6 @@ class MarginalDistributions:
                 P.figure(figsize=(6,6))
                 if two_dim(par1, par2) is not False:
                     print("plot #%d" % counter)
-                    try:
-                        P.tight_layout()
-                    except:
-                        pass
                     self.pdf_file.savefig()
                 P.close()
                 counter += 1
@@ -1808,5 +1818,4 @@ def main():
 if __name__ == '__main__':
     np.set_printoptions(precision=6)
     matplotlib.rcParams['text.latex.unicode'] = True
-    matplotlib.rcParams['image.cmap'] = 'gist_heat_r'
     main()
