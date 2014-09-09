@@ -267,10 +267,10 @@ gof() {
         > ${BASE_NAME}/${scenario}_${data}/gof_${idx}.log 2>&1
 }
 
-export EOS_opt_maxeval=10000
-export EOS_opt_maxeval_local=2000
-export EOS_opt_tol=1e-14
-export EOS_opt_tol_local=$EOS_opt_tol
+export EOS_OPT_MAXEVAL=5000
+export EOS_OPT_MAXEVAL_LOCAL=$EOS_OPT_MAXEVAL
+export EOS_OPT_TOL=1e-14
+export EOS_OPT_TOL_LOCAL=$EOS_OPT_TOL
 
 py_opt() {
    scenario=${1}
@@ -306,24 +306,21 @@ py_opt() {
     local_alg=${1}
     shift
 
-    EOS_scan=SCAN_${scenario}
-    export EOS_scan=${!EOS_scan}
-    EOS_constraints=CONSTRAINTS_${data}
-    export EOS_constraints=${!EOS_constraints}
-    EOS_nuisance=NUISANCE_${data}
-    export EOS_nuisance=${!EOS_nuisance}
-    EOS_mode=GOF_MODE_${idx}
-    export EOS_mode=${!EOS_mode}
+    EOS_SCAN=SCAN_${scenario}
+    export EOS_SCAN=${!EOS_SCAN}
+    EOS_CONSTRAINTS=CONSTRAINTS_${data}
+    export EOS_CONSTRAINTS=${!EOS_CONSTRAINTS}
+    EOS_NUISANCE=NUISANCE_${data}
+    export EOS_NUISANCE=${!EOS_NUISANCE}
+    EOS_MODE=GOF_MODE_${idx}
+    # export EOS_mode=${!EOS_mode}
 
     mkdir -p ${BASE_NAME}/${scenario}_${data}
 
-    cmd="--goodness-of-fit"
-    if [[ "$opt" -eq 1 ]] ; then
-        cmd="${cmd} --optimize"
-    fi
-    cmd="${cmd} ${!mode}"
-
     ../py-eos/optimize.py --algorithm $alg --local-algorithm $local_alg \
+        --initial-guess "${!EOS_MODE}" \
+        --max-evaluations "${EOS_OPT_MAXEVAL}" --tolerance "${EOS_OPT_TOL}" \
+        --max-evaluations-local "${EOS_OPT_MAXEVAL_LOCAL}" --tolerance-local "${EOS_OPT_TOL_LOCAL}" \
         > ${BASE_NAME}/${scenario}_${data}/py_opt_${alg}_${local_alg}_${idx}.log 2>&1
 }
 

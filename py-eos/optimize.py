@@ -4,10 +4,9 @@
 
 import argparse
 import eos_scan_mc
+from os import environ
 import numpy as np
 import nlopt
-
-from os import environ
 
 class NLOPT_Wrapper(object):
     def __init__(self, analysis):
@@ -65,76 +64,68 @@ nlopt_algorithms = dict(GN_DIRECT=nlopt.GN_DIRECT,
                         GN_ESCH=nlopt.GN_ESCH,
                         )
 
-def make_opt(alg, local_algorithm=None):
-
-    cmd_line = environ["EOS_constraints"] + environ["EOS_scan"] + environ["EOS_nuisance"]
-
+def make_analysis():
+    cmd_line = environ["EOS_CONSTRAINTS"] + environ["EOS_SCAN"] + environ["EOS_NUISANCE"]
     parser = eos_scan_mc.Parser(cmd_line)
-    ana = eos_scan_mc.eos.Analysis(parser.constraints, parser.priors)
+    return eos_scan_mc.eos.Analysis(parser.constraints, parser.priors)
 
-    target_density = NLOPT_Wrapper(ana)
+def make_opt(ana, alg, tol, maxeval):
+    priors = target_density.analysis.priors
+    opt = nlopt.opt(nlopt_algorithms[alg], len(priors))
 
-    optimizers = [nlopt.opt(nlopt_algorithms[alg], len(parser.priors)),
-                  nlopt.opt(nlopt_algorithms[local_algorithm], len(parser.priors)) if local_algorithm else None]
+    opt.set_max_objective(target_density)
 
-    for opt, arg in zip(optimizers, ("", "_local")):
-        if not opt:
-            continue
-        opt.set_max_objective(target_density)
+    bounds_low  = [prior.range_min for prior in priors]
+    bounds_high = [prior.range_max for prior in priors]
+    opt.set_lower_bounds(bounds_low)
+    opt.set_upper_bounds(bounds_high)
 
-        bounds_low  = [prior.range_min for prior in parser.priors]
-        bounds_high = [prior.range_max for prior in parser.priors]
-        opt.set_lower_bounds(bounds_low)
-        opt.set_upper_bounds(bounds_high)
+    # convergence criteria
+    opt.set_ftol_abs(tol)
+    opt.set_xtol_rel(np.sqrt(tol))
+    opt.set_maxeval(maxeval)
 
-        try:
-            tol = float(environ["EOS_opt_tol" + arg])
-        except KeyError:
-            tol = 1e-14
-
-        opt.set_ftol_abs(tol)
-        opt.set_xtol_rel(np.sqrt(tol))
-
-        try:
-            maxeval = int(environ["EOS_opt_maxeval" + arg])
-        except KeyError:
-            maxeval = 3000
-        opt.set_maxeval(maxeval)
-
-    if local_algorithm is not None:
-        optimizers[0].set_local_optimizer(optimizers[1])
-
-    return target_density, optimizers[0], optimizers[1]
+    return opt
 
 def print_opt(opt):
-    return opt.get_algorithm_name() + " with xtol=%g, maxeval=%d," % (opt.get_xtol_rel(), opt.get_maxeval())
+    return opt.get_algorithm_name() + " with ftol=%g, maxeval=%d," % (opt.get_ftol_rel(), opt.get_maxeval())
 
 if __name__ == '__main__':
     np.set_printoptions(precision=8)
 
     parser = argparse.ArgumentParser(description="Optimize EOS analysis from python")
     parser.add_argument("--algorithm")
+    parser.add_argument("--initial-guess", nargs='?', help="Vector to seed the optimization. Ex: { 0.1 0.3 0.5 }")
     parser.add_argument("--local-algorithm", nargs='?', const=None)
+    parser.add_argument("--max-evaluations", type=int, action='store')
+    parser.add_argument("--max-evaluations-local", type=int, action='store')
+    parser.add_argument("--tolerance", type=float, action='store', default=1e-14, help="Relative tolerance to declare convergence")
+    parser.add_argument("--tolerance-local", type=float, default=1e-14, help="Relative tolerance to declare convergence for the local algorithm")
 
     args = parser.parse_args()
 
-    target_density, opt, local_opt = make_opt(args.algorithm, local_algorithm=args.local_algorithm)
+    ana = make_analysis()
+    target_density = NLOPT_Wrapper(ana)
+
+    opt = make_opt(target_density, args.algorithm, maxeval=args.max_evaluations, tol=args.tolerance)
+
+    if args.local_algorithm:
+        local_opt = make_opt(target_density, args.local_algorithm, maxeval=args.max_evaluations_local, tol=args.tolerance_local)
+        opt.set_local_optimizer(local_opt)
 
     print target_density.analysis
 
-    mode = environ["EOS_mode"]
-    mode = np.array([float(x) for x in mode.split()[1:-1]])
+    start = np.array([float(x) for x in args.initial_guess.split()[1:-1]])
+    print "Starting", print_opt(opt), " with f =", target_density.analysis(start), "at"
+    print start
 
-    print "Starting", print_opt(opt), " with f =", target_density.analysis(mode), "at"
-    print mode
-
-    xopt = opt.optimize(mode)
+    xopt = opt.optimize(start)
     fmax = opt.last_optimum_value()
 
     print " Found maximum value", fmax, " after", target_density.calls, "function calls at"
     print xopt
 
-    if local_opt:
+    if args.local_algorithm:
         print "Continuing with local algorithm", print_opt(local_opt)
         target_density.calls = 0
         local_xopt = local_opt.optimize(xopt)
