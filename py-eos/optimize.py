@@ -65,9 +65,16 @@ nlopt_algorithms = dict(GN_DIRECT=nlopt.GN_DIRECT,
                         )
 
 def make_analysis():
-    cmd_line = environ["EOS_CONSTRAINTS"] + environ["EOS_SCAN"] + environ["EOS_NUISANCE"]
-    parser = eos_scan_mc.Parser(cmd_line)
-    return eos_scan_mc.eos.Analysis(parser.constraints, parser.priors)
+    if args.analysis_from == "env":
+        cmd_line = environ["EOS_CONSTRAINTS"] + environ["EOS_SCAN"] + environ["EOS_NUISANCE"]
+        parser = eos_scan_mc.Parser(cmd_line)
+        return eos_scan_mc.eos.Analysis(parser.constraints, parser.priors)
+    else:
+        module_hierarchy = args.analysis_from.split('.')
+        module_to_import = str.join('.', module_hierarchy[:-1])
+        analysis_name = module_hierarchy[-1]
+        exec("from " + module_to_import + " import " + analysis_name + " as analysis")
+        return analysis
 
 def make_opt(ana, alg, tol, maxeval):
     priors = target_density.analysis.priors
@@ -95,7 +102,9 @@ if __name__ == '__main__':
 
     parser = argparse.ArgumentParser(description="Optimize EOS analysis from python")
     parser.add_argument("--algorithm")
-    parser.add_argument("--initial-guess", nargs='?', help="Vector to seed the optimization. Ex: { 0.1 0.3 0.5 }")
+    parser.add_argument("--analysis-from", help="Specify where the `eos.Analysis` instance shall be read off. Either specify a python module (for example `module.analysis`) or `env` (default) for reading off the environement variables.",
+                        type=str, action='store', default='env')
+    parser.add_argument("--initial-guess", nargs='*', help="Vector to seed the optimization. Ex: { 0.1 0.3 0.5 }")
     parser.add_argument("--local-algorithm", nargs='?', const=None)
     parser.add_argument("--max-evaluations", type=int, action='store')
     parser.add_argument("--max-evaluations-local", type=int, action='store')
@@ -115,7 +124,7 @@ if __name__ == '__main__':
 
     print target_density.analysis
 
-    start = np.array([float(x) for x in args.initial_guess.split()[1:-1]])
+    start = np.array([float(x) for x in args.initial_guess[1:-1]])
     print "Starting", print_opt(opt), " with f =", target_density.analysis(start), "at"
     print start
 
