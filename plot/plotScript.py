@@ -45,7 +45,6 @@ def histOutline(dataIn, *args, **kwargs):
     """
 
     (histIn, binsIn) = np.histogram(dataIn, *args, **kwargs)
-
     stepSize = binsIn[1] - binsIn[0]
 
     bins = np.zeros(len(binsIn)*2 + 2, dtype=np.float)
@@ -712,7 +711,6 @@ class MarginalDistributions:
         intervals_95 = []
         local_modes = []
         for run in runs:
-            print(run)
             intervals_95.append([x[run[0]], x[run[1] - 1]])
             intervals_95[-1].append(intervals_95[-1][1] - intervals_95[-1][0])
             mode_index = run[0] + np.argmax(prob_density[run[0]:run[1]])
@@ -817,8 +815,6 @@ class MarginalDistributions:
              # the data used for credibility regions
              probability_array = hist_normal[1]
 
-             if self.nBins[index] < 4:
-                print(probability_array)
 
              if self.use_contours:
 
@@ -831,18 +827,6 @@ class MarginalDistributions:
                                    linewidth=0, edgecolor='none', **two_sigma_style)
                  self.contours_one(hist_normal[0], hist_normal[1], level_68, 'one_sigma', 'hist',
                                    linewidth=0, edgecolor='none', **one_sigma_style)
-
-                 """
-                 for i in range(len(hist_normal[0])-1):
-
-                    if hist_normal[1][i] > level_68:
-                        P.fill_between( (hist_normal[0][i], hist_normal[0][i+1]), 0, hist_normal[1][i], facecolor='green', alpha=1, linewidth=0)
-                        continue
-
-                    if hist_normal[1][i] > level_95:
-                        P.fill_between( (hist_normal[0][i], hist_normal[0][i+1]), 0, hist_normal[1][i], facecolor='yellow', alpha=1 ,edgecolor='none')
-                        continue
-                """
         else: #use KDE
             print("Using KDE with bandwidth %g" % bandwidth)
             mesh_points = np.linspace(x_min, x_max, self.nBins[index] )
@@ -959,7 +943,6 @@ class MarginalDistributions:
             prior = self.out.priors[index]
             integral = 1
             mesh_points = np.linspace(x_min, x_max, self.nBins[index] )
-
             prior_values = prior.evaluate(mesh_points)
 
             P.plot(mesh_points, prior_values, label=prior_label, **prior_style)

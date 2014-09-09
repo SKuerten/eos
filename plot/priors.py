@@ -64,7 +64,6 @@ class Flat(Prior):
         try:
             result = np.zeros(x.shape)
             result += self.norm
-            print(x.shape)
             return result
         except:
             return self.norm
