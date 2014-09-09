@@ -302,13 +302,39 @@ def crop(weights, n):
     '''Set the `n` highest elements in `weights` to zero. Modify in place.'''
     print('\033[91m' + 'WARNING: filtering highest %d weights' % n + '\033[0m')
 
-    weight_clone = np.array(self.weights)
+    weight_clone = np.array(weights)
     weight_clone.sort()
     # need additional if counting backwards
     cut_off = weight_clone[-n - 1]
     weights[weights > cut_off] = 0.0
 
-class PMC_Output(SamplingOutput):
+class IS_Output(SamplingOutput):
+    '''General importance sampling output.'''
+
+    def integrate(self, cuts=None):
+        rows = self.filter(cuts)
+        N = len(np.where(self.weights[rows])[0])
+        print("Remaining samples in selected region: %d" % N)
+
+        # sum partial weight
+        partial_weight = np.sum(self.weights[rows])
+        total_weight = np.sum(self.weights)
+        ratio = partial_weight / total_weight
+
+        # integral = average weight
+        integral = partial_weight / len(self.samples)
+
+        # normalize weights to avoid overflow if weights are large
+        normalized_weights = self.weights[rows] / partial_weight
+        error = partial_weight * np.sqrt(np.var(normalized_weights, ddof=1) / N)
+        print('Partial weight: %g, total weight: %g, ratio: %g' % (partial_weight, total_weight, ratio))
+
+        print('Integral of the selected region is: %g +- %g (stat. uncertainty only)' % (integral, error))
+        print('Integral on the log scale: %g' % (np.log(integral)))
+
+        return (integral, ratio, total_weight, error)
+
+class PMC_Output(IS_Output):
     def _read(self, *args, **kwargs):
         # todo check automatically
         self.crop_outliers = kwargs.get('crop_outliers', 0)
@@ -481,30 +507,12 @@ class PMC_Output(SamplingOutput):
 
         hdf5_file.close()
 
-    def integrate(self, cuts=None):
-        rows = self.filter(cuts)
-        N = len(np.where(self.weights[rows])[0])
-        print("Remaining samples in selected region: %d" % N)
-
-        # sum partial weight
-        partial_weight = np.sum(self.weights[rows])
-        total_weight = np.sum(self.weights)
-        ratio = partial_weight / total_weight
-
-        # integral = average weight
-        integral = partial_weight / len(self.samples)
-
-        # normalize weights to avoid overflow if weights are large
-        normalized_weights = self.weights[rows] / partial_weight
-        error = partial_weight * np.sqrt(np.var(normalized_weights, ddof=1) / N)
-        print('Partial weight: %g, total weight: %g, ratio: %g' % (partial_weight, total_weight, ratio))
-
-        print('Integral of the selected region is: %g +- %g (stat. uncertainty only)' % (integral, error))
-        print('Integral on the log scale: %g' % (np.log(integral)))
-
-        return (integral, ratio, total_weight, error)
-
     def component_integrate(self, cuts=None):
+        '''Compute evidence from each component, then take weighted average.
+
+        Worse than simply combining all samples. Handle with care!
+        '''
+
         if cuts:
             raise NotImplementedError("cuts not used!")
         # find nonzero component weights
@@ -791,7 +799,7 @@ class JahnMCMCOutput(SamplingOutput):
         self.par_defs = par_defs
         self.priors = priors
 
-class JahnISOutput(SamplingOutput):
+class JahnISOutput(IS_Output):
     '''Read importance sampling created by pypmc and stored with numpy.save.
 
     Imports a python module `target` that has the metadata on
