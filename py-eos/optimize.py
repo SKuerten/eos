@@ -104,7 +104,7 @@ if __name__ == '__main__':
     parser.add_argument("--algorithm")
     parser.add_argument("--analysis-from", help="Specify where the `eos.Analysis` instance shall be read off. Either specify a python module (for example `module.analysis`) or `env` (default) for reading off the environement variables.",
                         type=str, action='store', default='env')
-    parser.add_argument("--initial-guess", nargs='*', help="Vector to seed the optimization. Ex: { 0.1 0.3 0.5 }")
+    parser.add_argument("--initial-guess", nargs='*', help="Vector to seed the optimization (minus signs must be replaced by `n` if notation `0.3e-3` is used). Ex: { 0.1 n0.3e-3 -0.5 }")
     parser.add_argument("--local-algorithm", nargs='?', const=None)
     parser.add_argument("--max-evaluations", type=int, action='store')
     parser.add_argument("--max-evaluations-local", type=int, action='store')
@@ -124,7 +124,7 @@ if __name__ == '__main__':
 
     print target_density.analysis
 
-    start = np.array([float(x) for x in args.initial_guess[1:-1]])
+    start = np.array([float(x.replace('n','-')) for x in args.initial_guess[1:-1]])
     print "Starting", print_opt(opt), " with f =", target_density.analysis(start), "at"
     print start
 
