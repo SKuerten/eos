@@ -1,3 +1,27 @@
+'''Python ctypes wrapper of the figtree library for Gaussian kernel
+density estimation by Morariu et al.
+
+Requirements
+------------
+
+1. numpy
+2. Both the figtree and the ANN library have to be available to the dynamic loader; e.g. by adding them to $LD_LIBRARY_PATH
+
+Copyright (c) 2014 Frederik Beaujean <Frederik.Beaujean@lmu.de>
+
+This file is free software; you can redistribute it and/or modify it
+under the terms of the GNU General Public License version 2, as
+published by the Free Software Foundation.
+
+This software is distributed in the hope that it will be useful, but
+WITHOUT ANY WARRANTY; without even the implied warranty of
+MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+General Public License for more details.
+
+You should have received a copy of the GNU General Public License along with
+this program; if not, write to the Free Software Foundation, Inc., 59 Temple
+Place, Suite 330, Boston, MA  02111-1307  USA
+'''
 
 import numpy as np
 import ctypes as C
@@ -27,21 +51,17 @@ class FigtreeConfig(object):
         self.parameter = {"uniform":0, "non-uniform":1}
         self.evaluation = {"direct":0, "IFGT":1, "direct-tree":2, "IFGT-tree":3, "auto":4}
 
-
-
 def figtree(samples, targets, weights, bandwidth=0.8, epsilon=1e-2,
             eval="auto", trunc="cluster", param="non-uniform", verbose=False):
     """
     Python wrapper of the figtree method by Vlad Morariu.
 
+    samples: array, one sample per row. Number of columns is the dimension of sample space.
+    targets: array, one position per row. Same dimension as sample space.
+    weights: array, one row per set of weights; i.e. for three distinct weights for same point,
+    need three rows, and the length of each row must equal the number of rows in samples
 
-    samples: one per row. Number of columns is the dimension of sample space.
-    target: one position per row
-    weights: dimensional array of weights,
-    or one row per set of weights,
-    i.e. for three distinct weights for same point, need three rows.
-
-    returns: kernel density estimate at target points
+    Return: kernel density estimate at target points
     """
 
     #check input
@@ -63,16 +83,12 @@ def figtree(samples, targets, weights, bandwidth=0.8, epsilon=1e-2,
     #number of target points
     M = targets.shape[0]
 
-
-
     if not one_dim:
         #dimensions of samples and target have to match
         assert(targets.shape[-1] == d)
     else:
         assert(len(targets.shape)== 1)
     #one weight for each source sample
-
-
 
     #number of weights per points
     if len(weights.shape)==1:
@@ -82,8 +98,6 @@ def figtree(samples, targets, weights, bandwidth=0.8, epsilon=1e-2,
         #assume one row per weights if several exist
         W = weights.shape[0]
         assert(weights.shape[-1] == N)
-
-
 
     conf = FigtreeConfig()
 
@@ -101,10 +115,9 @@ def figtree(samples, targets, weights, bandwidth=0.8, epsilon=1e-2,
                  g, conf.evaluation[eval], conf.parameter[param], conf.truncation[trunc], int(verbose))
 
     if err < 0:
-        raise Exception("figtree failed!")
+        raise RuntimeError("figtree failed!")
 
     return g
-
 
 def test_figtree():
       """
