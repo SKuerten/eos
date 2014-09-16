@@ -164,7 +164,7 @@ class UncertaintyPropagation(object):
         for o in np.sort(np.array(list(hdf5_file['/descriptions/observables']),dtype=int)):
             dset = hdf5_file['/descriptions/observables/%d' % o]
             self.observable_names[o] = dset.attrs['name']
-            self.kinematics[o] = (dset[0][0], dset[0][1])
+            self.kinematics[o] = dset.attrs['kinematics'].replace(' ', '')
             self.sm_predictions[o] = dset.attrs['SM prediction']
 
 #        for key in sorted(self.observable_names.keys()):
@@ -383,10 +383,8 @@ class UncertaintyPropagation(object):
             print("Warning: %d values have zero weight" % n_cut)
 
         full_observable_name = self.observable_names[obs_index]
-        try:
-            full_observable_name += ",s_min=%g,s_max=%g" % self.kinematics[obs_index]
-        except KeyError:
-            pass
+        if self.kinematics[obs_index]:
+            full_observable_name += "," + self.kinematics[obs_index]
 
         print(full_observable_name)
 
@@ -571,11 +569,8 @@ class UncertaintyPropagation(object):
 
         #add kinematic info if available
         kinematic_string = ""
-        try:
-            s_min, s_max = self.kinematics[obs_index]
-            kinematic_string = "$[%g,%g]$" % (s_min, s_max)
-        except KeyError:
-            pass
+        if self.kinematics[obs_index]:
+            kinematic_string = "[$" + self.kinematics[obs_index] + "$]"
 
         # workaround for
         # matplotlib.pyparsing.ParseFatalException: Subscript/superscript sequence is too long. Use braces { } to remove ambiguity.
