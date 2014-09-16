@@ -234,6 +234,7 @@ export NUISANCE_bsgamma="
 export NUISANCE_bsmumu="
     ${NUISANCE_CKM}
     ${NUISANCE_DECAY_CONSTANTS}
+    ${NUISANCE_B_TO_PLL_FORM_FACTORS}
 "
 
 export NUISANCE_posthep13=${NUISANCE_all}

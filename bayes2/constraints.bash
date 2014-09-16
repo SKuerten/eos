@@ -408,6 +408,7 @@ export CONSTRAINTS_bsgamma="
 
 export CONSTRAINTS_bsmumu="
     ${CONSTRAINTS_BS_TO_MUMU}
+    ${CONSTRAINTS_B_TO_PLL_FF}
 "
 
 export CONSTRAINTS_excl="
