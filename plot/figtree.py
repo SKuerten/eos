@@ -1,5 +1,5 @@
-'''Python ctypes wrapper of the figtree library for Gaussian kernel
-density estimation by Morariu et al. [http://sourceforge.net/projects/figtree].
+'''Python ctypes wrapper of the figtree library for fast Gaussian
+summation by V. Morariu et al. [http://sourceforge.net/projects/figtree].
 
 The main function for users is `figtree`. It computes the improved
 fast Gauss transform
@@ -11,11 +11,11 @@ Gaussian kernel-density estimation in 1D, the weight is
 
 w_i = 1 / (N \sqrt{\pi h^2})
 
-Details about the algorithm and the parameters are give in the
+Details about the algorithm and the parameters are given in the
 original paper
 [http://papers.nips.cc/paper/3420-automatic-online-tuning-for-fast-gaussian-summation.pdf].
 
-Note that multidimensional input usually should be transformed to
+Note that multidimensional input usually has to be transformed to
 avoid distortions if the variates are of different scales. The
 function `_distortion` shows an example with samples from an
 uncorrelated Gaussian with std. dev. 2 in the first dimension and
@@ -56,6 +56,9 @@ This wrapper has been developed and tested only on linux.
 * Both the figtree and the ANN library have to be available to the loader; e.g. by adding them to $LD_LIBRARY_PATH
 * numpy
 
+Legal stuff
+-----------
+
 Copyright (c) 2014 Frederik Beaujean <Frederik.Beaujean@lmu.de>
 
 This file is free software; you can redistribute it and/or modify it
@@ -76,15 +79,15 @@ Place, Suite 330, Boston, MA  02111-1307  USA
 import numpy as np
 import ctypes as C
 
-#automatically loads ANN library if needed
-#both have to be available on $LD_LIBRARY_PATH
+# automatically loads ANN library if needed
+# both have to be available on $LD_LIBRARY_PATH
 _lib = C.cdll.LoadLibrary('libfigtree.so')
 
-#returns an integer
+# returns an integer
 _lib.figtree.restype = C.c_int
 
-#many arguments, all of basic type
-#important to ensure contiguous C-style memory
+# many arguments, all of basic type
+# important to ensure contiguous C-style memory
 _lib.figtree.argtypes = [C.c_int, C.c_int, C.c_int, C.c_int,
                          np.ctypeslib.ndpointer(dtype='float64', flags="CONTIGUOUS,ALIGNED"), C.c_double,
                          np.ctypeslib.ndpointer(dtype='float64', flags="CONTIGUOUS,ALIGNED"),
@@ -106,8 +109,8 @@ class FigtreeConfig(object):
 
 def figtree(samples, targets, weights, bandwidth=1, epsilon=1e-2,
             eval="auto", trunc="cluster", param="non-uniform", verbose=False):
-    """
-    Compute the *improved fast Gauss transform*.
+    """Compute the *improved fast Gauss transform* at the `targets` given
+    the input `samples` and associated `weights`.
 
     samples: array, one sample per row. Number of columns is the dimension of the sample space.
     targets: array, one position per row. Same dimension as sample space.
@@ -121,14 +124,15 @@ def figtree(samples, targets, weights, bandwidth=1, epsilon=1e-2,
     Note: If any of the input arrays is not contiguous, an internal copy is made.
 
     Return: transform at target points.
+
     """
 
-    #check input
+    # check input
     samples = np.ascontiguousarray(samples)
     targets = np.ascontiguousarray(targets)
     weights = np.ascontiguousarray(weights)
 
-    #use same notation as in figtree.h
+    # use same notation as in figtree.h
 
     one_dim = len(samples.shape)==1
     if one_dim:
@@ -136,31 +140,31 @@ def figtree(samples, targets, weights, bandwidth=1, epsilon=1e-2,
     else:
         d = samples.shape[1]
 
-    #number of samples
+    # number of samples
     N = samples.shape[0]
 
-    #number of target points
+    # number of target points
     M = targets.shape[0]
 
     if not one_dim:
-        #dimensions of samples and target have to match
+        # dimensions of samples and target have to match
         assert(targets.shape[-1] == d)
     else:
         assert(len(targets.shape)== 1)
-    #one weight for each source sample
+    # one weight for each source sample
 
-    #number of weights per points
+    # number of weights per points
     if len(weights.shape)==1:
         W = 1
         assert(weights.shape[0] == N)
     else:
-        #assume one row per weights if several exist
+        # assume one row per weights if several exist
         W = weights.shape[0]
         assert(weights.shape[-1] == N)
 
     conf = FigtreeConfig()
 
-    #define array to hold densities at target points
+    # define array to hold densities at target points
     g = np.zeros((W*M,))
     assert(g.flags['C_CONTIGUOUS'])
 
@@ -169,7 +173,7 @@ def figtree(samples, targets, weights, bandwidth=1, epsilon=1e-2,
         print("bandwidth h=%g , weights= %d, epsilon=%g "%(bandwidth, W, epsilon))
         print("Samples: %s, targets: %s, weights: %s" % (samples.shape, targets.shape, weights.shape))
 
-    #perform calculation
+    # perform calculation
     err = _lib.figtree(d, N, M, W, samples, bandwidth, weights, targets, epsilon,
                  g, conf.evaluation[eval], conf.parameter[param], conf.truncation[trunc], int(verbose))
 
@@ -225,7 +229,7 @@ class FigtreeTest(unittest.TestCase):
                          0.8948, 0.2861, 0.2512, 0.9327, 0.3353, 0.2530, 0.2532,
                          0.3352, 0.7235, 0.2506, 0.0235, 0.1062, 0.1061]) #, 0.7234, 0.1532])
 
-          #bandwidth
+          # bandwidth
           h = 0.8
 
           epsilon = 1e-2
@@ -235,9 +239,9 @@ class FigtreeTest(unittest.TestCase):
           target_densities = figtree(x, y, q, h, epsilon)
           end_time = time.time()
 
-          print("Used %f time" % (end_time-start_time) )
+          # print("Used %f time" % (end_time-start_time) )
 
-          #results from C compilation and shell output
+          # results from C compilation and shell output
           direct_results = np.array([
            1.0029,
            1.8818,
@@ -251,11 +255,6 @@ class FigtreeTest(unittest.TestCase):
            2.3393,
            ])
           np.testing.assert_allclose(direct_results, target_densities, 5e-5)
-#           print(abs(target_densities - direct_results))
-#           if (abs(target_densities - direct_results) > 5e-5).any():
-#               print("TEST FAILED!")
-#           else:
-#               print("TEST PASSED!")
 
     def test_figtree_1D(self):
         """
@@ -265,40 +264,25 @@ class FigtreeTest(unittest.TestCase):
         y = np.zeros((2,))
         y[0]=1
         y[1]=5
-        #causes rubbish to be passed to C. Datatype is int!
-    #    y = np.array([1, 5])
-        #however this doesn't. double
+        # causes rubbish to be passed to C. Datatype is int!
+        #    y = np.array([1, 5])
+        # however this doesn't. double
         y  = np.array([1, 5],dtype='float64')
         q = np.ones(x.shape)
         q /= sum(q)
         h = 0.9
 
-    #    print("contiguous: %d"% x.flags['C_CONTIGUOUS'])
-    #    figtreeChooseParametersNonUniform() chose p=1, k=6.
-    #Eval IFGT(h= 9.00e-01, pMax= 1, K= 6, r= 1.93e+00, rx= 0.00e+00, epsilon= 1.00e-02, bound = 0.00e+00)
         target_densities = figtree(x, y, q, h,epsilon=1e-2, eval="auto", verbose=True)
-
-#         print(target_densities)
 
         c_results = np.array([0.6868666, 0.0030526])
         np.testing.assert_allclose(c_results, target_densities, 5e-5)
-#         try:
-#             if (abs(target_densities - c_results) > 5e-5).any():
-#                 print("1D TEST (a) FAILED!")
-#             else:
-#                 print("1D TEST (a) PASSED!")
-#         except ValueError:
-#             pass
-        #now with more target points
+
+        # now with more target points
         y2 = np.array([1, 1.3, 2.1, 2.8, 3.6, 4])
         target_densities = figtree(x, y2, q, h,epsilon=1e-2, eval="auto", verbose=False)
-        print(target_densities)
+
         c_results = np.array([0.6868666,     0.7693905 ,    0.4519399 ,    0.2205926 ,    0.1398451 ,    0.0756315])
         np.testing.assert_allclose(c_results, target_densities, atol=1e-4, rtol=1)
-#         if (abs(target_densities - c_results) > 1e-4).any():
-#             print("1D TEST (b) FAILED!")
-#         else:
-#             print("1D TEST (b) PASSED!")
 
     def test_figtree_2D(self):
         """
@@ -318,14 +302,9 @@ class FigtreeTest(unittest.TestCase):
         h = 1.1
 
         target_densities = figtree(x, y, q, h,epsilon=1e-3)
-        print(target_densities)
 
         c_results = np.array([0.5172876,     0.6095191,     0.2790023])
         np.testing.assert_allclose(c_results, target_densities, 5e-7)
-#         if (abs(target_densities - c_results) > 5e-7).any():
-#             print("2D TEST FAILED!")
-#         else:
-#             print("2D TEST PASSED!")
 
     def  test_exceptions(self):
         """
@@ -336,54 +315,29 @@ class FigtreeTest(unittest.TestCase):
         y[0]=1
         y[1]=5
 
-        #however this doesn't. double
+        # however this doesn't. double
         y  = np.array([1, 5],dtype='float')
         q = np.ones(x.shape)
         q /= sum(q)
         h = 0.9
-
-#         try:
-#
-#             y2 = np.array([1, 5], dtype='int')
-#
-#             assert(False)
-#         except C.ArgumentError:
-#             pass
 
         # causes rubbish to be passed to C. Datatype is int!
         with self.assertRaises(C.ArgumentError) as cm:
             y2 = np.array([1, 5], dtype='int')
             target_densities = figtree(x, y2, q, h,epsilon=1e-2, eval="auto", verbose=True)
 
-        try:
-            #wrong shape/dimensions
-             y3  = np.array([1, 5, 123, 112,12,11],dtype='float')
-             y3.resize((3,2))
-             target_densities = figtree(x, y3, q, h,epsilon=1e-2, eval="auto", verbose=True)
-             assert(False)
-        except AssertionError:
-            pass
-
-        #wrong shape/dimensions
+        # wrong shape/dimensions
         with self.assertRaises(AssertionError) as cm:
             y3  = np.array([1, 5, 123, 112,12,11],dtype='float')
             y3.resize((3,2))
             target_densities = figtree(x, y3, q, h,epsilon=1e-2, eval="auto", verbose=True)
 
-        try:
-            #weights off
-            x2 = x[0:2]
-            target_densities = figtree(x2, y, q, h,epsilon=1e-2, eval="auto", verbose=True)
-
-        except AssertionError:
-            pass
-
-        #weights off
+        # weights off
         with self.assertRaises(AssertionError) as cm:
             x2 = x[0:2]
             target_densities = figtree(x2, y, q, h,epsilon=1e-2, eval="auto", verbose=True)
 
-        #not contiguous
+        # not contiguous
 
     @staticmethod
     def duplicate_weights(array_in):
@@ -403,29 +357,29 @@ class FigtreeTest(unittest.TestCase):
         index_array = np.empty((array_in.shape[0],),dtype=np.int)
         multiplicities = np.empty((array_in.shape[0],),dtype=np.int)
 
-        #count unique entries
+        # count unique entries
         index = 0
 
-        #keep track of how often same event is seen
+        # keep track of how often same event is seen
         counter = np.zeros((1,))
 
         for  row in range(array_in.shape[0]-1):
             counter += 1
 
-            #unique entry
+            # unique entry
             if (array_in[ row+1] != array_in[ row]).any():
                 index_array[index] = row
                 multiplicities[index] = counter
                 index += 1
                 counter = 0
 
-        #add last element
+        # add last element
         counter += 1
         index_array[index] = row + 1
         multiplicities[index] = counter
         index += 1
 
-        #crop result array
+        # crop result array
         index_array.resize((index,) )
         multiplicities.resize((index,))
 
@@ -476,11 +430,9 @@ def _distortion():
     x1_min = min(x1); x1_max = max(x1)
     x2_min = min(x2); x2_max = max(x2)
 
-    #define grid
+    # define grid
     grid1, grid2 = np.meshgrid(np.linspace(x1_min, x1_max, nTargetPerAxis),np.linspace(x2_min,x2_max , nTargetPerAxis) )
     y = np.c_[grid1.ravel(), grid2.ravel()]
-
-    print(y.shape)
 
     target_densities = figtree(np.ascontiguousarray(x), np.ascontiguousarray(y), q, h,epsilon=1e-3)
 
@@ -494,7 +446,7 @@ def _distortion():
     P.savefig("original_coord.pdf")
     P.clf()
 
-    #good ol' histogram
+    # good ol' histogram
     H, xedges, yedges = np.histogram2d(x1, x2 , bins=10)
     H = np.flipud(np.fliplr(np.rot90(H,k=3)))
     P.imshow(H, extent = (xedges[0], xedges[-1], yedges[0], yedges[-1]),
@@ -503,7 +455,7 @@ def _distortion():
     P.savefig("hist.pdf")
     P.clf()
 
-    #now apply linear trafo to unit hypercube
+    # now apply linear trafo to unit hypercube
     x1  = (x1 - x1_min)/ (x1_max - x1_min)
     x2  = (x2 - x2_min)/ (x2_max - x2_min)
     x = np.c_[x1.ravel(),x2.ravel()]
@@ -539,7 +491,7 @@ def _correct_weights(samples, bandwidth, ranges = None, filter=True):
         index_array = np.arange(samples.shape[0])
         q = np.ones((samples.shape[0],))
 
-    #dimensionality of sample vector
+    # dimensionality of sample vector
     one_dimensional = False
     try:
         d = samples.shape[1]
@@ -548,12 +500,12 @@ def _correct_weights(samples, bandwidth, ranges = None, filter=True):
         one_dimensional = True
 
 
-    #variance of Gaussian
+    # variance of Gaussian
     sigma = bandwidth / np.sqrt(2.0)
 
     if ranges is not None:
         for index in index_array:
-            #find normalization constant
+            # find normalization constant
             c = 1.0
             if one_dimensional:
                 c *= norm.cdf(ranges[1], loc=samples[index], scale=sigma) - \
@@ -564,13 +516,13 @@ def _correct_weights(samples, bandwidth, ranges = None, filter=True):
                           norm.cdf(ranges[i,0], loc=samples[index, i], scale=sigma)
             q[index] /= c
 
-    #now apply normalization of Gaussian (1D) and N samples
+    # now apply normalization of Gaussian (1D) and N samples
     q /= (bandwidth * np.sqrt(np.pi))**d * len(q)
     return q
 
 def _plot_correct_weights():
 
-    #draw data from an exponential distribution
+    # draw data from an exponential distribution
     from scipy.stats import expon
     import pylab as P
 
@@ -592,13 +544,13 @@ def _plot_correct_weights():
 
     target_densities1 = figtree(data, y, q, bandwidth, epsilon=eps, eval="auto", verbose=True)
 
-    #now try again with uncorrected densities
+    # now try again with uncorrected densities
     q = np.ones(data.shape)
     target_densities2 = figtree(data, y, q, bandwidth, epsilon=eps, eval="auto", verbose=True)
 
-    print("Smallest sample at %g"%min(data))
+    print("Smallest sample at %g" % min(data))
 
-    #plot the exponential density with max. likelihood estimate of the scale
+    # plot the exponential density with max. likelihood estimate of the scale
     P.plot(y, expon.pdf(y, scale=np.mean(data)))
     P.plot(y, target_densities1 , 'ro')
     P.title("Gaussian Kernel Density Estimation")
