@@ -625,6 +625,8 @@ def factory(cmd_line=None):
     parser.add_argument('--1D-bins', dest='one_dim_bins', help="Use fixed number of bins for 1D marginal distributions",action='store')
     parser.add_argument('--ignore-cuts',  help='Apply cuts on range of observables to remove outliers', action='store_true')
     parser.add_argument('--obs', help="Plot a single observable. Can be specified multiple times", action='append')
+    parser.add_argument('--lower-cut', help='Apply a lower cut on any of the observables', action='append', nargs=2)
+    parser.add_argument('--upper-cut', help='Apply a lower cut on any of the observables', action='append', nargs=2)
     parser.add_argument('--no-unc',  help='Do not print 1sigma intervals in title of 1D distributions', action='store_false')
     parser.add_argument('--select', help="Select a range of samples from each chain", action='store',nargs=2)
     parser.add_argument('--table', help="Output uncertainties into table", action='store')
@@ -639,6 +641,14 @@ def factory(cmd_line=None):
     uncert = UncertaintyPropagation([args.i], one_sigma=True, ignore_cuts= args.ignore_cuts)
     if args.select:
         args.select = (int(args.select[0]), int(args.select[1]))
+
+    if args.lower_cut:
+        for name,cut in args.lower_cut:
+            uncert.lower_cuts[name] = float(cut)
+
+    if args.upper_cut:
+        for name,cut in args.upper_cut:
+            uncert.upper_cuts[name] = float(cut)
 
     uncert.read_data(select=args.select)
 
