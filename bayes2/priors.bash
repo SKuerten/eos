@@ -14,6 +14,15 @@ export NUISANCE_CKM="
     --nuisance    CKM::etabar                                               ${N_SIGMAS}     --prior    gaussian    0.315     0.375     0.435
 "
 
+# From UTfit Summer 2013 (post-EPS13)
+# Results of the Treelevel Fit
+export NUISANCE_CKM_posthep13="
+    --nuisance    CKM::A                                                    ${N_SIGMAS}     --prior    gaussian    0.786     0.806     0.826
+    --nuisance    CKM::lambda                                               ${N_SIGMAS}     --prior    gaussian    0.2247    0.2253    0.2259
+    --nuisance    CKM::rhobar                                    0.0   1.0  ${N_SIGMAS}     --prior    gaussian    0.083     0.132     0.181
+    --nuisance    CKM::etabar                                               ${N_SIGMAS}     --prior    gaussian    0.319     0.369     0.419
+"
+
 # From PDG 2012
 export NUISANCE_QUARK_MASSES="
     --nuisance    mass::c                                        0.0   2.0  ${N_SIGMAS}     --prior    gaussian    1.25      1.275     1.30
@@ -26,6 +35,11 @@ export NUISANCE_DECAY_CONSTANTS="
 "
 #    --nuisance    decay-constant::B_d                                       ${N_SIGMAS}     --prior    gaussian    0.1859    0.1906    0.1953
 #    --nuisance    decay-constant::K_d                                       ${N_SIGMAS}     --prior    gaussian    0.1549    0.1561    0.1573
+
+
+export NUISANCE_DECAY_CONSTANTS_flag13="
+    --nuisance    decay-constant::B_s                                       ${N_SIGMAS}     --prior    gaussian    0.2232    0.2277    0.2322
+"
 
 #export NUISANCE_B_TO_VLL_HADRONICS="
 #    --nuisance    B->K^*::f_Kstar_perp@2GeV                                 ${N_SIGMAS}     --prior    gaussian    0.168     0.173     0.178
@@ -93,10 +107,19 @@ export NUISANCE_B_TO_VPARALL_SUBLEADING_FLAT="
     --nuisance    B->K^*ll::A_par^R_uncertainty@LargeRecoil      0.55  1.45 --prior    flat
 "
 
+# uncertainty of F^p averaged from KMPW2010 and BZ2004
 export NUISANCE_B_TO_PLL_FORM_FACTORS="
     --global-option form-factors KMPW2010
 
     --nuisance    B->K::F^p(0)@KMPW2010                          0.10  0.49 ${N_SIGMAS}     --prior    gaussian    0.29      0.34      0.39
+    --nuisance    B->K::b^p_1@KMPW2010                          -6.9   0.6  ${N_SIGMAS}     --prior    log-gamma  -3.7      -2.1      -1.2
+"
+
+# results as quoted in KMPW2010
+export NUISANCE_B_TO_PLL_FORM_FACTORS_PLUS="
+    --global-option form-factors KMPW2010
+
+    --nuisance    B->K::F^p(0)@KMPW2010                          0.10  0.49 ${N_SIGMAS}     --prior    gaussian    0.32      0.34      0.39
     --nuisance    B->K::b^p_1@KMPW2010                          -6.9   0.6  ${N_SIGMAS}     --prior    log-gamma  -3.7      -2.1      -1.2
 "
 
@@ -114,7 +137,7 @@ export NUISANCE_B_TO_PLL_FORM_FACTORS_TENSOR="
 "
 
 export NUISANCE_B_TO_PLL_FORM_FACTORS_ALL="
-    ${NUISANCE_B_TO_PLL_FORM_FACTORS}
+    ${NUISANCE_B_TO_PLL_FORM_FACTORS_PLUS}
     ${NUISANCE_B_TO_PLL_FORM_FACTORS_SCALAR}
     ${NUISANCE_B_TO_PLL_FORM_FACTORS_TENSOR}
 "
@@ -319,9 +342,9 @@ export NUISANCE_uncFF="
 export NUISANCE_uncFFhpqcd=${NUISANCE_uncFF}
 
 export NUISANCE_ckm14tensor="
-    ${NUISANCE_CKM}
+    ${NUISANCE_CKM_posthep13}
     ${NUISANCE_QUARK_MASSES}
-    ${NUISANCE_DECAY_CONSTANTS}
+    ${NUISANCE_DECAY_CONSTANTS_flag13}
     ${NUISANCE_B_TO_PLL_FORM_FACTORS_ALL}
     ${NUISANCE_B_TO_PLL_SUBLEADING}
 "
