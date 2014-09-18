@@ -497,7 +497,7 @@ def solve_amoroso_mode68(a, mode, sigma_plus, sigma_minus, initial_guess, experi
 #    P.grid()
     P.xlabel(r"BR$(B_s \to \mu \mu)$")
     P.savefig("%s.pdf" % experiment)
-    P.show()
+#     P.show()
 
 def plot_around():
 
@@ -830,3 +830,9 @@ if __name__ == '__main__':
     P.figure()
     solve_amoroso_mode68(0.0, mode=3.6, sigma_plus=1.6, sigma_minus=1.4,
                         initial_guess=[2.2682156277, 1.7296007586], experiment=r'$B_d \to \mu \mu$ CMS + LHCb 2013')
+    P.figure()
+    solve_amoroso_mode68(0.0, mode=2.8, sigma_plus=0.7, sigma_minus=0.6,
+                        initial_guess=[2.10578, 3.02417], experiment=r'$B_s \to \mu \mu$ CMS + LHCb 2014')
+    P.figure()
+    solve_amoroso_mode68(0.0, mode=3.9, sigma_plus=1.6, sigma_minus=1.4,
+                        initial_guess=[2.2682156277, 1.7296007586], experiment=r'$B_d \to \mu \mu$ CMS + LHCb 2014')
