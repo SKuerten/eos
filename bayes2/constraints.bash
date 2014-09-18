@@ -53,6 +53,10 @@ export CONSTRAINTS_B_TO_XSLL="
     --constraint B->X_sll::BR[1.0,6.0]@Belle-2005A
 "
 
+export CONSTRAINTS_BS_TO_MUMU_CKM14="
+    --constraint B^0_s->mu^+mu^-::BR@CMS-LHCb-2014
+"
+
 export CONSTRAINTS_B_TO_PLL_LARGE_RECOIL="
     --global-option model WilsonScan
     --global-option scan-mode cartesian
@@ -87,6 +91,29 @@ export CONSTRAINTS_B_TO_PLL_FF="
     --global-option form-factors KMPW2010
 
     --constraint B->K::f_+@HPQCD-2013A
+"
+
+export CONSTRAINTS_B_TO_PLL_LARGE_RECOIL_CKM14="
+    --constraint B^+->K^+mu^+mu^-::BR[1.00,6.00]@Belle-2009
+    --constraint B^+->K^+mu^+mu^-::BR[1.00,6.00]@CDF-2012
+    --constraint B^+->K^+mu^+mu^-::BR[1.00,6.00]@BaBar-2012
+    --constraint B^+->K^+mu^+mu^-::BR[1.10,6.00]@LHCb-2014
+"
+
+export CONSTRAINTS_B_TO_PLL_LOW_RECOIL_CKM14="
+    --constraint B^+->K^+mu^+mu^-::BR[14.18,16.00]@Belle-2009
+    --constraint B^+->K^+mu^+mu^-::BR[14.18,16.00]@CDF-2012
+    --constraint B^+->K^+mu^+mu^-::BR[14.21,16.00]@BaBar-2012
+
+    --constraint B^+->K^+mu^+mu^-::BR[15.00,22.00]@LHCb-2014
+
+    --constraint B^+->K^+mu^+mu^-::BR[16.00,22.86]@Belle-2009
+    --constraint B^+->K^+mu^+mu^-::BR[16.00,22.86]@CDF-2012
+    --constraint B^+->K^+mu^+mu^-::BR[16.00,22.86]@BaBar-2012
+"
+
+export CONSTRAINTS_B_TO_PLL_FF_ALL="
+    --constraint B->K::f_0+f_++f_T@HPQCD-2013A
 "
 
 export CONSTRAINTS_B_TO_VLL_LARGE_RECOIL="
@@ -460,4 +487,11 @@ export CONSTRAINTS_uncFF="
 export CONSTRAINTS_uncFFhpqcd="
     ${CONSTRAINTS_uncFF}
     ${CONSTRAINTS_B_TO_VLL_FF_HPQCD}
+"
+
+export CONSTRAINTS_ckm14tensor="
+    ${CONSTRAINTS_BS_TO_MUMU_CKM14}
+    ${CONSTRAINTS_B_TO_PLL_FF_ALL}
+    ${CONSTRAINTS_B_TO_PLL_LARGE_RECOIL_CKM14}
+    ${CONSTRAINTS_B_TO_PLL_LOW_RECOIL_CKM14}
 "

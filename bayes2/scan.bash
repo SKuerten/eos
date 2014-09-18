@@ -32,3 +32,11 @@ export SCAN_scIIIA="
 "
 
 export SCAN_sm=""
+
+export SCAN_dim6="
+    --global-option model ConstrainedWilsonScan
+    --global-option scan-mode cartesian
+
+    --scan      Re{cS}      -10.0    +10.  --prior flat
+    --scan      Re{cS'}     -10.0    +10.  --prior flat
+"

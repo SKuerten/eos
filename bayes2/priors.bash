@@ -94,6 +94,25 @@ export NUISANCE_B_TO_PLL_FORM_FACTORS="
     --nuisance    B->K::b^p_1@KMPW2010                          -6.9   0.6  ${N_SIGMAS}     --prior    log-gamma  -3.7      -2.1      -1.2
 "
 
+export NUISANCE_B_TO_PLL_FORM_FACTORS_SCALAR="
+    --global-option form-factors KMPW2010
+
+    --nuisance    B->K::b^0_1@KMPW2010                          -7.0   1.9  ${N_SIGMAS}     --prior    log-gamma  -5.2      -4.3      -3.5
+"
+
+export NUISANCE_B_TO_PLL_FORM_FACTORS_TENSOR="
+    --global-option form-factors KMPW2010
+
+    --nuisance    B->K::F^t(0)@KMPW2010                          0.30  0.54 ${N_SIGMAS}     --prior    gaussian    0.36      0.39      0.44
+    --nuisance    B->K::b^t_1@KMPW2010                          -8.2   0.8  ${N_SIGMAS}     --prior    log-gamma  -4.2      -2.2      -1.2
+"
+
+export NUISANCE_B_TO_PLL_FORM_FACTORS_ALL="
+    ${NUISANCE_B_TO_PLL_FORM_FACTORS}
+    ${NUISANCE_B_TO_PLL_FORM_FACTORS_SCALAR}
+    ${NUISANCE_B_TO_PLL_FORM_FACTORS_TENSOR}
+"
+
 export NUISANCE_B_TO_PLL_SUBLEADING="
     --nuisance    B->Pll::Lambda_pseudo@LowRecoil               -0.5   0.5  ${N_SIGMAS}     --prior    gaussian   -0.15      0.0       0.15
     --nuisance    B->Pll::Lambda_pseudo@LargeRecoil             -1.0   1.0  ${N_SIGMAS}     --prior    gaussian   -0.50      0.0       0.50
@@ -292,3 +311,11 @@ export NUISANCE_uncFF="
     ${NUISANCE_B_TO_VPARALL_FORM_FACTORS}
 "
 export NUISANCE_uncFFhpqcd=${NUISANCE_uncFF}
+
+export NUISANCE_ckm14tensor="
+    ${NUISANCE_CKM}
+    ${NUISANCE_QUARK_MASSES}
+    ${NUISANCE_DECAY_CONSTANTS}
+    ${NUISANCE_B_TO_PLL_FORM_FACTORS_ALL}
+    ${NUISANCE_B_TO_PLL_SUBLEADING}
+"
