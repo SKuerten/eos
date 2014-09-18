@@ -7,9 +7,6 @@ echo "[constraints loaded]"
 ##################
 
 export CONSTRAINTS_B_TO_XSGAMMA="
-    --global-option model WilsonScan
-    --global-option scan-mode cartesian
-
     --constraint B->X_sgamma::BR[1.8]@BaBar-2012
     --constraint B->X_sgamma::BR[1.8]@Belle-2009B
 "
@@ -17,11 +14,6 @@ export CONSTRAINTS_B_TO_XSGAMMA="
 #    --constraint B->X_sgamma::BR[1.8]+E_1[1.8]+E_2[1.8]@Belle-2009B
 
 export CONSTRAINTS_B_TO_KSTARGAMMA="
-    --global-option model WilsonScan
-    --global-option scan-mode cartesian
-
-    --global-option form-factors KMPW2010
-
     --constraint B^0->K^*0gamma::BR@CLEO-2000
     --constraint B^0->K^*0gamma::BR@Belle-2004
     --constraint B^0->K^*0gamma::BR@BaBar-2009
@@ -30,50 +22,31 @@ export CONSTRAINTS_B_TO_KSTARGAMMA="
 "
 
 export CONSTRAINTS_BS_TO_MUMU="
-    --global-option model WilsonScan
-    --global-option scan-mode cartesian
-
     --constraint B^0_s->mu^+mu^-::BR@CMS-2013B
     --constraint B^0_s->mu^+mu^-::BR@LHCb-2013D
 "
 
 export CONSTRAINTS_BS_TO_MUMU_POSTHEP13="
-    --global-option model WilsonScan
-    --global-option scan-mode cartesian
-
     --constraint B^0_s->mu^+mu^-::BR@CMS-2013B
     --constraint B^0_s->mu^+mu^-::BR@LHCb-2013D
-"
-
-export CONSTRAINTS_B_TO_XSLL="
-    --global-option model WilsonScan
-    --global-option scan-mode cartesian
-
-    --constraint B->X_sll::BR[1.0,6.0]@BaBar-2004A
-    --constraint B->X_sll::BR[1.0,6.0]@Belle-2005A
 "
 
 export CONSTRAINTS_BS_TO_MUMU_CKM14="
     --constraint B^0_s->mu^+mu^-::BR@CMS-LHCb-2014
 "
 
+export CONSTRAINTS_B_TO_XSLL="
+    --constraint B->X_sll::BR[1.0,6.0]@BaBar-2004A
+    --constraint B->X_sll::BR[1.0,6.0]@Belle-2005A
+"
+
 export CONSTRAINTS_B_TO_PLL_LARGE_RECOIL="
-    --global-option model WilsonScan
-    --global-option scan-mode cartesian
-
-    --global-option form-factors KMPW2010
-
     --constraint B^+->K^+mu^+mu^-::BR[1.00,6.00]@Belle-2009
     --constraint B^+->K^+mu^+mu^-::BR[1.00,6.00]@CDF-2012
     --constraint B^+->K^+mu^+mu^-::BR[1.00,6.00]@BaBar-2012
     --constraint B^+->K^+mu^+mu^-::BR[1.00,6.00]@LHCb-2012
 "
 export CONSTRAINTS_B_TO_PLL_LOW_RECOIL="
-    --global-option model WilsonScan
-    --global-option scan-mode cartesian
-
-    --global-option form-factors KMPW2010
-
     --constraint B^+->K^+mu^+mu^-::BR[14.18,16.00]@Belle-2009
     --constraint B^+->K^+mu^+mu^-::BR[14.18,16.00]@CDF-2012
     --constraint B^+->K^+mu^+mu^-::BR[14.21,16.00]@BaBar-2012
@@ -85,12 +58,6 @@ export CONSTRAINTS_B_TO_PLL_LOW_RECOIL="
     --constraint B^+->K^+mu^+mu^-::BR[16.00,22.86]@Belle-2009
     --constraint B^+->K^+mu^+mu^-::BR[16.00,22.86]@CDF-2012
     --constraint B^+->K^+mu^+mu^-::BR[16.00,22.86]@BaBar-2012
-"
-
-export CONSTRAINTS_B_TO_PLL_FF="
-    --global-option form-factors KMPW2010
-
-    --constraint B->K::f_+@HPQCD-2013A
 "
 
 export CONSTRAINTS_B_TO_PLL_LARGE_RECOIL_CKM14="
@@ -112,16 +79,15 @@ export CONSTRAINTS_B_TO_PLL_LOW_RECOIL_CKM14="
     --constraint B^+->K^+mu^+mu^-::BR[16.00,22.86]@BaBar-2012
 "
 
+export CONSTRAINTS_B_TO_PLL_FF="
+    --constraint B->K::f_+@HPQCD-2013A
+"
+
 export CONSTRAINTS_B_TO_PLL_FF_ALL="
     --constraint B->K::f_0+f_++f_T@HPQCD-2013A
 "
 
 export CONSTRAINTS_B_TO_VLL_LARGE_RECOIL="
-    --global-option model WilsonScan
-    --global-option scan-mode cartesian
-
-    --global-option form-factors KMPW2010
-
     --constraint B^0->K^*0mu^+mu^-::BR[1.00,6.00]@Belle-2009
     --constraint B^0->K^*0mu^+mu^-::BR[1.00,6.00]@CDF-2012
     --constraint B^0->K^*0mu^+mu^-::BR[1.00,6.00]@LHCb-2013
@@ -147,11 +113,6 @@ export CONSTRAINTS_B_TO_VLL_LARGE_RECOIL="
 "
 
 export CONSTRAINTS_B_TO_VLL_LARGE_RECOIL_NO_FL_BABAR_ATLAS="
-    --global-option model WilsonScan
-    --global-option scan-mode cartesian
-
-    --global-option form-factors KMPW2010
-
     --constraint B^0->K^*0mu^+mu^-::BR[1.00,6.00]@Belle-2009
     --constraint B^0->K^*0mu^+mu^-::BR[1.00,6.00]@CDF-2012
     --constraint B^0->K^*0mu^+mu^-::BR[1.00,6.00]@LHCb-2013
@@ -175,11 +136,6 @@ export CONSTRAINTS_B_TO_VLL_LARGE_RECOIL_NO_FL_BABAR_ATLAS="
 "
 
 export CONSTRAINTS_B_TO_VLL_LARGE_RECOIL_NOLHCBFL="
-    --global-option model WilsonScan
-    --global-option scan-mode cartesian
-
-    --global-option form-factors KMPW2010
-
     --constraint B^0->K^*0mu^+mu^-::BR[1.00,6.00]@Belle-2009
     --constraint B^0->K^*0mu^+mu^-::BR[1.00,6.00]@CDF-2012
     --constraint B^0->K^*0mu^+mu^-::BR[1.00,6.00]@LHCb-2013
@@ -205,11 +161,6 @@ export CONSTRAINTS_B_TO_VLL_LARGE_RECOIL_NOLHCBFL="
 "
 
 export CONSTRAINTS_B_TO_VLL_LOW_RECOIL="
-    --global-option model WilsonScan
-    --global-option scan-mode cartesian
-
-    --global-option form-factors KMPW2010
-
     --constraint B^0->K^*0mu^+mu^-::BR[14.18,16.00]@Belle-2009
     --constraint B^0->K^*0mu^+mu^-::BR[14.18,16.00]@CDF-2012
     --constraint B^0->K^*0mu^+mu^-::BR[14.21,16.00]@BaBar-2012
@@ -259,11 +210,6 @@ export CONSTRAINTS_B_TO_VLL_LOW_RECOIL="
 "
 
 export CONSTRAINTS_B_TO_VLL_POSTHEP13="
-    --global-option model WilsonScan
-    --global-option scan-mode cartesian
-
-    --global-option form-factors KMPW2010
-
     --constraint B^0->K^*0mu^+mu^-::P'_4[1.00,6.00]@LHCb-2013
     --constraint B^0->K^*0mu^+mu^-::P'_4[14.18,16.00]@LHCb-2013
     --constraint B^0->K^*0mu^+mu^-::P'_4[16.00,19.00]@LHCb-2013
@@ -278,29 +224,23 @@ export CONSTRAINTS_B_TO_VLL_POSTHEP13="
 "
 
 export CONSTRAINTS_B_TO_VLL_FF="
-    --global-option form-factors KMPW2010
-
     --kinematics s 0.0 --observable-prior B->K^*::V(s)/A_1(s) 0.93 1.33 1.73
     --kinematics s 0.0 --observable-prior B->K^*ll::xi_para(s)@LargeRecoil 0.08 0.10 0.13
 "
 
 export CONSTRAINTS_B_TO_VLL_FF_HPQCD="
-    --global-option model WilsonScan
-    --global-option scan-mode cartesian
-
-    --global-option form-factors KMPW2010
-
     --constraint B->K^*::V@HPQCD-2013B
     --constraint B->K^*::A_1@HPQCD-2013B
     --constraint B->K^*::A_12@HPQCD-2013B
 "
 
 export CONSTRAINTS_B_MASS_SPLITTING="
-    --global-option model WilsonScan
-    --global-option scan-mode cartesian
-
     --constraint B^0::M_B^*-M_B@PDG-2012
 "
+
+#################################
+## combinations of constraints ##
+#################################
 
 export CONSTRAINTS_all="
     ${CONSTRAINTS_B_MASS_SPLITTING}
@@ -486,6 +426,13 @@ export CONSTRAINTS_uncFF="
 
 export CONSTRAINTS_uncFFhpqcd="
     ${CONSTRAINTS_uncFF}
+    ${CONSTRAINTS_B_TO_VLL_FF_HPQCD}
+"
+
+export CONSTRAINTS_posthep13wide=${CONSTRAINTS_posthep13}
+
+export CONSTRAINTS_posthep13hpqcd="
+    ${CONSTRAINTS_posthep13}
     ${CONSTRAINTS_B_TO_VLL_FF_HPQCD}
 "
 

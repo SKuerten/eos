@@ -53,9 +53,9 @@ mcmc_pre() {
         --proposal "MultivariateGaussian" \
         --scale-reduction ${MCMC_PRERUN_SCALE_REDUCTION} \
         --store-prerun \
-        ${!constraints} \
         ${!scan} \
         ${!nuisance} \
+        ${!constraints} \
         --output "${BASE_NAME}/${scenario}_${data}/mcmc_pre_${idx}.hdf5" \
         > ${BASE_NAME}/${scenario}_${data}/mcmc_pre_${idx}.log 2>&1
 }
@@ -120,9 +120,9 @@ pmc_monolithic() {
         --pmc-adjust-sample-size ${PMC_ADJUST_SAMPLE_SIZE} \
         ${PMC_CONVERGENCE} \
         ${PMC_IGNORE_GROUPS} \
-        ${!constraints} \
         ${!scan} \
         ${!nuisance} \
+        ${!constraints} \
         --output "${BASE_NAME}/${scenario}_${data}/pmc_monolithic.hdf5" \
         > ${BASE_NAME}/${scenario}_${data}/pmc_monolithic.log 2>&1
 }
@@ -155,7 +155,7 @@ pmc_queue() {
     constraints=CONSTRAINTS_${data}
     nuisance=NUISANCE_${data}
 
-    export PMC_ANALYSIS="${!constraints} ${!scan} ${!nuisance}"
+    export PMC_ANALYSIS="${!scan} ${!nuisance} ${!constraints}"
     export PMC_OUTPUT_BASE_NAME=${BASE_NAME}/${scenario}_${data}/
     export PMC_MERGE_FILE=$PMC_OUTPUT_BASE_NAME/mcmc_pre_merged.hdf5
 
@@ -206,9 +206,9 @@ hc() {
         ${PMC_IGNORE_GROUPS} \
         --pmc-draw-samples \
         --pmc-final-chunksize ${PMC_FINAL_CHUNKSIZE} \
-        ${!constraints} \
         ${!scan} \
         ${!nuisance} \
+        ${!constraints} \
         --output "${BASE_NAME}/${scenario}_${data}/hc.hdf5" \
         > ${BASE_NAME}/${scenario}_${data}/hc.log 2>&1
 }
@@ -260,9 +260,9 @@ gof() {
     eos-scan-mc \
         --debug \
         ${cmd} \
-        ${!constraints} \
         ${!scan} \
         ${!nuisance} \
+        ${!constraints} \
         --output "${BASE_NAME}/${scenario}_${data}/gof_${idx}.hdf5" \
         > ${BASE_NAME}/${scenario}_${data}/gof_${idx}.log 2>&1
 }
@@ -308,10 +308,10 @@ py_opt() {
 
     EOS_SCAN=SCAN_${scenario}
     export EOS_SCAN=${!EOS_SCAN}
-    EOS_CONSTRAINTS=CONSTRAINTS_${data}
-    export EOS_CONSTRAINTS=${!EOS_CONSTRAINTS}
     EOS_NUISANCE=NUISANCE_${data}
     export EOS_NUISANCE=${!EOS_NUISANCE}
+    EOS_CONSTRAINTS=CONSTRAINTS_${data}
+    export EOS_CONSTRAINTS=${!EOS_CONSTRAINTS}
     EOS_MODE=GOF_MODE_${idx}
     # export EOS_mode=${!EOS_mode}
 
@@ -361,8 +361,8 @@ unc() {
         --parallel $UNC_PARALLEL \
         --store-parameters $UNC_STORE_PAR \
         ${UNC_PMC_INPUT} \
-        ${!predictions} \
         ${!nuisance} \
+        ${!predictions} \
         --output "${BASE_NAME}/${scenario}_${data}/unc.hdf5" \
         > ${BASE_NAME}/${scenario}_${data}/unc_${idx}.log 2>&1
 }
@@ -389,7 +389,7 @@ unc_queue() {
     nuisance=NUISANCE_${data}
     nuisance=${!nuisance}
 
-    export PMC_ANALYSIS="${!constraints} ${!scan} ${!nuisance}"
+    export PMC_ANALYSIS="${!scan} ${!nuisance} ${!nuisance}"
     export PMC_UNCERTAINTY_ANALYSIS="${!predictions}"
     export PMC_OUTPUT_BASE_NAME=${BASE_NAME}/${scenario}_${data}/
 
