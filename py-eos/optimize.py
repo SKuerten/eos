@@ -101,18 +101,21 @@ if __name__ == '__main__':
     np.set_printoptions(precision=8)
 
     parser = argparse.ArgumentParser(description="Optimize EOS analysis from python")
-    parser.add_argument("--algorithm")
+    parser.add_argument("--algorithm", required=True)
     parser.add_argument("--analysis-from", help="Specify where the `eos.Analysis` instance shall be read off. Either specify a python module (for example `module.analysis`) or `env` (default) for reading off the environement variables.",
                         type=str, action='store', default='env')
     parser.add_argument("--initial-guess", nargs='*', help="Vector to seed the optimization (minus signs must be replaced by `n` if notation `0.3e-3` is used). Ex: { 0.1 n0.3e-3 -0.5 }")
-    parser.add_argument("--local-algorithm", nargs='?', const=None)
+    parser.add_argument("--local-algorithm", nargs='?', default=None)
     parser.add_argument("--max-evaluations", type=int, action='store')
     parser.add_argument("--max-evaluations-local", type=int, action='store')
     parser.add_argument("--tolerance", type=float, action='store', default=1e-14, help="Relative tolerance to declare convergence")
     parser.add_argument("--tolerance-local", type=float, default=1e-14, help="Relative tolerance to declare convergence for the local algorithm")
 
+    # validate arguments
     args = parser.parse_args()
+    assert len(args.initial_guess) > 2, "invalid specification of the initial guess:" + str(args.initial_guess)
 
+    # now do something with them
     ana = make_analysis()
     target_density = NLOPT_Wrapper(ana)
 

@@ -318,7 +318,7 @@ py_opt() {
     mkdir -p ${BASE_NAME}/${scenario}_${data}
 
     ../py-eos/optimize.py --algorithm $alg --local-algorithm $local_alg \
-        --initial-guess "${!EOS_MODE}" \
+        --initial-guess ${!EOS_MODE} \
         --max-evaluations "${EOS_OPT_MAXEVAL}" --tolerance "${EOS_OPT_TOL}" \
         --max-evaluations-local "${EOS_OPT_MAXEVAL_LOCAL}" --tolerance-local "${EOS_OPT_TOL_LOCAL}" \
         > ${BASE_NAME}/${scenario}_${data}/py_opt_${alg}_${local_alg}_${idx}.log 2>&1
