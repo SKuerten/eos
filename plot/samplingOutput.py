@@ -262,7 +262,7 @@ class MCMC_Output(SamplingOutput):
             # special case: only one chain
             if self.single_chain is not None:
                 i = int(self.single_chain)
-            print("Mode of chain %d with log posterior = %.7f is at:" % (i, max))
+            print("Mode of chain %d with log posterior = %.16f is at:" % (i, max))
 
             # print in a format friendly for eos-scan-mc
             w = sys.stdout.write
@@ -270,7 +270,7 @@ class MCMC_Output(SamplingOutput):
             # all on one line
             w('"{ ')
             for p in mode:
-                w("%+.5f " % p)
+                w("%+.16f " % p)
             w('}"\n')
 
             # 5 parameters per line
