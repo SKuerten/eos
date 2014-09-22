@@ -15,19 +15,16 @@ export PMC_CLUSTERS=40
 export PMC_DOF=10
 export PMC_FINAL_CHUNKSIZE=250000
 export PMC_GROUP_BY_RVALUE=2.3
-# 0=A,1=C,2=D, 3=B
+# 0=C,1=A,2=D transient, 3=D, 4=B
 export PMC_IGNORE_GROUPS="
     --pmc-ignore-group 0
     --pmc-ignore-group 1
-    --pmc-ignore-group 2
     --pmc-ignore-group 4
-    --pmc-ignore-group 5
-    --pmc-ignore-group 6
 "
 export PMC_PATCH_LENGTH=200
 export PMC_SKIP_INITIAL=0.5
 
-export PMC_NUMBER_OF_JOBS=100
+export PMC_NUMBER_OF_JOBS=200
 export LL_QUEUE=serial
 export LL_FINAL_QUEUE=serial
 export PMC_POLLING_INTERVAL=60

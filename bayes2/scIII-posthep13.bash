@@ -13,20 +13,21 @@ export PMC_ADJUST_SAMPLE_SIZE=1
 export PMC_CHUNKSIZE=4000
 export PMC_CLUSTERS=50
 export PMC_FINAL_CHUNKSIZE=250000
-export PMC_GROUP_BY_RVALUE=2
+export PMC_GROUP_BY_RVALUE=2.35
 export PMC_PATCH_LENGTH=200
 export PMC_SKIP_INITIAL=0.5
-# 0=D,1=C,2=B,3=A
+# 0=D,1=B,2=A,3=C
 export PMC_IGNORE_GROUPS="
-    --pmc-ignore-group 1
     --pmc-ignore-group 3
+    --pmc-ignore-group 1
+    --pmc-ignore-group 2
 "
 
-export PMC_NUMBER_OF_JOBS=100
+export PMC_NUMBER_OF_JOBS=200
 export LL_QUEUE=serial
 export LL_FINAL_QUEUE=serial
 export PMC_POLLING_INTERVAL=60
-export PMC_CLIENT_ARGV="--resume-samples --step 3"
+# export PMC_CLIENT_ARGV="--resume-samples --step 3"
 
 export PMC_UNCERTAINTY_INPUT="${BASE_NAME}/scIII_posthep13/pmc_parameter_samples_15.hdf5_merge"
 
