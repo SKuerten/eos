@@ -15,11 +15,11 @@ export PMC_CLUSTERS=40
 export PMC_DOF=10
 export PMC_FINAL_CHUNKSIZE=250000
 export PMC_GROUP_BY_RVALUE=2.3
-# 0=C,1=A,2=D transient, 3=D, 4=B
+# 0=D,1=B,2=A, 3=C
 export PMC_IGNORE_GROUPS="
-    --pmc-ignore-group 0
+    --pmc-ignore-group 3
     --pmc-ignore-group 1
-    --pmc-ignore-group 4
+    --pmc-ignore-group 2
 "
 export PMC_PATCH_LENGTH=200
 export PMC_SKIP_INITIAL=0.5
