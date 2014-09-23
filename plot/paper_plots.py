@@ -160,7 +160,7 @@ class MarginalContours(object):
         next_best_fit_point_style['marker'] = '+'
         next_best_fit_point_style['color'] = 'Blue'
 
-        self.best_fit_points_style = [[best_fit_point_style]*2, [next_best_fit_point_style]*2]
+        self.best_fit_points_style = [[best_fit_point_style]*4, [next_best_fit_point_style]*4]
 
         # highest to lowest contour
         self.contour_styles = [dict(linestyle='solid'), dict(linestyle='dashed'), dict(linestyle='dashdot')]
@@ -271,7 +271,7 @@ class MarginalContours(object):
                                                 desired_levels=desired_levels)
             if line:
                 for n, l in enumerate(desired_levels):
-                    P.setp(artist.collections[n], **self.contour_styles[-n-1])
+                    P.setp(artist.collections[n], **self.contour_styles[-n-2])
 
         if SM_point:
             P.plot(self.sm_point.get(def1.name, 0.), self.sm_point.get(def2.name, 0.), **self.sm_point_style)
@@ -873,18 +873,40 @@ class Fall2013(object):
                 ParameterDefinition(index=1, name='Re{c9}', min=-6.5, max=5.5),
                 ParameterDefinition(index=2, name='Re{c10}', min=-6, max=6))
 
-        name = 'scIII_posthep13'
-        s = Scenario(os.path.join(self.input_base, 'pmc_' + name + '.hdf5'), 'OrangeRed', bandwidth_default=0.005,
+        scenarios = ['scIII_posthep13']
+        s = Scenario(os.path.join(self.input_base, 'pmc_' + scenarios[-1] + '.hdf5'), 'OrangeRed', bandwidth_default=0.005,
                                   crop_outliers=200, nbins=300,
-                                  local_mode=[[ -0.337899, 3.30393, -4.48358, -0.0861297, 0.0512656, -0.837369],
-                                              [0.502549, -4.1695, 3.52083, 0.0500648, -2.70563, -0.822219],
-                                              [0.0115065, 3.28042, -1.57617, -0.424717, 3.38051, 2.46494],
-                                              [0.119822, -3.94822, 1.98214, 0.431466, -3.46372, -2.24401]])
+                                  local_mode=[[-0.3294454156375440, +3.7033084792658708, -4.8352440600734292,
+                                               -0.0705098937666282, -1.0515469382939286, -0.5277211018937606],
+                                              [+0.4891045191541478, -4.2679436027176978, +4.4476234333920459,
+                                               +0.1114889290368637, +0.5703468115735241, +0.8397671055132904],
+                                              [-0.0157734421894522, -1.1321289138990118, +0.3796536153807689,
+                                               -0.4248361956296707, +4.2441573979695137, +4.4729213662276806],
+                                              [+0.1508212580097578, +0.1897372098757005, -0.6023744149054687,
+                                               +0.4237873414046214, -3.9155364861377104, -4.4686368052186660]])
+        s.set_bandwidth(0, 3, 0.01)
+        s.set_bandwidth(1, 4, 0.025)
+        s.set_bandwidth(2, 5, 0.013)
+
+        marg.scen[scenarios[-1]] = s
+
+        scenarios.append('scIII_posthep13hpqcd')
+        s = Scenario(os.path.join(self.input_base, 'pmc_' + scenarios[-1] + '.hdf5'), 'Blue', bandwidth_default=0.005,
+                                  crop_outliers=200, nbins=300,
+                                  local_mode=[[-0.3478138434026574, +3.6192275849809392, -4.1450675009769320,
+                                               -0.0210563264757002, +1.0799571832442161, +0.1809625656629924],
+                                              [+0.4869893356704660, -4.4906101273214931, +4.4355261568265361,
+                                               +0.1329187879824148, -0.3929626383549490, +0.3604274141650922],
+                                              [-0.0230814743653742, -0.5250663856254302, +0.5016281568890346,
+                                               -0.4129907710336000, +3.9653288279366410, +4.3054259043756611],
+                                              [+0.1511251755255345, -0.4032028484462637, -0.4852016080815704,
+                                               +0.4059691733431722, -3.8706811714180409, -4.2834154791241801]])
         s.set_bandwidth(0, 3, 0.01)
         s.set_bandwidth(1, 4, 0.018)
         s.set_bandwidth(2, 5, 0.013)
 
-        marg.scen[name] = s
+        marg.scen[scenarios[-1]] = s
+
         marg.read_data()
 
         # predictions in the SM
@@ -898,18 +920,19 @@ class Fall2013(object):
 #             m.cuts[d.i] = d.range
         primed_predictions = (0, 0, 0)
 
-        mode_labels = (('A', ((-0.275, -0.1), (2.05, -1.25), (-3.5, -1.2))),
-                       ('B', ((0.34, 0.02),  (-3.5, -2.6),   (4.2, -1.5))),
-                       ('C', ((0.01, -0.37), (2.05, 2.5),   (-0.85, 2.25))),
-                       ('D', ((0.1, 0.3), (-4.9, -5),  (2.3, -3.5))))
+        # place labels identifying the solutions
+        mode_labels = (('A', ((-0.275, -0.1), (1.2, 0), (-3.5, -1.2))),
+                       ('B', ((0.34, 0.02),  (-3.5, 0), (2.5, 0.5))),
+                       ('C', ((0.01, -0.37), (-1, 2), (0.5, 2.7))),
+                       ('D', ((0.1, 0.3), (0, -2.8), (-1, -3.5))))
 
         square_figure(self.fig_size)
 
         for i in range(3):
-            marg.single_panel(defs[i], primed_defs[i], scenarios=(name,), local_mode=False)
+            marg.single_panel(defs[i], primed_defs[i], scenarios=scenarios,
+                              desired_levels=(0.683, 0.954), local_mode=(True, True))
 
             for p, (lab, loc) in zip(s.local_mode, mode_labels):
-                P.plot(p[i], p[i+3], **marg.best_fit_points_style[0])
                 P.text(loc[i][0], loc[i][1], '$'+lab+'^{\prime}$')
 
             adjust_subplot()
@@ -924,23 +947,23 @@ class Fall2013(object):
         # parameter definitions
         ###
         def9      = ParameterDefinition(name='Re{c9}',  min=1, max=6, index=0)
-        def9prime = ParameterDefinition(name="Re{c9'}", min=-1, max=4, index=1)
+        def9prime = ParameterDefinition(name="Re{c9'}", min=-2, max=3, index=1)
 
         sc_names = ('scII_posthep13', 'scII_posthep13hpqcd')
-        local_modes = ([[3.559, 1.035]], [[3.741, 0.663]])
-        marg.scen[sc_names[0]] = Scenario(os.path.join('/data/eos/2013-fall-erratum', 'pmc_%s.hdf5' % sc_names[0]), 'OrangeRed',
+        local_modes = ([[3.601411695, 0.5116544958]], [[3.761138544, 0.3787229407]])
+        marg.scen[sc_names[0]] = Scenario(os.path.join(self.input_base, 'pmc_%s.hdf5' % sc_names[0]), 'OrangeRed',
                                           bandwidth_default=0.025,
                                           queue_output=False, crop_outliers=200, local_mode=local_modes[0], defs=[def9, def9prime])
-        marg.scen[sc_names[1]] = Scenario(os.path.join('/data/eos/2013-fall-erratum', 'pmc_%s.hdf5' % sc_names[1]), 'Blue',
+        marg.scen[sc_names[1]] = Scenario(os.path.join(self.input_base, 'pmc_%s.hdf5' % sc_names[1]), 'Blue',
                                           bandwidth_default=0.017,
                                           queue_output=False, crop_outliers=200, local_mode=local_modes[1], defs=[def9, def9prime])
 
         marg.read_data()
 
         square_figure(self.fig_size)
-        # 1,2, and 3 sigma contours
+        # 1 and 2 sigma contours
         marg.single_panel(def9, def9prime, SM_point=True, local_mode=[True, True], scenarios=sc_names,
-                          desired_levels=(0.683, 0.954, 0.9973), label=True)
+                          desired_levels=(0.683, 0.954), label=True)
         adjust_subplot()
         P.savefig(marg.out('scII'))
 
@@ -966,5 +989,5 @@ if __name__ == '__main__':
     matplotlib.rcParams['axes.linewidth'] = major['width']
 
     f = Fall2013()
-    f.figIV()
+    f.figIII()
 #    f.all()
