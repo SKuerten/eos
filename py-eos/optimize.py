@@ -98,7 +98,8 @@ def print_opt(opt):
     return opt.get_algorithm_name() + " with ftol=%g, maxeval=%d," % (opt.get_ftol_rel(), opt.get_maxeval())
 
 if __name__ == '__main__':
-    np.set_printoptions(precision=8)
+    # avoid scientific notation as argparse has trouble with it
+    np.set_printoptions(formatter={'float': lambda x: '%+.16f' % x})
 
     parser = argparse.ArgumentParser(description="Optimize EOS analysis from python")
     parser.add_argument("--algorithm", required=True)
