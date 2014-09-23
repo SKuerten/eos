@@ -3,8 +3,8 @@
 The idea is that each run covers one solution, and solutions do not
 overlap. Hence the total evidence is just the sum of individual
 evidences, and each self-normalized importance weight is reweighted by
-Z_a / Z, where a is an index enumerating all solutions. The number of
-samples in each run need not coincide.
+N_a / N, where a is an index enumerating all solutions, so the number of
+samples N_a in each run need not coincide.
 
 """
 
@@ -14,7 +14,7 @@ import tables as pytables
 import os
 import numpy as np
 
-def command_template(filename, crop=100):
+def command_template(filename, crop=0):
     cmd_template = ''
     # input file
     cmd_template += ' %s' % filename
@@ -35,13 +35,12 @@ def merge(files, output):
     # print(len(margs[0].out.weights))
     nsamples = 0
     for i, m in enumerate(margs):
-        R = Z[i] / Z_total
-        print('ratio: %g' % R)
-        m.out.weights /= m.out.weights.sum()
-        m.out.weights *= R
+        nsamples += len(m.out.weights)
+
+    for i, m in enumerate(margs):
+        m.out.weights *= nsamples / len(m.out.weights)
         # transform to log scale for output in file
         m.out.weights = np.log(m.out.weights)
-        nsamples += len(m.out.weights)
 
     # copy meta information from first file, assume it is equal for all
     merge_file = h5py.File(output, 'w')
@@ -190,7 +189,7 @@ def merge_old(files, output):
     merge_file.close()
 
 if __name__ == '__main__':
-    base = '/data/eos/2013-fall-erratum/2014-08-18/scIII_posthep13'
+    base = '/data/eos/2013-fall-erratum/2014-09-22/scIII_posthep13hpqcd'
     # pmc converged after different number of steps
     solution = ['AC', 'BD',]
     files = [os.path.join(base, sol +'.hdf5')  for sol in solution]
