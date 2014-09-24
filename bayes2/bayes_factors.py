@@ -8,7 +8,7 @@ from numpy import exp, log
 
 # log evidence for solution A(')
 zposthep = {'I':562.1, 'II':568.7, 'III':557.8, 'sm':572.3}
-zhpcqcd  = {'I':570.1, 'II':577.6, 'III':566.372, 'sm':580.2}
+zhpcqcd  = {'I':570.1, 'II':577.6, 'III':566.7, 'sm':580.2}
 zhpcqcdflat = {'II':580.708, 'III':573.749, 'sm':577.58}
 
 # these ranges should be just large enough to contain solution A(')
@@ -92,7 +92,7 @@ print('NOTE: in each file, 200 highest weights are cropped.')
 def ratios():
     '''scIII compare posterior masses. Use crop 200'''
     z1 = {'A':zposthep['III'], 'B':556.8, 'C':556.9, 'D':557.7}
-    z2 = {'A':zhpcqcd['III'], 'B':565.425, 'C':566.233, 'D':566.08}
+    z2 = {'A':zhpcqcd['III'], 'B':565.9, 'C':566.0, 'D':566.6}
 
     for z, name in zip((z1, z2), ('posthep13', 'posthep13hpqcd')):
         zv = np.array([z[k] for k in sorted(z.keys())])
