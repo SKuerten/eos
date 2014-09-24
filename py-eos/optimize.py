@@ -2,9 +2,9 @@
 
 """Provide an interface to optimize eos::Analysis with algorithms from the nlopt package via python."""
 
+from make_analysis import make_analysis
+
 import argparse
-import eos_scan_mc
-from os import environ
 import numpy as np
 import nlopt
 
@@ -64,18 +64,6 @@ nlopt_algorithms = dict(GN_DIRECT=nlopt.GN_DIRECT,
                         GN_ESCH=nlopt.GN_ESCH,
                         )
 
-def make_analysis():
-    if args.analysis_from == "env":
-        cmd_line = environ["EOS_SCAN"] + environ["EOS_NUISANCE"] + environ["EOS_CONSTRAINTS"]
-        parser = eos_scan_mc.Parser(cmd_line)
-        return eos_scan_mc.eos.Analysis(parser.constraints, parser.priors)
-    else:
-        module_hierarchy = args.analysis_from.split('.')
-        module_to_import = str.join('.', module_hierarchy[:-1])
-        analysis_name = module_hierarchy[-1]
-        exec("from " + module_to_import + " import " + analysis_name + " as analysis")
-        return analysis
-
 def make_opt(ana, alg, tol, maxeval):
     priors = target_density.analysis.priors
     opt = nlopt.opt(nlopt_algorithms[alg], len(priors))
@@ -116,8 +104,7 @@ if __name__ == '__main__':
     args = parser.parse_args()
     assert len(args.initial_guess) > 2, "invalid specification of the initial guess:" + str(args.initial_guess)
 
-    # now do something with them
-    ana = make_analysis()
+    ana = make_analysis(args.analysis_from)
     target_density = NLOPT_Wrapper(ana)
 
     opt = make_opt(target_density, args.algorithm, maxeval=args.max_evaluations, tol=args.tolerance)
