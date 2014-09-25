@@ -126,7 +126,7 @@ class UncertaintyPropagation(object):
 
         self.single_ext = ".pdf"
 
-        self.n_bins = 60
+        self.n_bins = 100
 
     def __determine_file_type(self):
         """
