@@ -438,18 +438,17 @@ export CONSTRAINTS_inclnoxsll="
 #####################
 
 # We only exclude the isospin asymmetry in B->K^*ll.
-export CONSTRAINTS_QUIMBASE="
+# quim1 = B->K^*ll, large recoil only
+export CONSTRAINTS_quim1="
     ${CONSTRAINTS_B_TO_XSGAMMA}
     ${CONSTRAINTS_B_TO_XSLL}
     ${CONSTRAINTS_B_TO_KSTARGAMMA}
     ${CONSTRAINTS_BS_TO_MUMU_POSTHEP13}
-    ${CONSTRAINTS_B_TO_VLL_POSTHEP13}
     ${CONSTRAINTS_B_TO_VLL_FF}
-"
-
-# quim1 = B->K^*ll, large recoil only
-export CONSTRAINTS_quim1="
-    ${CONSTRAINTS_QUIMBASE}
+    ${CONSTRAINTS_B_MASS_SPLITTING}
+    --constraint B^0->K^*0mu^+mu^-::P'_4[1.00,6.00]@LHCb-2013
+    --constraint B^0->K^*0mu^+mu^-::P'_5[1.00,6.00]@LHCb-2013
+    --constraint B^0->K^*0mu^+mu^-::P'_6[1.00,6.00]@LHCb-2013
     --constraint B^0->K^*0mu^+mu^-::A_FB[1.00,6.00]@LHCb-2013
     --constraint B^0->K^*0mu^+mu^-::A_T^2[1.00,6.00]@LHCb-2013
     --constraint B^0->K^*0mu^+mu^-::A_T^re[1.00,6.00]@LHCb-2013
