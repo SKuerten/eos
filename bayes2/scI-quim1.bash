@@ -4,7 +4,7 @@
 source ${EOS_SCRIPT_PATH}/job.bash
 
 export MCMC_PRERUN_SAMPLES=30000
-export MCMC_PRERUN_UPDATE_SIZE=750
+export MCMC_PRERUN_UPDATE_SIZE=500
 export MCMC_PRERUN_CHAINS=1
 export MCMC_PRERUN_PARALLEL=0
 
@@ -12,6 +12,14 @@ export PMC_CONVERGENCE="$PMC_CONVERGENCE --pmc-crop-highest-weights 50"
 export PMC_CHUNKSIZE=2500
 export PMC_FINAL_CHUNKSIZE=1000000
 export PMC_CLUSTERS=35
+
+# focus on SM-like solution as quim did
+# 0=B,1=A,2=-++,3=+--
+export PMC_IGNORE_GROUPS="
+    --pmc-ignore-group 0
+    --pmc-ignore-group 2
+    --pmc-ignore-group 3
+"
 
 export PMC_NUMBER_OF_JOBS=400
 export LL_QUEUE=test
