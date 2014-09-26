@@ -483,7 +483,7 @@ class MarginalContours(object):
         for p in props:
             p.style['linewidth'] = line_width
 
-        prior_style = dict(color='black', linestyle='dotted', linewidth=line_width)
+        prior_style = dict(color='grey', alpha=0.3, linewidth=line_width, filled=True)
         prior_label = r"$\mathrm{prior}$"
 
         for i,p in enumerate(props):
@@ -989,5 +989,5 @@ if __name__ == '__main__':
     matplotlib.rcParams['axes.linewidth'] = major['width']
 
     f = Fall2013()
-    f.figIII()
+    f.figI()
 #    f.all()

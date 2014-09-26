@@ -945,6 +945,9 @@ class MarginalDistributions:
             mesh_points = np.linspace(x_min, x_max, self.nBins[index] )
             prior_values = prior.evaluate(mesh_points)
 
+            if prior_style.pop('filled', False):
+                function = P.fill_between(mesh_points, np.zeros_like(mesh_points), prior_values, label=prior_label, **prior_style)
+
             P.plot(mesh_points, prior_values, label=prior_label, **prior_style)
         P.xlim( (x_min, x_max) )
         P.ylim(0)
