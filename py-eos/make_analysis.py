@@ -3,7 +3,7 @@ from os import environ
 
 def make_analysis(source):
     if source == "env":
-        cmd_line = environ["EOS_CONSTRAINTS"] + environ["EOS_SCAN"] + environ["EOS_NUISANCE"]
+        cmd_line = environ["EOS_SCAN"] + environ["EOS_NUISANCE"] + environ["EOS_CONSTRAINTS"]
         parser = eos_scan_mc.Parser(cmd_line)
         return eos_scan_mc.eos.Analysis(parser.constraints, parser.priors)
     else:
