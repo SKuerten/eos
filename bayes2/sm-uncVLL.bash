@@ -16,10 +16,9 @@ export PMC_GROUP_BY_RVALUE=1.5
 export PMC_INITIALIZATION="$PMC_INITIALIZATION --pmc-r-value-no-nuisance 0"
 
 export UNC_SAMPLES=100000
-export UNC_WORKERS=8
+export UNC_WORKERS=1
 export UNC_PMC_INPUT="
-    --pmc-input ${BASE_NAME}/sm_uncVLL/pmc_monolithic.hdf5 0 20
-    --hdf5-sample-directory /data/final
+    --pmc-input ${BASE_NAME}/../pmc_sm_posthep13.hdf5 0 50
 "
 
 export PMC_NUMBER_OF_JOBS=500
