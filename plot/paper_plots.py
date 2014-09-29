@@ -801,7 +801,7 @@ class Fall2013(object):
                                         crop_outliers=200, nbins=300,
                                         local_mode=[[-0.348441713,   3.787226592, -4.420530192],
                                                     [ 0.5021320352, -4.568457245,  4.25129282]])
-    #     marg.subleading_together()
+
 
         marg.scen['scI_quim1'] = Scenario(os.path.join(marg.input_base, 'pmc_scI_quim1.hdf5'), 'Blue',
                                           crop_outliers=200, nbins=300,
@@ -814,6 +814,12 @@ class Fall2013(object):
 #                                                          [ 0.41787049285,  -4.639111764728,  3.994616452063]])
 
         marg.read_data()
+
+        scenarios = ('scI_posthep13', 'scI_quim1')
+        for sc in scenarios:
+            marg.margs[sc].gof_point[0] = marg.sm_point['Re{c7}']
+            marg.margs[sc].gof_point[1]  = marg.sm_point['Re{c9}']
+            marg.margs[sc].gof_point[2]  = marg.sm_point['Re{c10}']
 
         ###
         # settings for comparing scenarios
@@ -850,7 +856,7 @@ class Fall2013(object):
         marg.scen['scI_quim1'].set_bandwidth(0, 2, 0.008)
         marg.scen['scI_quim1'].set_bandwidth(1, 2, 0.01)
 
-        for scenario in ('scI_posthep13', 'scI_quim1'):
+        for scenario in scenarios:
             for i in range(3):
                 for j in range(i + 1, 3):
                     marg.compute_marginal(large_def[i], large_def[j], scenario, solution=(0, 1))
@@ -862,6 +868,12 @@ class Fall2013(object):
     #                     ('scI_all_nuis', 'scI_posthep13'), ('scI_all_nuis', 'scI_quim1'))
 
         marg.compare_scenarios(combinations, desired_levels=(0.683, 0.954, 0.9973), local_mode=[True, True])
+
+        # rename files for arxiv upload
+        for i in range(3):
+            for j in range(i+1, 3):
+                os.rename(os.path.join(self.output_base, 'contour/%s_%s_%d_%d.pdf' % (scenarios[0], scenarios[1], i,j)),
+                          os.path.join(self.output_base, 'contour/%s_%s_%d_%d.pdf' % (scenarios[0], scenarios[0] + 'selection', i,j)))
 
 #     marg.subleading_separate()
 
