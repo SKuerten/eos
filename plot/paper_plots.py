@@ -149,7 +149,7 @@ class MarginalContours(object):
         """
         self.sm_point = [-0.32741917, +4.27584794, -4.15077942]
         """
-        self.sm_point = {'Re{c7}':-0.32741917, 'Re{c9}':+4.27584794, 'Re{c10}':-4.15077942}
+        self.sm_point = {'Re{c7}':-0.33726473, 'Re{c9}':+4.27342842, 'Re{c10}':-4.16611761}
         self.sm_point_style = dict(marker = 'D', markersize = 8, color = 'black')
 
         best_fit_point_style = dict(self.sm_point_style)
@@ -271,7 +271,7 @@ class MarginalContours(object):
                                                 desired_levels=desired_levels)
             if line:
                 for n, l in enumerate(desired_levels):
-                    P.setp(artist.collections[n], **self.contour_styles[-n-2])
+                    P.setp(artist.collections[n], **self.contour_styles[-n-1])
 
         if SM_point:
             P.plot(self.sm_point.get(def1.name, 0.), self.sm_point.get(def2.name, 0.), **self.sm_point_style)
@@ -297,7 +297,7 @@ class MarginalContours(object):
             P.xlabel(self.margs[scenarios[0]].tr.to_tex(def1.name))
             P.ylabel(self.margs[scenarios[0]].tr.to_tex(def2.name))
 
-    def stack(self, par1, par2, scenarios, solution=(1, 0)):
+    def stack(self, par1, par2, scenarios, solution=(1, 0), **kwargs):
         """
         Plot two panels, one on top of the other with
         marginal distribution for two parameters. Each panel
@@ -317,7 +317,7 @@ class MarginalContours(object):
             P.subplot(2,1,i)
             def1 = self.comparison_defs[(par1, s)]
             def2 = self.comparison_defs[(par2, s)]
-            self.single_panel(def1, def2, solution=s, scenarios=scenarios, label=False)
+            self.single_panel(def1, def2, solution=s, scenarios=scenarios, label=False, **kwargs)
 
         # Set common labels
         tr = self.margs[scenarios[0]].tr
@@ -326,19 +326,19 @@ class MarginalContours(object):
 
         fig.subplots_adjust(left=0.2, right=0.92, bottom=0.1, top=0.98)
 
-    def compare_scenarios(self, combinations):
+    def compare_scenarios(self, combinations, **kwargs):
         """
         compare multiple scenarios in overlays with filled and contoured regions
         """
 
         for c in combinations:
-            self.stack('Re{c7}', 'Re{c9}', scenarios=c)
+            self.stack('Re{c7}', 'Re{c9}', scenarios=c, **kwargs)
             P.savefig(self.out("%s_0_1" % '_'.join(c)))
 
-            self.stack('Re{c7}', 'Re{c10}', scenarios=c)
+            self.stack('Re{c7}', 'Re{c10}', scenarios=c, **kwargs)
             P.savefig(self.out("%s_0_2" % '_'.join(c)))
 
-            self.stack('Re{c9}', 'Re{c10}', scenarios=c)
+            self.stack('Re{c9}', 'Re{c10}', scenarios=c, **kwargs)
             P.savefig(self.out("%s_1_2" % '_'.join(c)))
 
     def scI_all_vs_excl(self):
@@ -799,14 +799,15 @@ class Fall2013(object):
 
         marg.scen['scI_posthep13'] = Scenario(os.path.join(marg.input_base, 'pmc_scI_posthep13.hdf5'), 'OrangeRed',
                                         crop_outliers=200, nbins=300,
-                                        local_mode=[[-0.342938, 3.94893, -4.61573],
-                                                    [0.505892, -5.00182, 4.50871]])
+                                        local_mode=[[-0.348441713,   3.787226592, -4.420530192],
+                                                    [ 0.5021320352, -4.568457245,  4.25129282]])
     #     marg.subleading_together()
 
         marg.scen['scI_quim1'] = Scenario(os.path.join(marg.input_base, 'pmc_scI_quim1.hdf5'), 'Blue',
                                           crop_outliers=200, nbins=300,
-                                          local_mode=[[-0.345514, 2.99263, -4.16734],
-                                                      [ 0.509072, -4.02532, 4.22568]])
+                                          local_mode=[[-0.3323645523, 2.445929253, -4.07158241],
+                                                      [ 100, 100, 100] # outside of plot region => no mode
+                                                      ])
 #         marg.scen['scI_all_nuis'] = Scenario(os.path.join(marg.input_base, 'pmc_scI_all_nuis.hdf5'), 'Grey',
 #                                              crop_outliers=200,
 #                                              local_mode=[[-0.294991910838,    3.731820480717,  -4.140554057902],
@@ -821,16 +822,16 @@ class Fall2013(object):
         nticks = 5
         par_def0 = ParameterDefinition(name=name, min=-0.5, max=-0.1, index=0)
         par_def0.major_locator = ticker.FixedLocator(np.linspace(par_def0.min, par_def0.max, nticks))
-        par_def1 = ParameterDefinition(name=name, min=0.2, max=0.6, index=0)
+        par_def1 = ParameterDefinition(name=name, min=0.3, max=0.7, index=0)
         par_def1.major_locator = ticker.FixedLocator(np.linspace(par_def1.min, par_def1.max, nticks))
 
         # 0 = SM, 1 = flipped sign
         marg.comparison_defs[('Re{c7}' , 0)] = par_def0
         marg.comparison_defs[('Re{c7}' , 1)] = par_def1
-        marg.comparison_defs[('Re{c9}' , 0)] = ParameterDefinition(name='Re{c9}', min=+1, max=+6, index=1)
-        marg.comparison_defs[('Re{c9}' , 1)] = ParameterDefinition(name='Re{c9}', min=-7, max=-2, index=1)
-        marg.comparison_defs[('Re{c10}', 0)] = ParameterDefinition(name='Re{c10}', min=-6.5, max=-1.5, index=2)
-        marg.comparison_defs[('Re{c10}', 1)] = ParameterDefinition(name='Re{c10}', min=+1.5, max=+6.5, index=2)
+        marg.comparison_defs[('Re{c9}' , 0)] = ParameterDefinition(name='Re{c9}', min=-0.5, max=+5.5, index=1)
+        marg.comparison_defs[('Re{c9}' , 1)] = ParameterDefinition(name='Re{c9}', min=-8, max=-2, index=1)
+        marg.comparison_defs[('Re{c10}', 0)] = ParameterDefinition(name='Re{c10}', min=-7, max=-1, index=2)
+        marg.comparison_defs[('Re{c10}', 1)] = ParameterDefinition(name='Re{c10}', min=+1, max=+7, index=2)
 
         ###
         # Create plot for large range to properly weight both modes, then zoom in
@@ -847,7 +848,7 @@ class Fall2013(object):
 
         marg.scen['scI_quim1'].set_bandwidth(0, 1, 0.01)
         marg.scen['scI_quim1'].set_bandwidth(0, 2, 0.008)
-        marg.scen['scI_quim1'].set_bandwidth(1, 2, 0.008)
+        marg.scen['scI_quim1'].set_bandwidth(1, 2, 0.01)
 
         for scenario in ('scI_posthep13', 'scI_quim1'):
             for i in range(3):
@@ -860,7 +861,7 @@ class Fall2013(object):
     #                     ('scI_all_nuis',),
     #                     ('scI_all_nuis', 'scI_posthep13'), ('scI_all_nuis', 'scI_quim1'))
 
-        marg.compare_scenarios(combinations)
+        marg.compare_scenarios(combinations, desired_levels=(0.683, 0.954, 0.9973), local_mode=[True, True])
 
 #     marg.subleading_separate()
 
@@ -989,5 +990,5 @@ if __name__ == '__main__':
     matplotlib.rcParams['axes.linewidth'] = major['width']
 
     f = Fall2013()
-    f.figI()
+    f.figII()
 #    f.all()
