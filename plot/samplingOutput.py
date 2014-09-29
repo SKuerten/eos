@@ -834,3 +834,83 @@ class JahnISOutput(IS_Output):
         self.priors = priors
         self.stats = None
         self.components = None
+
+class UncertaintyPropagation(SamplingOutput):
+    '''Read observables from uncertainty propagation.'''
+
+    def _read(self, *args, **kwargs):
+        self.crop_outliers = kwargs.get('crop_outliers', 0)
+        file_type = self._determine_file_type()
+        if file_type == 'pmc':
+            self._read_data_pmc()
+        else:
+            raise NotImplementedError('Only PMC format implemented so far')
+        # elif file_type == 'prior':
+        #     self._read_data_prior()
+
+    def _determine_file_type(self):
+        """
+        Check whether pmc or ordinary
+        """
+
+        f = h5py.File(self.input_file_name)
+
+        try:
+            f['/data/weights']
+            return 'pmc'
+        except KeyError:
+            return 'prior'
+
+            f = h5py.File(self.file_names[0])
+
+        try:
+            f['/data/weights']
+            return 'pmc'
+        except KeyError:
+            return 'prior'
+
+    def _read_data_pmc(self):
+        """
+        Parse data from uncertainty propagation based on
+        posterior samples from PMC
+        """
+
+        hdf5_file = h5py.File(self.input_file_name, 'r')
+
+        ###
+        # extract the samples
+        ###
+
+        self.samples = hdf5_file['/data/observables'][self.select[0]:self.select[1]]
+        self.weights = np.exp(hdf5_file['/data/weights'][self.select[0]:self.select[1]].T['weight'])
+
+        if self.crop_outliers > 0:
+            crop(self.weights, self.crop_outliers)
+
+        ###
+        # extract meta information
+        ###
+        kinematics = {}
+        observable_names = {}
+        parameter_names = {}
+        par_ranges = {}
+        sm_predictions = {}
+
+        self.par_defs = []
+        self.priors = []
+
+        # sort by numerical value
+        for o in np.sort(np.array(list(hdf5_file['/descriptions/observables']),dtype=int)):
+            dset = hdf5_file['/descriptions/observables/%d' % o]
+            observable_names[o] = dset.attrs['name']
+            # skip trivial kinematics
+            if dset[0][0] != dset[0][1]:
+                kinematics[o] = (dset[0][0], dset[0][1])
+            sm_predictions[o] = dset.attrs['SM prediction']
+            pd = ParameterDefinition(observable_names[o] + str(kinematics.get(o, '')),
+                                     self.samples[:,o].min(), self.samples[:, o].max(),
+                                     nuisance=False, discrete=False, index=o)
+            self.par_defs.append(pd)
+            self.priors.append(None)
+
+        hdf5_file.close()

@@ -1616,6 +1616,7 @@ def factory(cmd_line=None):
     parser.add_argument('--single-ext', help="File extension for single plots, e.g 'pdf'[default] or 'png'", action='store')
     parser.add_argument('--select', help="Select a range of samples from each chain", action='store',nargs=2, default=(None, None))
     parser.add_argument('--skip-initial', help="Allows to skip the first fraction of iterations", action='store', default=0)
+    parser.add_argument('--uncertainty-propagation', help="Parse uncertainty-propagation data", action='store_true')
     parser.add_argument('--use-data-range', help="Determine the parameter ranges from data, instead of from definition in HDF5. ", action='store', default=0.0)
     parser.add_argument('--use-KDE',  help='Use kernel density estimation instead of histograms', action='store_true')
 
@@ -1655,6 +1656,8 @@ def factory(cmd_line=None):
         OutputClass = EmceeOutput
     elif args.nest:
         OutputClass = MultinestOutput
+    elif args.uncertainty_propagation:
+        OutputClass = UncertaintyPropagation
     else:
         if args.i.endswith('.npy'):
             OutputClass = JahnISOutput
