@@ -14,40 +14,21 @@ import tables as pytables
 import os
 import numpy as np
 
-def command_template(filename, crop=0):
+def command_template(filename, crop=0, pmc=True):
     cmd_template = ''
     # input file
     cmd_template += ' %s' % filename
     cmd_template += ' --pmc-crop-outliers %d' % crop
-    cmd_template += ' --pmc-queue-output'
+    if pmc:
+        cmd_template += ' --pmc-queue-output'
+    else:
+        cmd_template += ' --uncertainty-propagation'
 
     return cmd_template.split()
 
-def merge(files, output):
-    # read in all files
-    margs = [plotScript.factory(command_template(f)) for f in files]
+def merge_pmc(merge_file, margs, nsamples):
+    f = h5py.File(margs[0].out.input_file_name, 'r')
 
-    # determine evidence
-    Z = [m.integrate()[0] for m in margs]
-    Z_total = sum(Z)
-
-    # renormalize
-    # print(len(margs[0].out.weights))
-    nsamples = 0
-    for i, m in enumerate(margs):
-        nsamples += len(m.out.weights)
-
-    for i, m in enumerate(margs):
-        m.out.weights *= nsamples / len(m.out.weights)
-        # transform to log scale for output in file
-        m.out.weights = np.log(m.out.weights)
-
-    # copy meta information from first file, assume it is equal for all
-    merge_file = h5py.File(output, 'w')
-
-    f = h5py.File(files[0], 'r')
-    f.copy('/descriptions', merge_file)
-    merge_file.create_group('/data')
     for g in ('/data/initial', '/data/statistics',):
         # merge_file.create_group(g)
         f.copy(g, merge_file['/data'])
@@ -73,8 +54,8 @@ def merge(files, output):
     f.close()
 
     min_index = 0
-    for i, fname in enumerate(files):
-        with h5py.File(fname, 'r') as f:
+    for i, m in enumerate(margs):
+        with h5py.File(m.out.input_file_name, 'r') as f:
             for ds in data_set_names[1:]:
                 full_name = '/data/' + ds
                 print('Copying ' + full_name)
@@ -83,10 +64,69 @@ def merge(files, output):
             merge_file['/data/weights'][min_index:min_index + f[full_name].len()] = margs[i].out.weights
             min_index += f[full_name].len()
 
+def merge_unc(merge_file, margs, nsamples):
+    data_set_names = ('weights', 'observables')
+
+    with h5py.File(margs[0].out.input_file_name, 'r') as f:
+        full_name = '/data/' + data_set_names[0]
+        print('Creating ' + full_name)
+        shape = [f[full_name].shape]
+        shape[0] = nsamples
+        shape = tuple(shape)
+        print(shape)
+        merge_file.create_dataset(full_name, dtype=f[full_name].dtype, shape=shape)
+
+        # extra sausage for observables
+        # h5py doesn't deal with the ndim vector in first element, so help it with the shapes
+        full_name = '/data/' + data_set_names[1]
+        samples = np.empty((nsamples, f[full_name][0].shape[0]))
+        merge_file.create_dataset(full_name, data=samples)
+
+    min_index = 0
+    for i, m in enumerate(margs):
+        with h5py.File(m.out.input_file_name, 'r') as f:
+            # copy observables
+            merge_file[full_name][min_index:min_index + f[full_name].len()] = f[full_name][:]
+
+            merge_file['/data/weights'][min_index:min_index + f[full_name].len()] = margs[i].out.weights
+            min_index += f[full_name].len()
+
+def merge(files, output, pmc=True):
+    print pmc
+    # read in all files
+    margs = [plotScript.factory(command_template(f, pmc=pmc)) for f in files]
+
+    # determine evidence
+    Z = [m.integrate()[0] for m in margs]
+    Z_total = sum(Z)
+
+    # renormalize
+    # print(len(margs[0].out.weights))
+    nsamples = 0
+    for i, m in enumerate(margs):
+        nsamples += len(m.out.weights)
+
+    for i, m in enumerate(margs):
+        m.out.weights *= nsamples / len(m.out.weights)
+        # transform to log scale for output in file
+        m.out.weights = np.log(m.out.weights)
+
+    # copy meta information from first file, assume it is equal for all
+    merge_file = h5py.File(output, 'w')
+
+    with h5py.File(files[0], 'r') as f:
+        f.copy('/descriptions', merge_file)
+        merge_file.create_group('/data')
+
+    if pmc:
+        merge_pmc(merge_file, margs, nsamples)
+    else:
+        merge_unc(merge_file, margs, nsamples)
+
 if __name__ == '__main__':
-    base = '/data/eos/2013-fall-erratum/2014-09-22/scIII_posthep13hpqcd'
+    base = '/data/eos/2013-fall-erratum/2014-09-29'
     # pmc converged after different number of steps
     solution = ['A', 'B', 'C', 'D']
-    files = [os.path.join(base, sol +'.hdf5')  for sol in solution]
-    print(files)
-    merge(files, output=os.path.join(base, 'pmc_multiple_merge.hdf5'))
+    files = [base + sol +'/scIII_uncVLL/unc.hdf5' for sol in solution]
+#     print(files)
+    merge(files, output=os.path.join(base, 'scIII_uncVLL/unc_multiple_merge_test.hdf5'), pmc=False)

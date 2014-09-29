@@ -835,7 +835,7 @@ class JahnISOutput(IS_Output):
         self.stats = None
         self.components = None
 
-class UncertaintyPropagation(SamplingOutput):
+class UncertaintyPropagation(IS_Output):
     '''Read observables from uncertainty propagation.'''
 
     def _read(self, *args, **kwargs):
@@ -853,15 +853,7 @@ class UncertaintyPropagation(SamplingOutput):
         Check whether pmc or ordinary
         """
 
-        f = h5py.File(self.input_file_name)
-
-        try:
-            f['/data/weights']
-            return 'pmc'
-        except KeyError:
-            return 'prior'
-
-            f = h5py.File(self.file_names[0])
+        f = h5py.File(self.input_file_name, 'r')
 
         try:
             f['/data/weights']
