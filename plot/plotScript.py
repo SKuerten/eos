@@ -794,6 +794,7 @@ class MarginalDistributions:
         if parameter_name == '':
             parameter_name = "par"+str(index)
 
+        print('')
         print("%s: x_range = [%g, %g], bins = %d" % (parameter_name, x_min, x_max, self.nBins[index]))
 
         #KDE doesn't make sense for discrete parameters
