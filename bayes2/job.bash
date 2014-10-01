@@ -324,6 +324,36 @@ py_opt() {
         > ${BASE_NAME}/${scenario}_${data}/py_opt_${alg}_${local_alg}_${idx}.log 2>&1
 }
 
+py_opt_multi () {
+    scenario=${1}
+    shift
+
+    data=${1}
+    shift
+
+    idx=${1}
+    if [[ -z ${idx} ]] ; then
+        echo "First mode index not given!"
+        exit -1
+    fi
+    shift
+
+    idy=${1}
+    if [[ -z ${idy} ]] ; then
+        echo "Second mode index not given!"
+        exit -1
+    fi
+    shift
+
+    algorithms="LN_BOBYQA LN_COBYLA"
+    for i in $(seq -f %01.0f $idx $idy); do
+        for alg in $algorithms; do
+            echo "Running $alg for mode $i"
+            py_opt $scenario $data $i $alg &
+        done
+    done
+}
+
 export UNC_SAMPLES=100000
 export UNC_WORKERS=1 # set equal to number of threads
 export UNC_STORE_PAR=1
@@ -446,6 +476,9 @@ main() {
             ;;
         py-opt)
             py_opt ${scenario} ${data} $@
+            ;;
+        py-opt-multi)
+            py_opt_multi ${scenario} ${data} $@
             ;;
         unc)
             unc ${scenario} ${data} $@
