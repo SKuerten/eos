@@ -238,9 +238,13 @@ export NUISANCE_bsmumu="
 "
 
 export NUISANCE_posthep13=${NUISANCE_all}
-export NUISANCE_posthep13noFLBabarAtlas=${NUISANCE_all}
 export NUISANCE_posthep13hpqcd=${NUISANCE_all}
+
+export NUISANCE_posthep13noFLBabarAtlas=${NUISANCE_all}
 export NUISANCE_posthep13hpqcdnoFLBabarAtlas=${NUISANCE_all}
+
+export NUISANCE_posthep13noBKstargamma=${NUISANCE_all}
+export NUISANCE_posthep13hpqcdnoBKstargamma=${NUISANCE_all}
 
 export NUISANCE_posthep13hpqcdSLflat="
     ${NUISANCE_CKM}
