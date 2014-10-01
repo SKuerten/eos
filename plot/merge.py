@@ -69,7 +69,7 @@ def merge_preruns(output_file_name, search='*.hdf5', input_files=None,
         output_file.create_group(g)
 
     for f_i, file_name in enumerate(search_results):
-        print("merging %s into %s" % (file_name, output_file_name))
+        print("merging %s" % file_name)
         input_file = h5py.File(file_name, 'r')
         nchains_in_file = len(input_file[groups[0]].keys())
 
