@@ -510,14 +510,15 @@ class MarginalDistributions:
         * expect a histogram with the actual, integer counts
 
         If **density**, check at what credibility level
-         the given posterior density lies, i.e. starting from a mode,
-         when lowering the water level, how much probability sticks out of
-         the water when it equals the given level. Due to discreteness, we include
-         the probability of the bin itself, thus we overcover. Should be negligible
-         when many bins contribute, but makes a big difference if only a handful have
-         nonzero probability. Therefore, we return (prob_overcovering, prob_no_overcovering)
-          Do not return 68%, 95% levels.
+        the given posterior density lies, i.e. starting from a mode,
+        when lowering the water level, how much probability sticks out of
+        the water when it equals the given level. Due to discreteness, we include
+        the probability of the bin itself, thus we overcover. Should be negligible
+        when many bins contribute, but makes a big difference if only a handful have
+        nonzero probability. Therefore, we return (prob_overcovering, prob_undercovering)
         """
+
+        np.testing.assert_array_less(credibilities, 1.)
 
         #turn 2D histo into flat histo if necessary
         #then sort
@@ -528,12 +529,15 @@ class MarginalDistributions:
 
         if density is not None:
             # where was level sorted to?
+            # Start from lowest bin, assume level between bin i and i+1.
+            # Then going from maximum (last bin) to bin i contains more probability
+            # than desired (overcovers). But searchsorted returns i+1.
             # max to avoid negative index, -1 to overcover
             index = max(0, np.searchsorted(bin_counts, density) - 1)
             # how much is still above? In/exclude the bin with the point
-            credibility_level_include = (cdf[-1] - cdf[index]) / cdf[-1]
-            credibility_level_above =  (cdf[-1] - cdf[min(len(bin_counts) - 1, index + 1)]) / cdf[-1]
-            return (credibility_level_include, credibility_level_above)
+            credibility_level_overcover = (cdf[-1] - cdf[index]) / cdf[-1]
+            credibility_level_undercover =  (cdf[-1] - cdf[min(len(bin_counts) - 1, index + 1)]) / cdf[-1]
+            return (credibility_level_overcover, credibility_level_undercover)
 
         levels = np.array(credibilities)
         for i,p in enumerate(credibilities):
@@ -543,6 +547,16 @@ class MarginalDistributions:
             levels[i] = bin_counts[index]
 
         return levels
+
+    def print_gof(self, value, probability_array, posterior_level):
+        from scipy.stats.distributions import norm as Gaussian
+
+        (prob_overcover, prob_undercover) = self.find_hist_limits(probability_array, density=posterior_level)
+        sigmas_overcover = Gaussian.ppf((prob_overcover + 1) / 2.0)#, location=0, scale=1)
+        sigmas_undercover = Gaussian.ppf((prob_undercover + 1) / 2.0)#, location=0, scale=1)
+
+        print("GoF: point (%g) at most at the %g%% level (at least at the %g%% level). On the Gaussian scale, that's at %g [%g] sigmas" %
+              (value, prob_overcover * 100, prob_undercover * 100, sigmas_overcover, sigmas_undercover))
 
     def __bandwidth(self, samples, index):
         """
@@ -904,7 +918,7 @@ class MarginalDistributions:
 
         # determine goodness-of-fit
         if self.gof_point is not None:
-            from scipy.stats.distributions import norm as Gaussian
+
             try:
                 # read out value in this this dimension
                 value = self.gof_point[index]
@@ -915,12 +929,7 @@ class MarginalDistributions:
 
                 posterior_level = probability_array[bin_index]
 
-                (prob_greater_equal, prob_greater_than) = self.find_hist_limits(probability_array, density=posterior_level)
-                sigmas_ge = Gaussian.ppf((prob_greater_equal + 1) / 2.0)#, location=0, scale=1)
-                sigmas_gt = Gaussian.ppf((prob_greater_than + 1) / 2.0)#, location=0, scale=1)
-
-                print("GoF: point (%g) at %g%% level (w/o overcovering: at %g%% level). On the Gaussian scale, that's at %g [%g] sigmas" %
-                      (value, prob_greater_equal * 100, prob_greater_than * 100, sigmas_ge, sigmas_gt))
+                self.print_gof(value, probability_array, posterior_level)
 
                 # indicate GOF point
                 P.scatter(value, 0, marker='*', s=200, color='salmon')
@@ -1151,7 +1160,7 @@ class MarginalDistributions:
 
         # determine goodness-of-fit
         if self.gof_point is not None:
-            from scipy.stats.distributions import norm as Gaussian
+
             try:
                 # read out value in this this dimension
                 value = (self.gof_point[par1], self.gof_point[par2])
@@ -1165,13 +1174,7 @@ class MarginalDistributions:
                              min(int((value[1] - y_min) / (y_max - y_min) * twoD_bins[1]), twoD_bins[1] - 1))
 
                 posterior_level = orig_probability_array[bin_index]
-
-                (prob_greater_equal, prob_greater_than) = self.find_hist_limits(probability_array, density=posterior_level)
-
-                sigmas_ge = Gaussian.ppf((prob_greater_equal + 1) / 2.0)#, location=0, scale=1)
-                sigmas_gt = Gaussian.ppf((prob_greater_than + 1) / 2.0)#, location=0, scale=1)
-                print("GoF: point %s at %g%% level (w/o overcovering: at %g%% level). On the Gaussian scale, that's at %g [%g] sigmas" %
-                      (str(value), prob_greater_equal * 100, prob_greater_than * 100, sigmas_ge, sigmas_gt))
+                self.print_gof(value, probability_array, posterior_level)
 
                 P.plot(value[0], value[1], marker='+', color='salmon', markersize=15, markeredgewidth=3)
 
