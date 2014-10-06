@@ -394,9 +394,6 @@ class MarginalDistributions:
 
         self.plot_prior = True
 
-        # store modes as determined from the chains or from HDF5 directly if available
-        self.modes = []
-
         # todo remove chains arg
         self.single_chain = None
         if hasattr(chains, '__len__') and len(chains) == 1:
