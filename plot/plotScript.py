@@ -407,8 +407,8 @@ class MarginalDistributions:
 
         self.find_min_max()
 
-        self.sigma = np.ones((self.out.npar()))
-        self.nBins = np.empty((self.out.npar()), dtype=int)
+        self.sigma = np.ones((self.out.npar))
+        self.nBins = np.empty((self.out.npar), dtype=int)
 
         # Use as relative probability to max. All bins with prob
         # less than this will be whitenen in 2D plots
@@ -445,8 +445,8 @@ class MarginalDistributions:
         """
         Find minimum and maximum values of each parameter and mode of posterior.
         """
-        self.min = np.empty((self.out.npar(),))
-        self.max = np.empty((self.out.npar(),))
+        self.min = np.empty((self.out.npar,))
+        self.max = np.empty((self.out.npar,))
 
         for index in range(self.min.shape[0]):
             self.min[index] = np.min(self.out.samples.T[index])
@@ -1210,7 +1210,7 @@ class MarginalDistributions:
         self.pdf_file = PdfPages(self.__output_base_name + "_evol.pdf")
 
         #print out mode info
-        for par in xrange(self.out.npar()):
+        for par in xrange(self.out.npar):
 
             #set labels, avoid empty parameter names
             y_label = self.tr.to_tex(self.out.par_defs[par].name)

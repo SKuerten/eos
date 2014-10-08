@@ -77,6 +77,7 @@ class SamplingOutput(object):
 
         raise IOError("Could not open " + args[0] + " with any of %s" % str(names))
 
+    @property
     def npar(self):
         """Return number of parameters"""
         return len(self.par_defs)
@@ -248,12 +249,12 @@ class MCMC_Output(SamplingOutput):
             mode = []
             if len(self._modes) > 0:
                 max = self._modes[i][-1]
-                for j in range(self.npar()):
+                for j in range(self.npar):
                     mode.append(self._modes[i][j])
             else:
                 index = np.argmax(self.out.samples().T[-1][i * self.chain_length : (i + 1) * self.chain_length])
                 max = None
-                for j in range(self.out.npar()):
+                for j in range(self.out.npar):
                     if self.out.par_defs()[j].nuisance and not self.use_nuisance:
                         continue
                     mode.append(self.out.samples()[i * self.chain_length + index][j])
