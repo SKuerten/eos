@@ -9,7 +9,7 @@ from numpy import exp, log
 # log evidence for solution A(')
 zposthep = {'I':562.1, 'II':568.7, 'III':557.8, 'sm':572.3}
 zhpcqcd  = {'I':570.1, 'II':577.6, 'III':566.7, 'sm':580.2}
-zhpcqcdflat = {'II':580.708, 'III':573.749, 'sm':577.58}
+zhpcqcdflat = {'II':577.81, 'III':np.nan, 'sm':580.918}
 
 # these ranges should be just large enough to contain solution A(')
 desired_ranges = {'C7':0.4, 'C9':4, 'C10':4, "C7'":0.4, "C9'":4, "C10'":4}
