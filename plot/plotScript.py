@@ -554,8 +554,8 @@ class MarginalDistributions:
         (prob_overcover, prob_undercover) = self.find_hist_limits(probability_array, density=posterior_level)
         sigmas_overcover = Gaussian.ppf((prob_overcover + 1) / 2.0)#, location=0, scale=1)
         sigmas_undercover = Gaussian.ppf((prob_undercover + 1) / 2.0)#, location=0, scale=1)
-
-        print("GoF: point (%g) at most at the %g%% level (at least at the %g%% level). On the Gaussian scale, that's at %g [%g] sigmas" %
+        print(value, prob_overcover * 100, prob_undercover * 100, sigmas_overcover, sigmas_undercover)
+        print("GoF: point (%s) at most at the %g%% level (at least at the %g%% level). On the Gaussian scale, that's at %g [%g] sigmas" %
               (value, prob_overcover * 100, prob_undercover * 100, sigmas_overcover, sigmas_undercover))
 
     def __bandwidth(self, samples, index):
@@ -1599,6 +1599,7 @@ def factory(cmd_line=None):
     parser.add_argument('--integrate', help="Compute integral over hyperrectangle, use with --cut",action='store_true')
     parser.add_argument('--mcmc', help="Treat input as file from mcmc", action='store_true')
     parser.add_argument('--min-prob', help="Whiten all bins with prob less than this value",action='store', default=1e-5)
+    parser.add_argument('--mode', help='Give a point, usually a local mode, to evaluate goodness of fit. This overrides the similar --gof, except here all parameters are specified together as a string. Ex: --mode "1.2 -0.393 412.1"', action='store', nargs=1)
     parser.add_argument('--nest', help="Treat input as file from multinest", action='store_true')
     parser.add_argument('--nuisance', help="Plot nuisance parameters.", action='store_true', default=False)
     parser.add_argument('--no-nuisance-vs-nuisance', help="Don't produce 2D plots if both are nuisance parameters",action='store_true', default=False)
@@ -1726,6 +1727,13 @@ def factory(cmd_line=None):
     if args.__dict__['gof'] is not None:
         for pair in args.__dict__['gof']:
             marg.gof_point[int(pair[0])] = float(pair[1])
+    if args.mode is not None:
+        mode = args.mode[0][1:-2].split()
+        print mode, marg.out.npar
+        assert len(mode) == marg.out.npar, \
+        "Mode length (%d) does not match the number of parameters (%d) in %s" % (len(mode), marg.out.npar, marg.out.input_file_name)
+        for i, val in enumerate(mode):
+            marg.gof_point[i] = float(val)
 
     if cmd_line is not None:
         return marg
