@@ -52,7 +52,8 @@ export SCAN_dim6="
     --global-option model ConstrainedWilsonScan
     --global-option scan-mode cartesian
 
-    --scan      Re{c10}     -7.5      0.0  --prior flat
+    --scan      Re{c10}     -8.0     -2.0  --prior flat
+    --scan      Re{c10'}    -4.0     +4.0  --prior flat
     --scan      Re{cS}      -2.0     +2.0  --prior flat
     --scan      Re{cS'}     -2.0     +2.0  --prior flat
 "

@@ -91,13 +91,10 @@ export CONSTRAINTS_B_TO_PMUMU_LOW_RECOIL_BR="
 "
 
 export CONSTRAINTS_B_TO_PMUMU_LARGE_RECOIL_A_FB="
-    --constraint B^+->K^+mu^+mu^-::BR[1.00,6.00]@CDF-2012
     --constraint B^+->K^+mu^+mu^-::A_FB[1.10,6.00]@LHCb-2014
 "
 
 export CONSTRAINTS_B_TO_PMUMU_LOW_RECOIL_A_FB="
-    --constraint B^+->K^+mu^+mu^-::BR[14.18,16.00]@CDF-2012
-    --constraint B^+->K^+mu^+mu^-::BR[16.00,22.86]@CDF-2012
     --constraint B^+->K^+mu^+mu^-::A_FB[15.00,22.00]@LHCb-2014
 "
 
@@ -137,12 +134,16 @@ export CONSTRAINTS_B_TO_PLL_FF_ALL="
     --constraint B->K::f_0+f_++f_T@HPQCD-2013A
 "
 
-export CONSTRAINTS_B_TO_VLL_LARGE_RECOIL="
+export CONSTRAINTS_B_TO_VLL_LARGE_RECOIL_BR="
     --constraint B^0->K^*0mu^+mu^-::BR[1.00,6.00]@Belle-2009
     --constraint B^0->K^*0mu^+mu^-::BR[1.00,6.00]@CDF-2012
     --constraint B^0->K^*0mu^+mu^-::BR[1.00,6.00]@LHCb-2013
     --constraint B^0->K^*0mu^+mu^-::BR[1.00,6.00]@BaBar-2012
     --constraint B^0->K^*0mu^+mu^-::BR[1.00,6.00]@CMS-2013A
+"
+
+export CONSTRAINTS_B_TO_VLL_LARGE_RECOIL="
+    ${CONSTRAINTS_B_TO_VLL_LARGE_RECOIL_BR}
 
     --constraint B^0->K^*0mu^+mu^-::A_FB[1.00,6.00]@Belle-2009
     --constraint B^0->K^*0mu^+mu^-::A_FB[1.00,6.00]@CDF-2012
@@ -163,11 +164,7 @@ export CONSTRAINTS_B_TO_VLL_LARGE_RECOIL="
 "
 
 export CONSTRAINTS_B_TO_VLL_LARGE_RECOIL_NO_FL_BABAR_ATLAS="
-    --constraint B^0->K^*0mu^+mu^-::BR[1.00,6.00]@Belle-2009
-    --constraint B^0->K^*0mu^+mu^-::BR[1.00,6.00]@CDF-2012
-    --constraint B^0->K^*0mu^+mu^-::BR[1.00,6.00]@LHCb-2013
-    --constraint B^0->K^*0mu^+mu^-::BR[1.00,6.00]@BaBar-2012
-    --constraint B^0->K^*0mu^+mu^-::BR[1.00,6.00]@CMS-2013A
+    ${CONSTRAINTS_B_TO_VLL_LARGE_RECOIL_BR}
 
     --constraint B^0->K^*0mu^+mu^-::A_FB[1.00,6.00]@Belle-2009
     --constraint B^0->K^*0mu^+mu^-::A_FB[1.00,6.00]@CDF-2012
@@ -186,11 +183,7 @@ export CONSTRAINTS_B_TO_VLL_LARGE_RECOIL_NO_FL_BABAR_ATLAS="
 "
 
 export CONSTRAINTS_B_TO_VLL_LARGE_RECOIL_NOLHCBFL="
-    --constraint B^0->K^*0mu^+mu^-::BR[1.00,6.00]@Belle-2009
-    --constraint B^0->K^*0mu^+mu^-::BR[1.00,6.00]@CDF-2012
-    --constraint B^0->K^*0mu^+mu^-::BR[1.00,6.00]@LHCb-2013
-    --constraint B^0->K^*0mu^+mu^-::BR[1.00,6.00]@BaBar-2012
-    --constraint B^0->K^*0mu^+mu^-::BR[1.00,6.00]@CMS-2013A
+    ${CONSTRAINTS_B_TO_VLL_LARGE_RECOIL_BR}
 
     --constraint B^0->K^*0mu^+mu^-::A_FB[1.00,6.00]@Belle-2009
     --constraint B^0->K^*0mu^+mu^-::A_FB[1.00,6.00]@CDF-2012
@@ -506,6 +499,18 @@ export CONSTRAINTS_posthep13hpqcd="
 export CONSTRAINTS_ckm14tensor="
     ${CONSTRAINTS_BS_TO_MUMU_CKM14}
     ${CONSTRAINTS_B_TO_PLL_FF_ALL}
+    ${CONSTRAINTS_B_TO_VLL_FF}
     ${CONSTRAINTS_B_TO_PMUMU_LARGE_RECOIL_BR_A_FB_F_H}
     ${CONSTRAINTS_B_TO_PMUMU_LOW_RECOIL_BR_A_FB_F_H}
+    --constraint B^0->K^*0mu^+mu^-::BR[1.00,6.00]@CDF-2012
+    --constraint B^0->K^*0mu^+mu^-::BR[1.00,6.00]@LHCb-2013
+    --constraint B^0->K^*0mu^+mu^-::BR[1.00,6.00]@CMS-2013A
+
+    --constraint B^0->K^*0mu^+mu^-::BR[14.18,16.00]@CDF-2012
+    --constraint B^0->K^*0mu^+mu^-::BR[14.18,16.00]@LHCb-2013
+    --constraint B^0->K^*0mu^+mu^-::BR[14.18,16.00]@CMS-2013A
+
+    --constraint B^0->K^*0mu^+mu^-::BR[16.00,19.21]@CDF-2012
+    --constraint B^0->K^*0mu^+mu^-::BR[16.00,19.00]@LHCb-2013
+    --constraint B^0->K^*0mu^+mu^-::BR[16.00,19.00]@CMS-2013A
 "
