@@ -882,8 +882,8 @@ class Fall2013(object):
 
         marg = MarginalContours(self.input_base, self.output_base, max_samples=self.max_samples)
 
-        defs = (ParameterDefinition(index=0, name='Re{c7}', min=-0.5, max=0.7),
-                ParameterDefinition(index=1, name='Re{c9}', min=-6.5, max=5.5),
+        defs = (ParameterDefinition(index=0, name='Re{c7}', min=-0.6, max=0.6),
+                ParameterDefinition(index=1, name='Re{c9}', min=-6., max=6),
                 ParameterDefinition(index=2, name='Re{c10}', min=-6, max=6))
 
         scenarios = ['scIII_posthep13']
@@ -1002,5 +1002,5 @@ if __name__ == '__main__':
     matplotlib.rcParams['axes.linewidth'] = major['width']
 
     f = Fall2013()
-    f.figII()
+    f.figIII()
 #    f.all()
