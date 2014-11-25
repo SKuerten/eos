@@ -164,7 +164,7 @@ class UncertaintyPropagation(object):
         for o in np.sort(np.array(list(hdf5_file['/descriptions/observables']),dtype=int)):
             dset = hdf5_file['/descriptions/observables/%d' % o]
             self.observable_names[o] = dset.attrs['name']
-            self.kinematics[o] = (dset[0][0], dset[0][1])
+            self.kinematics[o] = dset.attrs['kinematics'].replace(' ', '')
             self.sm_predictions[o] = dset.attrs['SM prediction']
 
 #        for key in sorted(self.observable_names.keys()):
@@ -383,10 +383,8 @@ class UncertaintyPropagation(object):
             print("Warning: %d values have zero weight" % n_cut)
 
         full_observable_name = self.observable_names[obs_index]
-        try:
-            full_observable_name += ",s_min=%g,s_max=%g" % self.kinematics[obs_index]
-        except KeyError:
-            pass
+        if self.kinematics[obs_index]:
+            full_observable_name += "," + self.kinematics[obs_index]
 
         print(full_observable_name)
 
@@ -571,11 +569,8 @@ class UncertaintyPropagation(object):
 
         #add kinematic info if available
         kinematic_string = ""
-        try:
-            s_min, s_max = self.kinematics[obs_index]
-            kinematic_string = "$[%g,%g]$" % (s_min, s_max)
-        except KeyError:
-            pass
+        if self.kinematics[obs_index]:
+            kinematic_string = "[$" + self.kinematics[obs_index] + "$]"
 
         # workaround for
         # matplotlib.pyparsing.ParseFatalException: Subscript/superscript sequence is too long. Use braces { } to remove ambiguity.
@@ -630,6 +625,8 @@ def factory(cmd_line=None):
     parser.add_argument('--1D-bins', dest='one_dim_bins', help="Use fixed number of bins for 1D marginal distributions",action='store')
     parser.add_argument('--ignore-cuts',  help='Apply cuts on range of observables to remove outliers', action='store_true')
     parser.add_argument('--obs', help="Plot a single observable. Can be specified multiple times", action='append')
+    parser.add_argument('--lower-cut', help='Apply a lower cut on any of the observables', action='append', nargs=2)
+    parser.add_argument('--upper-cut', help='Apply a lower cut on any of the observables', action='append', nargs=2)
     parser.add_argument('--no-unc',  help='Do not print 1sigma intervals in title of 1D distributions', action='store_false')
     parser.add_argument('--select', help="Select a range of samples from each chain", action='store',nargs=2)
     parser.add_argument('--table', help="Output uncertainties into table", action='store')
@@ -644,6 +641,14 @@ def factory(cmd_line=None):
     uncert = UncertaintyPropagation([args.i], one_sigma=True, ignore_cuts= args.ignore_cuts)
     if args.select:
         args.select = (int(args.select[0]), int(args.select[1]))
+
+    if args.lower_cut:
+        for name,cut in args.lower_cut:
+            uncert.lower_cuts[name] = float(cut)
+
+    if args.upper_cut:
+        for name,cut in args.upper_cut:
+            uncert.upper_cuts[name] = float(cut)
 
     uncert.read_data(select=args.select)
 
