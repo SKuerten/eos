@@ -321,8 +321,8 @@ class MarginalContours(object):
 
         # Set common labels
         tr = self.margs[scenarios[0]].tr
-        fig.text(0.52, 0.04, tr.to_tex(def1.name), ha='center', va='center')
-        fig.text(0.04, 0.52, tr.to_tex(def2.name), ha='center', va='center', rotation='vertical')
+        fig.text(0.56, 0.02, tr.to_tex(def1.name), ha='center', va='center')
+        fig.text(0.04, 0.53, tr.to_tex(def2.name), ha='center', va='center', rotation='vertical')
 
         fig.subplots_adjust(left=0.2, right=0.92, bottom=0.1, top=0.98)
 
@@ -1002,5 +1002,5 @@ if __name__ == '__main__':
     matplotlib.rcParams['axes.linewidth'] = major['width']
 
     f = Fall2013()
-    f.figIII()
+    f.figII()
 #    f.all()
