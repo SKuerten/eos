@@ -3,6 +3,14 @@ source ${EOS_SCRIPT_PATH}/predictions.bash
 source ${EOS_SCRIPT_PATH}/priors.bash
 source ${EOS_SCRIPT_PATH}/scan.bash
 
+non_empty() {
+    local var=$1
+    if [[ -z ${!var} ]]; then
+        echo "No $1 given"
+        exit -1
+    fi
+}
+
 mcmc() {
     scenario=${1}
     shift
@@ -10,23 +18,63 @@ mcmc() {
     data=${1}
     shift
 
-    idx=${1}
-    if [[ -z ${idx} ]] ; then
-        echo "No prerun index given!"
-        exit -1
-    fi
-    seed=$(expr 12345 "+" ${idx} "*" 1000)
+    prerun_index=${1}
+    non_empty "prerun_index"
+    seed=$(expr 12345 "+" ${prerun_index} "*" 1000)
 
     scan=SCAN_${scenario}
     constraints=CONSTRAINTS_${data}
     nuisance=NUISANCE_${data}
 
     echo ${!scan}
+    echo
     echo ${!constraints}
+    echo
     echo ${!nuisance}
     echo
     echo "MCMC not implemented!"
     exit -1
+}
+
+export EOS_OPT_MAXEVAL=5000
+export EOS_OPT_MAXEVAL_LOCAL=$EOS_OPT_MAXEVAL
+export EOS_OPT_TOL=1e-14
+export EOS_OPT_TOL_LOCAL=$EOS_OPT_TOL
+
+opt() {
+    scenario=${1}
+    shift
+
+    data=${1}
+    shift
+
+    gof_index=${1}
+    non_empty "gof_index"
+    shift
+
+    nlopt_algorithm=${1}
+    non_empty "nlopt_algorithm"
+    shift
+
+    local_alg=${1}
+    shift
+
+    EOS_SCAN=SCAN_${scenario}
+    export EOS_SCAN=${!EOS_SCAN}
+    EOS_NUISANCE=NUISANCE_${data}
+    export EOS_NUISANCE=${!EOS_NUISANCE}
+    EOS_CONSTRAINTS=CONSTRAINTS_${data}
+    export EOS_CONSTRAINTS=${!EOS_CONSTRAINTS}
+    EOS_MODE=GOF_MODE_${gof_index}
+    # export EOS_mode=${!EOS_mode}
+
+    mkdir -p ${BASE_NAME}/${scenario}_${data}
+
+    ../py-eos/optimize.py --algorithm $nlopt_algorithm --local-algorithm $local_alg \
+        --initial-guess ${!EOS_MODE} \
+        --max-evaluations "${EOS_OPT_MAXEVAL}" --tolerance "${EOS_OPT_TOL}" \
+        --max-evaluations-local "${EOS_OPT_MAXEVAL_LOCAL}" --tolerance-local "${EOS_OPT_TOL_LOCAL}"
+        > ${BASE_NAME}/${scenario}_${data}/py_opt_${nlopt_algorithm}_${local_alg}_${gof_index}.log 2>&1
 }
 
 ## Job Main Function ##
@@ -38,21 +86,12 @@ main() {
     local scenario=${name%%-*}
     local data=${name##*-}
 
-    if [[ -z ${BASE_NAME} ]] ; then
-        echo "No BASE_NAME given!"
-        exit -1
-    fi
+    non_empty "BASE_NAME"
 
-    if [[ -z ${scenario} ]] ; then
-        echo "No scenario given!"
-        exit -1
-    fi
+    non_empty "scenario"
     echo "[scenario = ${scenario}]"
 
-    if [[ -z ${data} ]] ; then
-        echo "No data given!"
-        exit -1
-    fi
+    non_empty "data"
     echo "[data = ${data}]"
 
     cmd=${1}
@@ -72,7 +111,7 @@ main() {
             gof ${scenario} ${data} $@
             ;;
         opt)
-            py_opt ${scenario} ${data} $@
+            opt ${scenario} ${data} $@
             ;;
         unc)
             unc ${scenario} ${data} $@

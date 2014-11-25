@@ -41,11 +41,13 @@ export NUISANCE_B_TO_VPARALL_FORM_FACTORS_KMPW2010="
     --nuisance    B->K^*::b^A2_1@KMPW2010                       -4.9   5.4  ${N_SIGMAS}     --prior    log-gamma  -2.20     -0.85     +2.03
 "
 
+
+
 # results as quoted in KMPW2010
 export NUISANCE_B_TO_PLL_FORM_FACTORS_PLUS_KMPW2010="
     --global-option form-factors KMPW2010
 
-    --nuisance    B->K::F^p(0)@KMPW2010                          0.10  0.49 ${N_SIGMAS}     --prior    gaussian    0.32      0.34      0.39
+    --nuisance    B->K::F^p(0)@KMPW2010                          0.10  0.49 ${N_SIGMAS}     --prior    log-gamma   0.32      0.34      0.39
     --nuisance    B->K::b^p_1@KMPW2010                          -6.9   0.6  ${N_SIGMAS}     --prior    log-gamma  -3.7      -2.1      -1.2
 "
 
@@ -58,7 +60,7 @@ export NUISANCE_B_TO_PLL_FORM_FACTORS_SCALAR_KMPW2010="
 export NUISANCE_B_TO_PLL_FORM_FACTORS_TENSOR_KMPW2010="
     --global-option form-factors KMPW2010
 
-    --nuisance    B->K::F^t(0)@KMPW2010                          0.30  0.54 ${N_SIGMAS}     --prior    gaussian    0.36      0.39      0.44
+    --nuisance    B->K::F^t(0)@KMPW2010                          0.30  0.54 ${N_SIGMAS}     --prior    log-gamma   0.36      0.39      0.44
     --nuisance    B->K::b^t_1@KMPW2010                          -8.2   0.8  ${N_SIGMAS}     --prior    log-gamma  -4.2      -2.2      -1.2
 "
 
@@ -101,4 +103,12 @@ $NUISANCE_CKM_posthep13
 $NUISANCE_QUARK_MASSES_PDG2012
 $NUISANCE_B_TO_PLL_FORM_FACTORS_ALL_KMPW2010
 $NUISANCE_B_TO_PLL_SUBLEADING
+"
+
+export NUISANCE_K_Kstar_BR="
+$NUISANCE_FH
+$NUISANCE_B_TO_VPARALL_SUBLEADING
+$NUISANCE_B_TO_VPERPLL_SUBLEADING
+$NUISANCE_B_TO_VPERPLL_FORM_FACTORS_KMPW2010
+$NUISANCE_B_TO_VPARALL_FORM_FACTORS_KMPW2010
 "
