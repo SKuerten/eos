@@ -94,6 +94,13 @@ main() {
     non_empty "data"
     echo "[data = ${data}]"
 
+    EOS_SCAN=SCAN_${scenario}
+    export EOS_SCAN=${!EOS_SCAN}
+    EOS_NUISANCE=NUISANCE_${data}
+    export EOS_NUISANCE=${!EOS_NUISANCE}
+    EOS_CONSTRAINTS=CONSTRAINTS_${data}
+    export EOS_CONSTRAINTS=${!EOS_CONSTRAINTS}
+
     cmd=${1}
     shift
 
@@ -106,6 +113,9 @@ main() {
             ;;
         pmc)
             pmc_monolithic ${scenario} ${data} $@
+            ;;
+        info)
+            ../py-eos/analysis_info.py
             ;;
         gof)
             gof ${scenario} ${data} $@
