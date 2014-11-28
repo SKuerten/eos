@@ -48,12 +48,14 @@ def save_analysis(file, analysis, intermediate=''):
     # variable-length ASCII string
     dt = h5py.special_dtype(vlen=bytes)
     ds_const = group.create_dataset(const, (len(analysis.constraints),), dtype=dt)
+    dt = np.dtype({'names': ['name', 'min', 'max', 'nuisance', 'info'],
+                   'formats': [dt, np.float64, np.float64, np.uint8, dt]})
     ds_param = group.create_dataset(param, (len(analysis.priors),), dtype=dt)
 
     for i, c in enumerate(analysis.constraints):
         ds_const[i] = c.name
 
-    ana_str = repr(ana)
+    ana_str = repr(analysis)
 
     # index where a line with parameter info starts
     line_start = ana_str.find('Parameter: ')
@@ -61,7 +63,8 @@ def save_analysis(file, analysis, intermediate=''):
     while line_start != -1:
         end = ana_str.find(', value = ', line_start)
         line = ana_str[line_start:end]
-        ds_param[i] = line
+        p = analysis.priors[i]
+        ds_param[i] = (p.name, p.range_min, p.range_max, p.nuisance, line)
         i += 1
         # search forward in next line
         line_start = ana_str.find('Parameter: ', end)

@@ -1613,6 +1613,7 @@ def factory(cmd_line=None):
     parser.add_argument('--pmc-queue-output', help="Treat input as file from PMC queue manager", action='store_true', default=None)
     parser.add_argument('--prerun', help="Use prerun instead of main", action='store_true')
     parser.add_argument('--prior', help="Plot the prior in 1D distributions.",action='store_true')
+    parser.add_argument('--pypmc', help="Output file format from eos->pypmc interface.",action='store_true')
     parser.add_argument('--single-1D', help="Plot only the 1D marginal distribution of the ith parameter, i=0...N-1", type=int, nargs='+')
     parser.add_argument('--single-2D', help="Plot only the 2D marginal distribution of parameters i,j, i<j, i,j=0...N-1", nargs=2, type=int, action='append')
     parser.add_argument('--single-ext', help="File extension for single plots, e.g 'pdf'[default] or 'png'", action='store')
@@ -1652,6 +1653,8 @@ def factory(cmd_line=None):
     if args.mcmc:
         if args.i.endswith('.npy'):
             OutputClass = JahnMCMCOutput
+        elif args.pypmc:
+            OutputClass = EOS_PYPMC_MCMC
         else:
             OutputClass = MCMC_Output
     elif args.emcee:

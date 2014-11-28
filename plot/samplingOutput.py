@@ -907,3 +907,65 @@ class UncertaintyPropagation(IS_Output):
             self.priors.append(None)
 
         hdf5_file.close()
+
+class EOS_PYPMC_MCMC(SamplingOutput):
+
+    def _read(self, *args, **kwargs):
+        self.chains = kwargs.get('chains', None)
+        self.prerun = kwargs.get('prerun', True)
+        self.skip_initial = kwargs.get('skip_initial', 0.2)
+
+        self.single_chain = None
+        if hasattr(self.chains, '__len__') and len(self.chains) == 1:
+            self.single_chain = str(self.chains[0])
+
+        hdf5_file = h5py.File(self.input_file_name, 'r')
+
+        prefix = '/samples'
+
+        # select all chains
+        if self.chains:
+            chains = self.chains
+        else:
+            chains = range(len(list(hdf5_file[prefix])))
+
+        first_chain = str(chains[0])
+        self.n_chains = len(chains)
+
+        #read data
+        full_length = len(hdf5_file[prefix + '/chain #' + first_chain])
+
+        #adjust which range is drawn, default: full range
+        if self.skip_initial > 0:
+            self.select[0] = int(self.skip_initial * full_length)
+
+        merged_chains = hdf5_file[prefix + '/chain #' + first_chain][self.select[0]:self.select[1]]
+        n_chains_parsed = 1
+
+        #save shape info
+        self.chain_length = len(merged_chains)
+
+        par_defs, priors = read_descriptions(hdf5_file,
+                                             data_set='descriptions/chain #' + first_chain + "/parameters",
+                                             npar=merged_chains.shape[1],
+                                             samples=merged_chains)
+
+        # read all remaining chains
+        for chain in chains[1:]:
+            c = hdf5_file[prefix + '/chain #%d/samples' % chain]
+            assert len(c) == full_length, 'Length of chain %d (%d) differs from length of chain %s (%d)' % (chain, len(c), first_chain, full_length)
+            data = c[self.select[0]:self.select[1]]
+            merged_chains = np.concatenate((merged_chains, data), axis=0)
+            n_chains_parsed += 1
+
+        hdf5_file.close()
+
+        ###
+        # assign members
+        ###
+
+        # all weights equal
+        self.weights = np.ones(len(merged_chains))
+        self.samples = merged_chains
+        self.par_defs = par_defs
+        self.priors = priors
