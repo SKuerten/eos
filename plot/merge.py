@@ -1,10 +1,12 @@
 #! /usr/bin/env python
-
+from __future__ import print_function
 import commands
 import glob
 import h5py
 import os
 import shutil
+
+import numpy as np
 
 # solution from http://stackoverflow.com/a/341730
 def natsorted(strings):
@@ -30,6 +32,25 @@ def invalid_chain(file, chain, cut_off=None):
         print('skipping chain %d with mode %g < %g' % (chain, mode, cut_off))
         return True
 
+def search_files(search, output_file_name):
+    '''Search files matching pattern in directory of output file. Ignore the latter.'''
+    #extract working directory from output file
+    base_dir, base_name = os.path.split(output_file_name)
+
+    #find hdf5 files to merge
+    search_results = natsorted(glob.glob(os.path.join(base_dir, search)))
+    # avoid double merging
+    try:
+        search_results.remove(output_file_name)
+        print("Removed %s from input files" % output_file_name)
+    except ValueError:
+        pass
+
+    if len(search_results) == 0:
+        raise Exception("No files matching '%s' in %s were found!" % (search, base_dir))
+
+    return search_results
+
 def merge_preruns(output_file_name, search='*.hdf5', input_files=None,
                   compression=False, use_pytables=False, cut_off=None):
     """
@@ -40,23 +61,8 @@ def merge_preruns(output_file_name, search='*.hdf5', input_files=None,
         file0:/prerun/chain #0/ file0:/prerun/chain #1 ...
     """
 
-    #extract working directory from output file
-    base_dir, base_name = os.path.split(output_file_name)
-
-    #find hdf5 files to merge
-    if input_files is None:
-        search_results = natsorted(glob.glob(os.path.join(base_dir, search)))
-        # avoid double merging
-        try:
-            search_results.remove(output_file_name)
-            print("Removed %s from input files" % output_file_name)
-        except ValueError:
-            pass
-    else:
-        search_results = input_files
-
-    if len(search_results) == 0:
-        raise Exception("No files matching '%s' in %s were found!" % (search, base_dir))
+    if not input_files:
+        input_files = search_files(search, output_file_name)
 
     # hdf5 groups
     groups = ['/prerun', '/descriptions/prerun']
@@ -68,7 +74,7 @@ def merge_preruns(output_file_name, search='*.hdf5', input_files=None,
     for g in groups:
         output_file.create_group(g)
 
-    for f_i, file_name in enumerate(search_results):
+    for f_i, file_name in enumerate(input_files):
         print("merging %s" % file_name)
         input_file = h5py.File(file_name, 'r')
         nchains_in_file = len(input_file[groups[0]].keys())
@@ -82,7 +88,51 @@ def merge_preruns(output_file_name, search='*.hdf5', input_files=None,
             nchains_copied += 1
         input_file.close()
 
-    print("Merged %d chains of %d files" % (nchains_copied, len(search_results)))
+    print("Merged %d chains of %d files" % (nchains_copied, len(input_files)))
+
+    output_file.close()
+
+def merge_pypmc(output_file_name, search='*.hdf5', input_files=None):
+    '''
+    Merge Markov chains from eos-to-pypmc interface.
+    '''
+    if not input_files:
+        input_files = search_files(search, output_file_name)
+
+    # hdf5 groups
+    groups = ['/samples', '/descriptions']
+
+    f = h5py.File(input_files[0], 'r')
+    par = f['/descriptions/chain #0/parameters'][:]
+    constraints = f['/descriptions/chain #0/constraints'][:]
+    n_samples = len(f['/samples/chain #0'])
+    f.close()
+
+    # count chains copied
+    nchains_copied = 0
+
+    output_file = h5py.File(output_file_name, "w")
+    for g in groups:
+        output_file.create_group(g)
+
+    for f_i, file_name in enumerate(input_files):
+        print("merging %s" % file_name)
+        input_file = h5py.File(file_name, 'r')
+        nchains_in_file = len(input_file[groups[0]].keys())
+
+        for i in range(nchains_in_file):
+            # check agreement
+            np.testing.assert_equal(input_file['/descriptions/chain #%d/parameters' % i][:], par)
+            np.testing.assert_equal(input_file['/descriptions/chain #%d/constraints' % i][:], constraints)
+            assert len(input_file['/samples/chain #%d' % i]) == n_samples
+
+            # copy data
+            for g in groups:
+                input_file.copy(g + "/chain #%d" % i, output_file, name=g + "/chain #%d" % nchains_copied)
+            nchains_copied += 1
+        input_file.close()
+
+    print("Merged %d chains of %d files" % (nchains_copied, len(input_files)))
 
     output_file.close()
 
@@ -155,6 +205,8 @@ def main():
                         help='HDF5 input file name pattern', action='store', default='*.hdf5')
     parser.add_argument('--sm-unc', dest='sm_unc',
                         help='Merge uncertainty propagation files', action='store_true')
+    parser.add_argument('--pypmc',
+                        help='Merge mcmc from pypmc', action='store_true')
 
     args = parser.parse_args()
 
@@ -189,6 +241,9 @@ def main():
 
     if args.sm_unc:
         merge_sm_unc(output_file_name=args.output, input_files=input_files)
+    elif args.pypmc:
+        merge_pypmc(output_file_name=args.output, search=args.search,
+                      input_files=input_files)
     else:
         # default: merge mcmc
         merge_preruns(output_file_name=args.output, search=args.search,
