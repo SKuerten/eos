@@ -116,26 +116,14 @@ main() {
         mcmc)
             mcmc ${scenario} ${data} $@
             ;;
-        merge)
-            mcmc_merge ${scenario} ${data} $@
-            ;;
-        pmc)
-            pmc_monolithic ${scenario} ${data} $@
-            ;;
         info)
             ../py-eos/analysis_info.py
-            ;;
-        gof)
-            gof ${scenario} ${data} $@
             ;;
         opt)
             opt ${scenario} ${data} $@
             ;;
-        unc)
-            unc ${scenario} ${data} $@
-            ;;
         *)
-            echo "No command given!"
+            echo "Invalid command ${cmd} given!"
             exit -1
             ;;
     esac
