@@ -952,7 +952,7 @@ class EOS_PYPMC_MCMC(SamplingOutput):
 
         # read all remaining chains
         for chain in chains[1:]:
-            c = hdf5_file[prefix + '/chain #%d/samples' % chain]
+            c = hdf5_file[prefix + '/chain #%d' % chain]
             assert len(c) == full_length, 'Length of chain %d (%d) differs from length of chain %s (%d)' % (chain, len(c), first_chain, full_length)
             data = c[self.select[0]:self.select[1]]
             merged_chains = np.concatenate((merged_chains, data), axis=0)
