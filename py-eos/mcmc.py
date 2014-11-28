@@ -125,8 +125,8 @@ class MCMC_Sampler(object):
         '''Run adaptive Markov chain.'''
         if self.burn_in:
             print("Burn in: %d samples" % self.burn_in)
-        self.sampler.run(self.burn_in)
-        self.sampler.clear()
+            self.sampler.run(self.burn_in)
+            self.sampler.clear()
 
         print("Run %d iterations with chunk size %d" % (self.samples, self.update))
         iterations, last_accept, total_accept = 0, 0, 0
