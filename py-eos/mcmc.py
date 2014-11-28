@@ -11,8 +11,12 @@ import argparse
 import h5py
 import numpy as np
 
-def save_analysis(file, analysis):
+def save_analysis(file, analysis, intermediate=''):
     """Store analysis in human-readable format in hdf5 file.
+
+    ``intermediate`` is a string to distinguish such as ``chain #1``
+     if multiple chains are to be stored. A separate group
+     ``/descriptions/$intermediate`` will be created.
 
     Example:
     $ h5ls -r file.hdf5
@@ -30,18 +34,21 @@ def save_analysis(file, analysis):
     parameters               Dataset {15}
     Data:
         (0) "Parameter: Re{cT}, prior type: flat, range: [-1,1], value = 0.981878",
+
     """
 
     desc  = 'descriptions'
     const = 'constraints'
     param = 'parameters'
 
-    file.create_group(desc)
+    group = file.create_group(desc)
+    if intermediate:
+        group = file[desc].create_group(intermediate)
 
     # variable-length ASCII string
     dt = h5py.special_dtype(vlen=bytes)
-    ds_const = file[desc].create_dataset(const, (len(analysis.constraints),), dtype=dt)
-    ds_param = file[desc].create_dataset(param, (len(analysis.priors),), dtype=dt)
+    ds_const = group.create_dataset(const, (len(analysis.constraints),), dtype=dt)
+    ds_param = group.create_dataset(param, (len(analysis.priors),), dtype=dt)
 
     for i, c in enumerate(analysis.constraints):
         ds_const[i] = c.name
@@ -52,12 +59,12 @@ def save_analysis(file, analysis):
     line_start = ana_str.find('Parameter: ')
     i = 0
     while line_start != -1:
-        new_line_ind = ana_str.find('\n', line_start)
-        line = ana_str[line_start:new_line_ind]
+        end = ana_str.find(', value = ', line_start)
+        line = ana_str[line_start:end]
         ds_param[i] = line
         i += 1
-        # go forward by one character, else find the same line again
-        line_start = ana_str.find('Parameter: ', line_start + 1)
+        # search forward in next line
+        line_start = ana_str.find('Parameter: ', end)
 
     assert i == len(analysis.priors)
 
@@ -109,9 +116,10 @@ class MCMC_Sampler(object):
 
         file = h5py.File(self.file_name, 'w')
         # one row per sample, store parameter values and log(posterior)
-        file.create_dataset('samples', (self.samples, self.dim), 'f')
+        self.sample_dset = '/samples/chain #0'
+        file.create_dataset(self.sample_dset, (self.samples, self.dim), 'f')
 
-        save_analysis(file, self.analysis)
+        save_analysis(file, self.analysis, intermediate='chain #0')
         file.close()
 
     def draw_uniform_in_support(self):
@@ -150,7 +158,7 @@ class MCMC_Sampler(object):
         '''Save batch of samples. File is closed to ensure flush to disk.'''
 
         file = h5py.File(self.file_name, 'r+')
-        file['samples'][iterations:iterations + self.update] = self.sampler.history[:]
+        file[self.sample_dset][iterations:iterations + self.update] = self.sampler.history[:]
         file.close()
         self.sampler.clear()
 
