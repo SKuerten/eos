@@ -1,9 +1,28 @@
 echo "[scan loaded]"
 
-export SCAN_scTT5="
- --global-option model WilsonScan
- --global-option scan-mode cartesian
+non_sm_min=-1
+non_sm_max=+1
 
- --scan      Re{cT}      -1     +1  --prior flat
- --scan      Re{cT5}     -1     +1  --prior flat
+export SCAN_scTT5="
+--global-option model WilsonScan
+--global-option scan-mode cartesian
+
+--scan      Re{cT}      $non_sm_min     $non_sm_max  --prior flat
+--scan      Im{cT}      $non_sm_min     $non_sm_max  --prior flat
+--scan      Re{cT5}     $non_sm_min     $non_sm_max  --prior flat
+--scan      Im{cT5}     $non_sm_min     $non_sm_max  --prior flat
+"
+
+export SCAN_sc910TT5="
+--global-option model WilsonScan
+--global-option scan-mode cartesian
+
+--scan      Re{c9}      +1     +7                    --prior flat
+--scan      Im{c9}      -3     +3                    --prior flat
+--scan      Re{c10}     -7     -1                    --prior flat
+--scan      Im{c10}     -3     +3                    --prior flat
+--scan      Re{cT}      $non_sm_min     $non_sm_max  --prior flat
+--scan      Im{cT}      $non_sm_min     $non_sm_max  --prior flat
+--scan      Re{cT5}     $non_sm_min     $non_sm_max  --prior flat
+--scan      Im{cT5}     $non_sm_min     $non_sm_max  --prior flat
 "
