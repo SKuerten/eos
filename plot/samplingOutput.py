@@ -930,20 +930,22 @@ class EOS_PYPMC_MCMC(SamplingOutput):
             chains = range(len(list(hdf5_file[prefix])))
 
         first_chain = str(chains[0])
-        self.n_chains = len(chains)
 
         #read data
-        full_length = len(hdf5_file[prefix + '/chain #' + first_chain])
+        chain = hdf5_file[prefix + '/chain #' + first_chain]
+        full_length = len(chain)
 
         #adjust which range is drawn, default: full range
         if self.skip_initial > 0:
             self.select[0] = int(self.skip_initial * full_length)
+        if self.select[1] is None:
+            self.select[1] = full_length - 1
 
-        merged_chains = hdf5_file[prefix + '/chain #' + first_chain][self.select[0]:self.select[1]]
+        reduced_length = self.select[1] - self.select[0]
+
+        merged_chains = np.empty((len(chains) * reduced_length, chain.shape[1]), dtype='float64')
+        merged_chains[:reduced_length] = hdf5_file[prefix + '/chain #' + first_chain][self.select[0]:self.select[1]]
         n_chains_parsed = 1
-
-        #save shape info
-        self.chain_length = len(merged_chains)
 
         par_defs, priors = read_descriptions(hdf5_file,
                                              data_set='descriptions/chain #' + first_chain + "/parameters",
@@ -954,8 +956,7 @@ class EOS_PYPMC_MCMC(SamplingOutput):
         for chain in chains[1:]:
             c = hdf5_file[prefix + '/chain #%d' % chain]
             assert len(c) == full_length, 'Length of chain %d (%d) differs from length of chain %s (%d)' % (chain, len(c), first_chain, full_length)
-            data = c[self.select[0]:self.select[1]]
-            merged_chains = np.concatenate((merged_chains, data), axis=0)
+            merged_chains[n_chains_parsed * reduced_length:(n_chains_parsed + 1) * reduced_length] = c[self.select[0]:self.select[1]]
             n_chains_parsed += 1
 
         hdf5_file.close()
