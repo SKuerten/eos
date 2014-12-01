@@ -1,8 +1,9 @@
 #!/bin/bash
 
 # examples:
-# BASE_NAME=$BASE_NAME/2014-02-07 ./loadleveler-single.cmd scI posthep13hpqcdnoFLBabarAtlas gof 0 1
-# BASE_NAME=$BASE_NAME/2014-02-07 ./loadleveler-single.cmd scIII posthep13hpqcdSLflat pre 0 10
+
+# 15 chains
+# BASE_NAME=$BASE_NAME/2014-11-28 ./loadleveler-single.cmd sc910TT5 K_KstarBR_Bsmumu mcmc 1 15
 
 scenario=$1; shift
 constraints=$1; shift
@@ -18,7 +19,7 @@ for i in $(seq -f %01.0f $low $high); do
 #
 #@ group = pr85tu
 #@ job_type = serial
-#@ class = fat
+#@ class = serial
 #@ node_usage = shared
 #@ resources = ConsumableCpus(1)
 #
