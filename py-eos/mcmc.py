@@ -120,7 +120,7 @@ class MCMC_Sampler(object):
         file = h5py.File(self.file_name, 'w')
         # one row per sample, store parameter values and log(posterior)
         self.sample_dset = '/samples/chain #0'
-        file.create_dataset(self.sample_dset, (self.samples, self.dim), 'f')
+        file.create_dataset(self.sample_dset, (self.samples, self.dim), 'float64')
 
         save_analysis(file, self.analysis, intermediate='chain #0')
         file.close()
