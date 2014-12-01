@@ -107,7 +107,7 @@ class MCMC_Sampler(object):
         while self.analysis(start) == -np.inf:
             start[:] = self.draw_uniform_in_support()
 
-        self.sampler = pypmc.sampler.markov_chain.AdaptiveMarkovChain(self.analysis, local_prop, start,
+        self.chain = pypmc.sampler.markov_chain.AdaptiveMarkovChain(self.analysis, local_prop, start,
                                                                       indicator=ind, prealloc=args.samples)
 
         self.burn_in = args.burn_in
@@ -136,20 +136,24 @@ class MCMC_Sampler(object):
         '''Run adaptive Markov chain.'''
         if self.burn_in:
             print("Burn in: %d samples" % self.burn_in)
-            self.sampler.run(self.burn_in)
-            self.sampler.clear()
+            self.chain.run(self.burn_in)
+            self.chain.clear()
 
         print("Run %d iterations with chunk size %d" % (self.samples, self.update))
         iterations, last_accept, total_accept = 0, 0, 0
         i = 1
         while iterations < self.samples:
-            last_accept = self.sampler.run(self.update)
+            last_accept = self.chain.run(self.update)
             total_accept += last_accept
             last_accept_rate = last_accept / self.update
             total_accept_rate = total_accept / (iterations + self.update)
             print("Acceptance rate in chunk %d: %4.2f%%, in total:  %4.2f%%" %
                   (i, last_accept_rate * 100, total_accept_rate * 100))
-            self.sampler.adapt()
+            try:
+                self.chain.adapt()
+            except np.linalg.LinAlgError:
+                print('WARNING: set off-diagonal covariance elements to zero')
+                self.chain.proposal.update(np.diag(np.diag(self.chain.proposal.sigma)))
 
             self.save_samples(iterations)
 
@@ -161,9 +165,9 @@ class MCMC_Sampler(object):
         '''Save batch of samples. File is closed to ensure flush to disk.'''
 
         file = h5py.File(self.file_name, 'r+')
-        file[self.sample_dset][iterations:iterations + self.update] = self.sampler.history[:]
+        file[self.sample_dset][iterations:iterations + self.update] = self.chain.history[:]
         file.close()
-        self.sampler.clear()
+        self.chain.clear()
 
 if __name__ == '__main__':
     parser = argparse.ArgumentParser(description="Run MCMC on EOS analysis from python")
