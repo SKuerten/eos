@@ -7,8 +7,7 @@ import priors as priorDistributions
 
 import h5py
 import numpy as np
-import os
-import sys
+import os, sys
 
 # todo rename to description
 class ParameterDefinition(object):
@@ -938,13 +937,16 @@ class EOS_PYPMC_MCMC(SamplingOutput):
         #adjust which range is drawn, default: full range
         if self.skip_initial > 0:
             self.select[0] = int(self.skip_initial * full_length)
+        if self.select[0] is None:
+            self.select[0] = 0
         if self.select[1] is None:
-            self.select[1] = full_length - 1
+            self.select[1] = full_length
 
-        reduced_length = self.select[1] - self.select[0]
+        print(self.select[1], self.select[0])
+        self.reduced_length = self.select[1] - self.select[0]
 
-        merged_chains = np.empty((len(chains) * reduced_length, chain.shape[1]), dtype='float64')
-        merged_chains[:reduced_length] = hdf5_file[prefix + '/chain #' + first_chain][self.select[0]:self.select[1]]
+        merged_chains = np.empty((len(chains) * self.reduced_length, chain.shape[1]), dtype='float64')
+        merged_chains[:self.reduced_length] = hdf5_file[prefix + '/chain #' + first_chain][self.select[0]:self.select[1]]
         n_chains_parsed = 1
 
         par_defs, priors = read_descriptions(hdf5_file,
@@ -956,7 +958,7 @@ class EOS_PYPMC_MCMC(SamplingOutput):
         for chain in chains[1:]:
             c = hdf5_file[prefix + '/chain #%d' % chain]
             assert len(c) == full_length, 'Length of chain %d (%d) differs from length of chain %s (%d)' % (chain, len(c), first_chain, full_length)
-            merged_chains[n_chains_parsed * reduced_length:(n_chains_parsed + 1) * reduced_length] = c[self.select[0]:self.select[1]]
+            merged_chains[n_chains_parsed * self.reduced_length:(n_chains_parsed + 1) * self.reduced_length] = c[self.select[0]:self.select[1]]
             n_chains_parsed += 1
 
         hdf5_file.close()
@@ -970,3 +972,7 @@ class EOS_PYPMC_MCMC(SamplingOutput):
         self.samples = merged_chains
         self.par_defs = par_defs
         self.priors = priors
+
+    def individual_chains(self):
+        '''Return list of individual chains.'''
+        return [self.samples[i * self.reduced_length:(i+1) * self.reduced_length] for i in range(len(self.samples) // self.reduced_length)]

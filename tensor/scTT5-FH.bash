@@ -2,6 +2,8 @@
 
 source ${EOS_SCRIPT_PATH}/job.bash
 
+export EOS_ANALYSIS_INFO=0
+
 export EOS_MCMC_SCALE_REDUCTION=3
 export EOS_MCMC_BURN_IN=500
 export EOS_MCMC_UPDATE_SIZE=500

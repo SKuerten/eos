@@ -31,12 +31,10 @@ mcmc() {
     non_empty "prerun_index"
     seed=$(expr 12345 "+" ${prerun_index} "*" 1000)
 
-    scan=SCAN_${scenario}
-    constraints=CONSTRAINTS_${data}
-    nuisance=NUISANCE_${data}
+    # scan=SCAN_${scenario}
+    # constraints=CONSTRAINTS_${data}
+    # nuisance=NUISANCE_${data}
 
-    output_dir=${BASE_NAME}/${scenario}_${data}
-    mkdir -p $output_dir
     ../py-eos/mcmc.py \
         --analysis-info $EOS_ANALYSIS_INFO \
         --burn-in $EOS_MCMC_BURN_IN \
@@ -85,6 +83,22 @@ opt() {
         > ${BASE_NAME}/${scenario}_${data}/py_opt_${nlopt_algorithm}_${local_alg}_${gof_index}.log 2>&1
 }
 
+export EOS_VB_COMPONENTS_PER_GROUP=15
+export EOS_VB_EXTRA_OPTIONS=
+export EOS_VB_INPUT=
+export EOS_VB_SKIP_INITIAL=0.05
+
+vb() {
+    ../py-eos/vb.py \
+        --analysis-info $EOS_ANALYSIS_INFO \
+        --components-per-group $EOS_VB_COMPONENTS_PER_GROUP \
+        --mcmc-input $EOS_VB_INPUT \
+        --skip-initial $EOS_VB_SKIP_INITIAL \
+        $EOS_VB_EXTRA_OPTIONS
+    #\
+#        > $output_dir/vb.log 2>&1
+}
+
 ## Job Main Function ##
 main() {
     local name=${0}
@@ -112,6 +126,9 @@ main() {
     cmd=${1}
     shift
 
+    export output_dir=${BASE_NAME}/${scenario}_${data}
+    mkdir -p $output_dir
+
     case ${cmd} in
         mcmc)
             mcmc ${scenario} ${data} $@
@@ -121,6 +138,9 @@ main() {
             ;;
         opt)
             opt ${scenario} ${data} $@
+            ;;
+        vb)
+            vb $@
             ;;
         *)
             echo "Invalid command ${cmd} given!"
