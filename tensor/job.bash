@@ -14,6 +14,30 @@ non_empty() {
     fi
 }
 
+export EOS_IS_INPUT=  # default: $output_dir/vb.hdf5
+
+is() {
+   scenario=${1}
+    shift
+
+    data=${1}
+    shift
+
+    if [[ -z $EOS_IS_INPUT ]]; then
+        EOS_IS_INPUT=$output_dir/vb.hdf5
+    fi
+
+    seed=$(expr $EOS_SEED "+" 642134)
+
+    mpirun -n 2 ../py-eos/is.py \
+        --analysis-info $EOS_ANALYSIS_INFO \
+        --input $EOS_IS_INPUT \
+        --output $output_dir/is.hdf5 \
+        --samples $EOS_IS_SAMPLES \
+        --seed $seed # \
+        # > $output_dir/is.log 2>&1
+}
+
 export EOS_MCMC_BURN_IN=
 export EOS_INTEGRATION_POINTS=16
 export EOS_MCMC_SAMPLES=40000
@@ -146,6 +170,9 @@ main() {
             ;;
         info)
             ../py-eos/analysis_info.py
+            ;;
+        is)
+            is  ${scenario} ${data} $@
             ;;
         opt)
             opt ${scenario} ${data} $@
