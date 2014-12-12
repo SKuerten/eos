@@ -4,6 +4,7 @@ source ${EOS_SCRIPT_PATH}/priors.bash
 source ${EOS_SCRIPT_PATH}/scan.bash
 
 export EOS_ANALYSIS_INFO=1
+export EOS_SEED=12345
 
 non_empty() {
     local var=$1
@@ -29,7 +30,7 @@ mcmc() {
 
     prerun_index=${1}
     non_empty "prerun_index"
-    seed=$(expr 12345 "+" ${prerun_index} "*" 1000)
+    seed=$(expr $EOS_SEED "+" ${prerun_index} "*" 1000)
 
     # scan=SCAN_${scenario}
     # constraints=CONSTRAINTS_${data}
@@ -85,15 +86,25 @@ opt() {
 
 export EOS_VB_COMPONENTS_PER_GROUP=15
 export EOS_VB_EXTRA_OPTIONS=
-export EOS_VB_INPUT=
+export EOS_VB_IS_INPUT=
+export EOS_VB_MCMC_INPUT=
 export EOS_VB_SKIP_INITIAL=0.05
+export EOS_VB_THIN=100
+export EOS_VB_R_VALUE=2
 
 vb() {
+
+    seed=$(expr $EOS_SEED "+" 654198)
     ../py-eos/vb.py \
         --analysis-info $EOS_ANALYSIS_INFO \
         --components-per-group $EOS_VB_COMPONENTS_PER_GROUP \
-        --mcmc-input $EOS_VB_INPUT \
+        --is-input $EOS_VB_IS_INPUT \
+        --mcmc-input $EOS_VB_MCMC_INPUT \
+        --output $output_dir/vb.hdf5 \
+        --R-value $EOS_VB_R_VALUE \
+        --seed $seed \
         --skip-initial $EOS_VB_SKIP_INITIAL \
+        --thin $EOS_VB_THIN \
         $EOS_VB_EXTRA_OPTIONS
     #\
 #        > $output_dir/vb.log 2>&1
