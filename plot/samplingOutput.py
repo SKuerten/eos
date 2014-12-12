@@ -907,6 +907,10 @@ class UncertaintyPropagation(IS_Output):
 
         hdf5_file.close()
 
+class EOS_PYPMC_IS(SamplingOutput):
+    def _read(self, *args, **kwargs):
+        pass
+
 class EOS_PYPMC_MCMC(SamplingOutput):
 
     def _read(self, *args, **kwargs):
@@ -942,7 +946,6 @@ class EOS_PYPMC_MCMC(SamplingOutput):
         if self.select[1] is None:
             self.select[1] = full_length
 
-        print(self.select[1], self.select[0])
         self.reduced_length = self.select[1] - self.select[0]
 
         merged_chains = np.empty((len(chains) * self.reduced_length, chain.shape[1]), dtype='float64')
@@ -962,6 +965,8 @@ class EOS_PYPMC_MCMC(SamplingOutput):
             n_chains_parsed += 1
 
         hdf5_file.close()
+
+        print('Merged %d chains, total number of samples: %d' % (n_chains_parsed, len(merged_chains)))
 
         ###
         # assign members
