@@ -6,70 +6,11 @@ from __future__ import print_function, division
 import eos
 from make_analysis import make_analysis
 import pypmc
+import hdf5_io
 
 import argparse
 import h5py
 import numpy as np
-
-def save_analysis(file, analysis, intermediate=''):
-    """Store analysis in human-readable format in hdf5 file.
-
-    ``intermediate`` is a string to distinguish such as ``chain #1``
-     if multiple chains are to be stored. A separate group
-     ``/descriptions/$intermediate`` will be created.
-
-    Example:
-    $ h5ls -r file.hdf5
-    /                        Group
-    /descriptions            Group
-    /descriptions/constraints Dataset {3}
-    /descriptions/parameters Dataset {15}
-
-    $ h5ls -d file.hdf5/descriptions/constraints
-    constraints              Dataset {3}
-    Data:
-        (0) "B->K::f_0+f_++f_T@HPQCD-2013A",
-
-    $ h5ls -d file.hdf5/descriptions/parameters
-    parameters               Dataset {15}
-    Data:
-        (0) "Parameter: Re{cT}, prior type: flat, range: [-1,1], value = 0.981878",
-
-    """
-
-    desc  = 'descriptions'
-    const = 'constraints'
-    param = 'parameters'
-
-    group = file.create_group(desc)
-    if intermediate:
-        group = file[desc].create_group(intermediate)
-
-    # variable-length ASCII string
-    dt = h5py.special_dtype(vlen=bytes)
-    ds_const = group.create_dataset(const, (len(analysis.constraints),), dtype=dt)
-    dt = np.dtype({'names': ['name', 'min', 'max', 'nuisance', 'info'],
-                   'formats': [dt, np.float64, np.float64, np.uint8, dt]})
-    ds_param = group.create_dataset(param, (len(analysis.priors),), dtype=dt)
-
-    for i, c in enumerate(analysis.constraints):
-        ds_const[i] = c.name
-
-    ana_str = repr(analysis)
-
-    # index where a line with parameter info starts
-    line_start = ana_str.find('Parameter: ')
-    i = 0
-    while line_start != -1:
-        end = ana_str.find(', value = ', line_start)
-        line = ana_str[line_start:end]
-        p = analysis.priors[i]
-        ds_param[i] = (p.name, p.range_min, p.range_max, p.nuisance, line)
-        i += 1
-        # search forward in next line
-        line_start = ana_str.find('Parameter: ', end)
-
-    assert i == len(analysis.priors)
 
 class MCMC_Sampler(object):
     def __init__(self, analysis, args):
@@ -122,7 +63,7 @@ class MCMC_Sampler(object):
         self.sample_dset = '/samples/chain #0'
         file.create_dataset(self.sample_dset, (self.samples, self.dim), 'float64')
 
-        save_analysis(file, self.analysis, intermediate='chain #0')
+        hdf5_io.save_analysis(file, self.analysis, intermediate='chain #0')
         file.close()
 
     def draw_uniform_in_support(self):
