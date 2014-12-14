@@ -4,6 +4,7 @@ source ${EOS_SCRIPT_PATH}/priors.bash
 source ${EOS_SCRIPT_PATH}/scan.bash
 
 export EOS_ANALYSIS_INFO=1
+export EOS_SEED=12345
 
 non_empty() {
     local var=$1
@@ -11,6 +12,30 @@ non_empty() {
         echo "No $1 given"
         exit -1
     fi
+}
+
+export EOS_IS_INPUT=  # default: $output_dir/vb.hdf5
+
+is() {
+   scenario=${1}
+    shift
+
+    data=${1}
+    shift
+
+    if [[ -z $EOS_IS_INPUT ]]; then
+        EOS_IS_INPUT=$output_dir/vb.hdf5
+    fi
+
+    seed=$(expr $EOS_SEED "+" 642134)
+
+    mpirun -n 2 ../py-eos/is.py \
+        --analysis-info $EOS_ANALYSIS_INFO \
+        --input $EOS_IS_INPUT \
+        --output $output_dir/is.hdf5 \
+        --samples $EOS_IS_SAMPLES \
+        --seed $seed # \
+        # > $output_dir/is.log 2>&1
 }
 
 export EOS_MCMC_BURN_IN=
@@ -29,7 +54,7 @@ mcmc() {
 
     prerun_index=${1}
     non_empty "prerun_index"
-    seed=$(expr 12345 "+" ${prerun_index} "*" 1000)
+    seed=$(expr $EOS_SEED "+" ${prerun_index} "*" 1000)
 
     # scan=SCAN_${scenario}
     # constraints=CONSTRAINTS_${data}
@@ -85,15 +110,25 @@ opt() {
 
 export EOS_VB_COMPONENTS_PER_GROUP=15
 export EOS_VB_EXTRA_OPTIONS=
-export EOS_VB_INPUT=
+export EOS_VB_IS_INPUT=
+export EOS_VB_MCMC_INPUT=
 export EOS_VB_SKIP_INITIAL=0.05
+export EOS_VB_THIN=100
+export EOS_VB_R_VALUE=2
 
 vb() {
+
+    seed=$(expr $EOS_SEED "+" 654198)
     ../py-eos/vb.py \
         --analysis-info $EOS_ANALYSIS_INFO \
         --components-per-group $EOS_VB_COMPONENTS_PER_GROUP \
-        --mcmc-input $EOS_VB_INPUT \
+        --is-input $EOS_VB_IS_INPUT \
+        --mcmc-input $EOS_VB_MCMC_INPUT \
+        --output $output_dir/vb.hdf5 \
+        --R-value $EOS_VB_R_VALUE \
+        --seed $seed \
         --skip-initial $EOS_VB_SKIP_INITIAL \
+        --thin $EOS_VB_THIN \
         $EOS_VB_EXTRA_OPTIONS
     #\
 #        > $output_dir/vb.log 2>&1
@@ -135,6 +170,9 @@ main() {
             ;;
         info)
             ../py-eos/analysis_info.py
+            ;;
+        is)
+            is  ${scenario} ${data} $@
             ;;
         opt)
             opt ${scenario} ${data} $@
