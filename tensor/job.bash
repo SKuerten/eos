@@ -110,6 +110,7 @@ opt() {
 
 export EOS_VB_COMPONENTS_PER_GROUP=15
 export EOS_VB_EXTRA_OPTIONS=
+export EOS_VB_INIT_METHOD="random"
 export EOS_VB_IS_INPUT=
 export EOS_VB_MCMC_INPUT=
 export EOS_VB_SKIP_INITIAL=0.05
@@ -122,6 +123,7 @@ vb() {
     ../py-eos/vb.py \
         --analysis-info $EOS_ANALYSIS_INFO \
         --components-per-group $EOS_VB_COMPONENTS_PER_GROUP \
+        --init-method $EOS_VB_INIT_METHOD \
         --is-input $EOS_VB_IS_INPUT \
         --mcmc-input $EOS_VB_MCMC_INPUT \
         --output $output_dir/vb.hdf5 \

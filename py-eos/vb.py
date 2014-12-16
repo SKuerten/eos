@@ -14,6 +14,7 @@ import argparse
 import h5py
 import numpy as np
 import os, sys
+from argparse import ArgumentError
 
 sys.path.append(os.path.realpath('../plot'))
 import samplingOutput
@@ -41,7 +42,7 @@ class VB(object):
         elif args.is_input:
             self.init_is(args)
         else:
-            raise KeyError('No input file specified')
+            raise ArgumentError('No input file specified')
 
     def init_is(self, args):
         pass
@@ -63,8 +64,17 @@ class VB(object):
             samples = output.samples[::args.thin]
         else:
             samples = output.samples
-        self.vb = GaussianInference(samples, initial_guess='random', components=len(long_patches),
-                                    W0=np.diag([1e20] * len(analysis.priors)))
+
+
+        if args.init_method == 'random':
+            initial_guess = args.init_method
+        elif args.init_method == 'long-patches':
+            initial_guess = long_patches
+        else:
+            raise ArgumentError('Invalid initialization method: "%s"' % args.init_method)
+
+        self.vb = GaussianInference(samples, initial_guess=initial_guess, components=len(long_patches),
+                                    W0=np.diag([1e20] * len(self.analysis.priors)))
 
     def indices(self, args):
         '''Indices of parameters to compute R value for'''
@@ -105,6 +115,7 @@ if __name__ == '__main__':
                         type=int, default=0)
     parser.add_argument('--indices', help="Use only the specified parameters for R value grouping. Example: --indices 0 2 5",
                         type=int, nargs='+', metavar=('index0', 'index1'))
+    parser.add_argument("--init-method", help="Method to initialize variational Bayes", const='random', nargs='?')
     parser.add_argument("--is-input", help='File name that has the input from importance sampling', const='', nargs='?')
     parser.add_argument("--mcmc-input", help='File name that has the Markov chains', const='', nargs='?')
     parser.add_argument("--output", help="Output file name")
