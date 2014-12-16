@@ -5,12 +5,8 @@ import h5py
 import numpy as np
 import os
 
-def save_analysis(file, analysis, intermediate=''):
+def save_analysis(file, directory, analysis):
     """Store analysis in human-readable format in hdf5 file.
-
-    ``intermediate`` is a string to distinguish such as ``chain #1``
-     if multiple chains are to be stored. A separate group
-     ``/descriptions/$intermediate`` will be created.
 
     Example:
     $ h5ls -r file.hdf5
@@ -35,35 +31,38 @@ def save_analysis(file, analysis, intermediate=''):
     const = 'constraints'
     param = 'parameters'
 
-    group = file.create_group(desc)
-    if intermediate:
-        group = file[desc].create_group(intermediate)
+    print('save_analysis', file)
+    with h5py.File(file, 'a') as file:
+        if desc in file[directory]:
+            return
 
-    # variable-length ASCII string
-    dt = h5py.special_dtype(vlen=bytes)
-    ds_const = group.create_dataset(const, (len(analysis.constraints),), dtype=dt)
-    dt = np.dtype({'names': ['name', 'min', 'max', 'nuisance', 'info'],
-                   'formats': [dt, np.float64, np.float64, np.uint8, dt]})
-    ds_param = group.create_dataset(param, (len(analysis.priors),), dtype=dt)
+        group = file[directory].create_group(desc)
 
-    for i, c in enumerate(analysis.constraints):
-        ds_const[i] = c.name
+        # variable-length ASCII string
+        dt = h5py.special_dtype(vlen=bytes)
+        ds_const = group.create_dataset(const, (len(analysis.constraints),), dtype=dt)
+        dt = np.dtype({'names': ['name', 'min', 'max', 'nuisance', 'info'],
+                       'formats': [dt, np.float64, np.float64, np.uint8, dt]})
+        ds_param = group.create_dataset(param, (len(analysis.priors),), dtype=dt)
 
-    ana_str = repr(analysis)
+        for i, c in enumerate(analysis.constraints):
+            ds_const[i] = c.name
 
-    # index where a line with parameter info starts
-    line_start = ana_str.find('Parameter: ')
-    i = 0
-    while line_start != -1:
-        end = ana_str.find(', value = ', line_start)
-        line = ana_str[line_start:end]
-        p = analysis.priors[i]
-        ds_param[i] = (p.name, p.range_min, p.range_max, p.nuisance, line)
-        i += 1
-        # search forward in next line
-        line_start = ana_str.find('Parameter: ', end)
+        ana_str = repr(analysis)
 
-    assert i == len(analysis.priors)
+        # index where a line with parameter info starts
+        line_start = ana_str.find('Parameter: ')
+        i = 0
+        while line_start != -1:
+            end = ana_str.find(', value = ', line_start)
+            line = ana_str[line_start:end]
+            p = analysis.priors[i]
+            ds_param[i] = (p.name, p.range_min, p.range_max, p.nuisance, line)
+            i += 1
+            # search forward in next line
+            line_start = ana_str.find('Parameter: ', end)
+
+        assert i == len(analysis.priors)
 
 def save_mixture(file, directory, mixture):
     '''Support Gauss and Students't mixtures'''
@@ -121,8 +120,8 @@ def save_is_samples(file, directory, history_list):
 
         # 1st col: weights, other cols: parameter values
         dim = history_list[0].dim - 1
-        weights_ds = file.create_dataset(directory + '/weights', (n_samples,))
-        samples_ds = file.create_dataset(directory + '/samples', (n_samples, dim))
+        weights_ds = file.create_dataset(directory + '/weights', (n_samples,), dtype=np.float64)
+        samples_ds = file.create_dataset(directory + '/samples', (n_samples, dim), dtype=np.float64)
         for i, h in enumerate(history_list):
             weights_ds[i*chunk_size:(i+1)*chunk_size] = h[0][:,0]
             samples_ds[i*chunk_size:(i+1)*chunk_size] = h[0][:,1:]

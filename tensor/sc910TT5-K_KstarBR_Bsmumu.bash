@@ -12,7 +12,7 @@ export EOS_MCMC_UPDATE_SIZE=500
 export EOS_MCMC_SAMPLES=40000
 export EOS_MCMC_PROPOSAL='cauchy'
 
-export EOS_VB_COMPONENTS_PER_GROUP=4
+export EOS_VB_COMPONENTS_PER_GROUP=10
 export EOS_VB_EXTRA_OPTIONS='--indices 0 3'
 
 export EOS_VB_INPUT='/data/eos/2014-tensor/2014-12-02/sc910TT5_K_KstarBR_Bsmumu/mcmc_pre_merged.hdf5'

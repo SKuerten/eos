@@ -1666,6 +1666,8 @@ def factory(cmd_line=None):
     else:
         if args.i.endswith('.npy'):
             OutputClass = JahnISOutput
+        elif args.pypmc:
+            OutputClass = EOS_PYPMC_IS
         else:
             OutputClass = PMC_Output
 

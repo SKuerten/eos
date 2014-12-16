@@ -63,7 +63,7 @@ class MCMC_Sampler(object):
         self.sample_dset = '/samples/chain #0'
         file.create_dataset(self.sample_dset, (self.samples, self.dim), 'float64')
 
-        hdf5_io.save_analysis(file, self.analysis, intermediate='chain #0')
+        hdf5_io.save_analysis(file, self.analysis)
         file.close()
 
     def draw_uniform_in_support(self):

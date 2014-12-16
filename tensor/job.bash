@@ -17,25 +17,35 @@ non_empty() {
 export EOS_IS_INPUT=  # default: $output_dir/vb.hdf5
 
 is() {
-   scenario=${1}
+    scenario=${1}
     shift
 
     data=${1}
     shift
 
-    if [[ -z $EOS_IS_INPUT ]]; then
-        EOS_IS_INPUT=$output_dir/vb.hdf5
+    step=${1}
+    shift
+
+    local input=$EOS_IS_INPUT
+    if [[ -z $input ]]; then
+        input=$output_dir/vb.hdf5
+    fi
+
+    local output=$EOS_IS_OUTPUT
+    if [[ -z $output ]]; then
+        output=$input
     fi
 
     seed=$(expr $EOS_SEED "+" 642134)
 
     mpirun -n 2 ../py-eos/is.py \
         --analysis-info $EOS_ANALYSIS_INFO \
-        --input $EOS_IS_INPUT \
-        --output $output_dir/is.hdf5 \
+        --input $input \
+        --output $output \
         --samples $EOS_IS_SAMPLES \
-        --seed $seed # \
-        # > $output_dir/is.log 2>&1
+        --seed $seed \
+        --step $step # \
+    # > $output_dir/is.log 2>&1
 }
 
 export EOS_MCMC_BURN_IN=
@@ -112,6 +122,7 @@ export EOS_VB_COMPONENTS_PER_GROUP=15
 export EOS_VB_EXTRA_OPTIONS=
 export EOS_VB_INIT_METHOD="random"
 export EOS_VB_IS_INPUT=
+export EOS_VB_PRUNE=
 export EOS_VB_MCMC_INPUT=
 export EOS_VB_SKIP_INITIAL=0.05
 export EOS_VB_THIN=100
@@ -119,16 +130,48 @@ export EOS_VB_R_VALUE=2
 
 vb() {
 
+    local input_mode=${1}
+    shift
+
+    local input_file=
+
+     case ${input_mode} in
+        mcmc)
+             input_file="$output_dir/mcmc_pre_merged.hdf5"
+             if [[ -f $EOS_VB_MCMC_INPUT ]]; then
+                 input_file=$EOS_VB_MCMC_INPUT
+             fi
+            ;;
+        is)
+             input_file="$output_dir/vb.hdf5"
+             if [[ -f $EOS_VB_IS_INPUT ]]; then
+                 input_file=$EOS_VB_IS_INPUT
+             fi
+            ;;
+        *)
+            echo "Invalid command ${cmd} given!"
+            exit -1
+            ;;
+     esac
+     local input_arg="--${input_mode}-input ${input_file}"
+
+    step=${1}
+    shift
+
+    output=${1}
+    shift
+
     seed=$(expr $EOS_SEED "+" 654198)
     ../py-eos/vb.py \
         --analysis-info $EOS_ANALYSIS_INFO \
         --components-per-group $EOS_VB_COMPONENTS_PER_GROUP \
         --init-method $EOS_VB_INIT_METHOD \
-        --is-input $EOS_VB_IS_INPUT \
-        --mcmc-input $EOS_VB_MCMC_INPUT \
-        --output $output_dir/vb.hdf5 \
+        ${input_arg} \
+        --output $output \
+        --prune $EOS_VB_PRUNE \
         --R-value $EOS_VB_R_VALUE \
         --seed $seed \
+        --step $step \
         --skip-initial $EOS_VB_SKIP_INITIAL \
         --thin $EOS_VB_THIN \
         $EOS_VB_EXTRA_OPTIONS

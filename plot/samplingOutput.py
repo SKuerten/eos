@@ -7,7 +7,7 @@ import priors as priorDistributions
 
 import h5py
 import numpy as np
-import os, sys
+import os, re, sys
 
 # todo rename to description
 class ParameterDefinition(object):
@@ -909,7 +909,46 @@ class UncertaintyPropagation(IS_Output):
 
 class EOS_PYPMC_IS(SamplingOutput):
     def _read(self, *args, **kwargs):
-        pass
+        self.crop_outliers = kwargs.get('crop_outliers', 0)
+        self.equal_weights = kwargs.get('equal_weights', False)
+        self.step = kwargs.get('step', None)
+
+        with h5py.File(self.input_file_name, 'r') as hdf5_file:
+            prefix = '/importance_samples'
+            if self.step is not None:
+                prefix = '/step_%d' % self.step + prefix
+            else:
+                # find last step
+                groups = list(hdf5_file['/'].keys())
+                steps = sorted(filter(lambda x:re.search(r'^step', x), groups))
+                if steps:
+                    prefix = steps[-1] + prefix
+                # or don't update prefix if no group name step_* exists
+
+            samples = hdf5_file[prefix + '/samples'][self.select[0]:self.select[1]]
+
+            if self.equal_weights:
+                weights = np.ones(len(samples))
+            else:
+                weights = hdf5_file[prefix + '/weights'][self.select[0]:self.select[1]]
+
+            print(weights)
+
+            if self.crop_outliers > 0:
+                crop(weights, self.crop_outliers)
+
+            par_defs, priors = read_descriptions(hdf5_file,
+                                                 data_set='/descriptions/parameters',
+                                                 npar=len(samples[0]),
+                                                 samples=samples)
+
+        # assign members
+        self.weights = weights
+        self.samples = samples
+        self.par_defs = par_defs
+        self.priors = priors
+        self.stats = None
+        self.components = None
 
 class EOS_PYPMC_MCMC(SamplingOutput):
 
@@ -922,49 +961,47 @@ class EOS_PYPMC_MCMC(SamplingOutput):
         if hasattr(self.chains, '__len__') and len(self.chains) == 1:
             self.single_chain = str(self.chains[0])
 
-        hdf5_file = h5py.File(self.input_file_name, 'r')
+        with h5py.File(self.input_file_name, 'r') as hdf5_file:
 
-        prefix = '/samples'
+            prefix = '/samples'
 
-        # select all chains
-        if self.chains:
-            chains = self.chains
-        else:
-            chains = range(len(list(hdf5_file[prefix])))
+            # select all chains
+            if self.chains:
+                chains = self.chains
+            else:
+                chains = range(len(list(hdf5_file[prefix])))
 
-        first_chain = str(chains[0])
+            first_chain = str(chains[0])
 
-        #read data
-        chain = hdf5_file[prefix + '/chain #' + first_chain]
-        full_length = len(chain)
+            #read data
+            chain = hdf5_file[prefix + '/chain #' + first_chain]
+            full_length = len(chain)
 
-        #adjust which range is drawn, default: full range
-        if self.skip_initial > 0:
-            self.select[0] = int(self.skip_initial * full_length)
-        if self.select[0] is None:
-            self.select[0] = 0
-        if self.select[1] is None:
-            self.select[1] = full_length
+            #adjust which range is drawn, default: full range
+            if self.skip_initial > 0:
+                self.select[0] = int(self.skip_initial * full_length)
+            if self.select[0] is None:
+                self.select[0] = 0
+            if self.select[1] is None:
+                self.select[1] = full_length
 
-        self.reduced_length = self.select[1] - self.select[0]
+            self.reduced_length = self.select[1] - self.select[0]
 
-        merged_chains = np.empty((len(chains) * self.reduced_length, chain.shape[1]), dtype='float64')
-        merged_chains[:self.reduced_length] = hdf5_file[prefix + '/chain #' + first_chain][self.select[0]:self.select[1]]
-        n_chains_parsed = 1
+            merged_chains = np.empty((len(chains) * self.reduced_length, chain.shape[1]), dtype='float64')
+            merged_chains[:self.reduced_length] = hdf5_file[prefix + '/chain #' + first_chain][self.select[0]:self.select[1]]
+            n_chains_parsed = 1
 
-        par_defs, priors = read_descriptions(hdf5_file,
-                                             data_set='descriptions/chain #' + first_chain + "/parameters",
-                                             npar=merged_chains.shape[1],
-                                             samples=merged_chains)
+            par_defs, priors = read_descriptions(hdf5_file,
+                                                 data_set='descriptions/chain #' + first_chain + "/parameters",
+                                                 npar=merged_chains.shape[1],
+                                                 samples=merged_chains)
 
-        # read all remaining chains
-        for chain in chains[1:]:
-            c = hdf5_file[prefix + '/chain #%d' % chain]
-            assert len(c) == full_length, 'Length of chain %d (%d) differs from length of chain %s (%d)' % (chain, len(c), first_chain, full_length)
-            merged_chains[n_chains_parsed * self.reduced_length:(n_chains_parsed + 1) * self.reduced_length] = c[self.select[0]:self.select[1]]
-            n_chains_parsed += 1
-
-        hdf5_file.close()
+            # read all remaining chains
+            for chain in chains[1:]:
+                c = hdf5_file[prefix + '/chain #%d' % chain]
+                assert len(c) == full_length, 'Length of chain %d (%d) differs from length of chain %s (%d)' % (chain, len(c), first_chain, full_length)
+                merged_chains[n_chains_parsed * self.reduced_length:(n_chains_parsed + 1) * self.reduced_length] = c[self.select[0]:self.select[1]]
+                n_chains_parsed += 1
 
         print('Merged %d chains, total number of samples: %d' % (n_chains_parsed, len(merged_chains)))
 
