@@ -135,31 +135,34 @@ vb() {
 
     local input_file=
 
-     case ${input_mode} in
+    case ${input_mode} in
         mcmc)
-             input_file="$output_dir/mcmc_pre_merged.hdf5"
-             if [[ -f $EOS_VB_MCMC_INPUT ]]; then
-                 input_file=$EOS_VB_MCMC_INPUT
-             fi
+            input_file="$output_dir/mcmc_pre_merged.hdf5"
+            if [[ -f $EOS_VB_MCMC_INPUT ]]; then
+                input_file=$EOS_VB_MCMC_INPUT
+            fi
             ;;
         is)
-             input_file="$output_dir/vb.hdf5"
-             if [[ -f $EOS_VB_IS_INPUT ]]; then
-                 input_file=$EOS_VB_IS_INPUT
-             fi
+            input_file="$output_dir/vb.hdf5"
+            if [[ -f $EOS_VB_IS_INPUT ]]; then
+                input_file=$EOS_VB_IS_INPUT
+            fi
             ;;
         *)
             echo "Invalid command ${cmd} given!"
             exit -1
             ;;
-     esac
-     local input_arg="--${input_mode}-input ${input_file}"
+    esac
+    non_empty "input_file"
+    local input_arg="--${input_mode}-input ${input_file}"
 
     step=${1}
     shift
+    non_empty "step"
 
     output=${1}
     shift
+    non_empty "output"
 
     seed=$(expr $EOS_SEED "+" 654198)
     ../py-eos/vb.py \
@@ -176,7 +179,7 @@ vb() {
         --thin $EOS_VB_THIN \
         $EOS_VB_EXTRA_OPTIONS
     #\
-#        > $output_dir/vb.log 2>&1
+    #        > $output_dir/vb.log 2>&1
 }
 
 ## Job Main Function ##
@@ -203,11 +206,11 @@ main() {
     EOS_CONSTRAINTS=CONSTRAINTS_${data}
     export EOS_CONSTRAINTS=${!EOS_CONSTRAINTS}
 
-    cmd=${1}
-    shift
-
     export output_dir=${BASE_NAME}/${scenario}_${data}
     mkdir -p $output_dir
+
+    cmd=${1}
+    shift
 
     case ${cmd} in
         mcmc)
