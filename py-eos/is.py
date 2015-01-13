@@ -38,14 +38,15 @@ class IS(object):
 #         from matplotlib import pyplot
 #         plot_mixture(mixture)
 #         pyplot.show()
-#
-        hyper = hdf5_io.read_vb_hyperparameters(args.input, args.primary_group + vb.hdf5_subdirectory)
+
+        # todo why used here?
+#         hyper = hdf5_io.read_vb_hyperparameters(args.input, args.primary_group + vb.hdf5_subdirectory)
 
         # same number of n_samples in each process
         self.n_samples = args.samples // COMM_WORLD.Get_size()
 
         # define the importance sampler
-        SequentialIS = pypmc.sampler.importance_sampling.DeterministicIS
+        SequentialIS = pypmc.sampler.importance_sampling.ImportanceSampler
         self.parallel_sampler = MPISampler(SequentialIS, target=analysis, proposal=mixture, prealloc=self.n_samples)
 
         hdf5_io.save_analysis(args.output, '/', self.analysis)
@@ -60,7 +61,7 @@ if __name__ == '__main__':
     parser.add_argument("--analysis-from",
                         help="Specify where the `eos.Analysis` instance shall be read off. " \
                         "Either specify a python module (for example `module.analysis`) or `env` " \
-                        "[default] for reading off the environement variables.",
+                        "[default] for reading off the environment variables.",
                         type=str, default='env')
     parser.add_argument("--analysis-info", help='Print constraints, parameters, and observables',
                         type=int, default=False)
@@ -79,10 +80,8 @@ if __name__ == '__main__':
     analysis = make_analysis(args.analysis_from)
     if args.analysis_info:
         print(analysis)
-    if args.step is None:
-        args.primary_group = ''
-    else:
-        args.primary_group = '/step_%d' % args.step
+
+    args.primary_group = '' if args.step is None else '/step_%d' % args.step
 
     ###
     # take action
