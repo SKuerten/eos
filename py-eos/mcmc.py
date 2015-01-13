@@ -12,6 +12,8 @@ import argparse
 import h5py
 import numpy as np
 
+hdf5_subdirectory = '/chain #0'
+
 class MCMC_Sampler(object):
     def __init__(self, analysis, args):
         self.analysis = analysis
@@ -49,7 +51,8 @@ class MCMC_Sampler(object):
             start[:] = self.draw_uniform_in_support()
 
         self.chain = pypmc.sampler.markov_chain.AdaptiveMarkovChain(self.analysis, local_prop, start,
-                                                                      indicator=ind, prealloc=args.samples)
+                                                                    save_target_values=True,
+                                                                    indicator=ind, prealloc=args.samples)
 
         self.burn_in = args.burn_in
 
@@ -58,13 +61,14 @@ class MCMC_Sampler(object):
 
         self.file_name = args.output
 
-        file = h5py.File(self.file_name, 'w')
-        # one row per sample, store parameter values and log(posterior)
-        self.sample_dset = '/samples/chain #0'
-        file.create_dataset(self.sample_dset, (self.samples, self.dim), 'float64')
+        with h5py.File(self.file_name, 'w') as file:
+            # one row per sample, store parameter values and log(posterior)
+            self.sample_dset = hdf5_subdirectory + '/samples'
+            file.create_dataset(self.sample_dset, (self.samples, self.dim), 'float64')
+            self.target_dset = hdf5_subdirectory + '/log_posterior'
+            file.create_dataset(self.target_dset, (self.samples, 1), 'float64')
 
-        hdf5_io.save_analysis(file, self.analysis)
-        file.close()
+        hdf5_io.save_analysis(self.file_name, hdf5_subdirectory, self.analysis)
 
     def draw_uniform_in_support(self):
         ''' draw initial points'''
@@ -105,9 +109,10 @@ class MCMC_Sampler(object):
     def save_samples(self, iterations):
         '''Save batch of samples. File is closed to ensure flush to disk.'''
 
-        file = h5py.File(self.file_name, 'r+')
-        file[self.sample_dset][iterations:iterations + self.update] = self.chain.history[:]
-        file.close()
+        with h5py.File(self.file_name, 'r+') as file:
+            file[self.target_dset][iterations:iterations + self.update] = self.chain.target_values[:]
+            file[self.sample_dset][iterations:iterations + self.update] = self.chain.history[:]
+
         self.chain.clear()
 
 if __name__ == '__main__':
