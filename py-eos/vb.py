@@ -162,7 +162,7 @@ if __name__ == '__main__':
     parser.add_argument('--skip-initial', help="Allows to skip the first fraction of iterations", type=float, default=0.0)
     parser.add_argument('--thin', help='Select only every N-th sample from the chains to reduce autocorrelation',
                         type=int, default=0)
-    parser.add_argument("--step", type=int, default=1, help='Select a step: used to identify input/output')
+    parser.add_argument("--step", type=int, default=0, help='Select a step: used to identify input/output')
 
     args = parser.parse_args()
 
