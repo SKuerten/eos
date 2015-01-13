@@ -298,6 +298,51 @@ class MCMC_Output(SamplingOutput):
         else:
             return 'All chains'
 
+def extract_chain_modes(output):
+        """
+        Find the mode of each Markov chain and display it
+
+        Assume that each chain of same length. Designed for use with EOS_PYPMC_MCMC
+        """
+        print("There are %d chains" % output.n_chains)
+        output._modes = []
+
+        global_max = -np.inf
+        global_max_index = None
+
+        for i in range(output.n_chains):
+            mode = []
+
+            index = np.argmax(output.log_posterior[i * output.reduced_length : (i + 1) * output.reduced_length])
+            for j in range(output.npar):
+                mode.append(output.samples[i * output.reduced_length + index][j])
+            max = output.log_posterior[i * output.reduced_length + index]
+
+            if max > global_max:
+                global_max_index = i
+
+            # special case: only one chain
+            if output.single_chain is not None:
+                i = int(output.single_chain)
+            print("Mode of chain %d with log posterior = %.16f is at:" % (i, max))
+
+            # print in a format friendly for eos-scan-mc
+            w = sys.stdout.write
+
+            # all on one line
+            w('"{ ')
+            for p in mode:
+                w("%+.16f " % p)
+            w('}"\n')
+            sys.stdout.flush()
+
+            output._modes.append(np.array(mode))
+
+        # global mode
+        output.global_mode_index = global_max_index
+        if output.single_chain is None:
+            print("Global mode found in chain %d" % output.global_mode_index)
+
 def crop(weights, n):
     '''Set the `n` highest elements in `weights` to zero. Modify in place.'''
     print('\033[91m' + 'WARNING: filtering highest %d weights' % n + '\033[0m')
@@ -951,6 +996,17 @@ class EOS_PYPMC_IS(SamplingOutput):
         self.components = None
 
 class EOS_PYPMC_MCMC(SamplingOutput):
+    '''The structure in the HDF5 file is supposed to be
+
+    /                        Group
+    /chain\ #0               Group
+    /chain\ #0/descriptions  Group
+    /chain\ #0/descriptions/constraints Dataset {1}
+    /chain\ #0/descriptions/parameters Dataset {13}
+    /chain\ #0/log_posterior Dataset {30000, 1}
+    /chain\ #0/samples       Dataset {30000, 13}
+
+    '''
 
     def _read(self, *args, **kwargs):
         self.chains = kwargs.get('chains', None)
@@ -963,57 +1019,62 @@ class EOS_PYPMC_MCMC(SamplingOutput):
 
         with h5py.File(self.input_file_name, 'r') as hdf5_file:
 
-            prefix = '/samples'
-
             # select all chains
             if self.chains:
                 chains = self.chains
             else:
-                chains = range(len(list(hdf5_file[prefix])))
+                n_chains = 0
+                for g in hdf5_file['/'].iterkeys():
+                    if g.startswith('chain #'):
+                        n_chains += 1
+                # search for 'chain #%d'
+                chains = range(n_chains)
+            self.n_chains = len(chains)
 
             first_chain = str(chains[0])
 
             #read data
-            chain = hdf5_file[prefix + '/chain #' + first_chain]
-            full_length = len(chain)
+            samples = hdf5_file['/chain #' + first_chain + '/samples']
+            self.chain_length = len(samples)
 
             #adjust which range is drawn, default: full range
             if self.skip_initial > 0:
-                self.select[0] = int(self.skip_initial * full_length)
+                self.select[0] = int(self.skip_initial * self.chain_length)
             if self.select[0] is None:
                 self.select[0] = 0
             if self.select[1] is None:
-                self.select[1] = full_length
+                self.select[1] = self.chain_length
 
             self.reduced_length = self.select[1] - self.select[0]
 
-            merged_chains = np.empty((len(chains) * self.reduced_length, chain.shape[1]), dtype='float64')
-            merged_chains[:self.reduced_length] = hdf5_file[prefix + '/chain #' + first_chain][self.select[0]:self.select[1]]
+            merged_chains = np.empty((self.n_chains * self.reduced_length, samples.shape[1]), dtype='float64')
+            merged_chains[:self.reduced_length] = hdf5_file['/chain #' + first_chain + '/samples'][self.select[0]:self.select[1]]
+            merged_posteriors = np.empty((self.n_chains * self.reduced_length, 1), dtype='float64')
+            merged_posteriors[:self.reduced_length] = hdf5_file['/chain #' + first_chain + '/log_posterior'][self.select[0]:self.select[1]]
             n_chains_parsed = 1
 
             par_defs, priors = read_descriptions(hdf5_file,
-                                                 data_set='descriptions/chain #' + first_chain + "/parameters",
+                                                 data_set='/chain #' + first_chain + "/descriptions/parameters",
                                                  npar=merged_chains.shape[1],
                                                  samples=merged_chains)
 
             # read all remaining chains
             for chain in chains[1:]:
-                c = hdf5_file[prefix + '/chain #%d' % chain]
-                assert len(c) == full_length, 'Length of chain %d (%d) differs from length of chain %s (%d)' % (chain, len(c), first_chain, full_length)
+                c = hdf5_file['/chain #%d' % chain + '/samples']
+                assert len(c) == self.chain_length, 'Length of chain %d (%d) differs from length of chain %s (%d)' % (chain, len(c), first_chain, self.chain_length)
                 merged_chains[n_chains_parsed * self.reduced_length:(n_chains_parsed + 1) * self.reduced_length] = c[self.select[0]:self.select[1]]
                 n_chains_parsed += 1
 
         print('Merged %d chains, total number of samples: %d' % (n_chains_parsed, len(merged_chains)))
 
-        ###
-        # assign members
-        ###
-
         # all weights equal
         self.weights = np.ones(len(merged_chains))
         self.samples = merged_chains
+        self.log_posterior = merged_posteriors
         self.par_defs = par_defs
         self.priors = priors
+
+        extract_chain_modes(self)
 
     def individual_chains(self):
         '''Return list of individual chains.'''
