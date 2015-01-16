@@ -961,7 +961,7 @@ class EOS_PYPMC_IS(SamplingOutput):
         with h5py.File(self.input_file_name, 'r') as hdf5_file:
             prefix = '/importance_samples'
             if self.step is not None:
-                prefix = '/step_%d' % self.step + prefix
+                prefix = '/step #' + self.step + prefix
             else:
                 # find last step
                 groups = list(hdf5_file['/'].keys())
