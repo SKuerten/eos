@@ -1591,6 +1591,8 @@ def factory(cmd_line=None):
     parser.add_argument('--contours', help="Add one and two sigma contours",action='store_true')
     parser.add_argument('--compute-stats', help="Compute perplexity and effective sample size (PMC only)", action='store_true')
     parser.add_argument('--cut', help="Add a cut for computing the integral: PAR MIN MAX",nargs=3, action='append')
+    parser.add_argument('--deterministic-mixture', action='store_true', default=False, help=\
+                        "With importance sampling, use the deterministic-mixture weights instead of regular importance weights.")
     parser.add_argument('--emcee', help="Read emcee input file", action='store_true', default=False)
     parser.add_argument('--evolution', help="Plot the evolution  of individual chains, either on the 'log' or 'linear' scale", action='store', default='harr')
     parser.add_argument('--gof', help="Determine GoF for a particular point. Specify each coordinate independently as --gof i value, e.g. --gof 0 0.4 --gof 1 0.8 i<j, i,j=0...N-1", action='append', nargs=2)
@@ -1647,7 +1649,8 @@ def factory(cmd_line=None):
                   queue_output=args.pmc_queue_output, crop_outliers=int(args.pmc_crop_outliers),
                   equal_weights=args.pmc_equal_weights or args.pmc_proposal,
                   components=args.pmc_components,
-                  step=args.pmc_step, hc_comp=hc_comp)
+                  step=args.pmc_step, hc_comp=hc_comp,
+                  deterministic_mixture=args.deterministic_mixture)
 
     OutputClass = None
     if args.mcmc:

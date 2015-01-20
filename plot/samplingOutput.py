@@ -2,12 +2,17 @@
 Provide consistent interface to parsing sampling output from various algorithms, and in various formats.
 
 """
+from __future__ import print_function
 
 import priors as priorDistributions
 
 import h5py
 import numpy as np
 import os, re, sys
+
+def open_hdf5(name, mode='r'):
+    print('Opening ' + name)
+    return h5py.File(name, mode)
 
 # todo rename to description
 class ParameterDefinition(object):
@@ -957,27 +962,92 @@ class EOS_PYPMC_IS(SamplingOutput):
         self.crop_outliers = kwargs.get('crop_outliers', 0)
         self.equal_weights = kwargs.get('equal_weights', False)
         self.step = kwargs.get('step', None)
+        self.deterministic_mixture = kwargs.get('deterministic_mixture', False)
 
-        with h5py.File(self.input_file_name, 'r') as hdf5_file:
-            prefix = '/importance_samples'
-            if self.step is not None:
-                prefix = '/step #' + self.step + prefix
-            else:
-                # find last step
-                groups = list(hdf5_file['/'].keys())
-                steps = sorted(filter(lambda x:re.search(r'^step', x), groups))
-                if steps:
-                    prefix = steps[-1] + prefix
+        with open_hdf5(self.input_file_name) as hdf5_file:
+            # find last step
+            groups = list(hdf5_file['/'].keys())
+            steps = sorted(filter(lambda x:re.search(r'^step #', x), groups))
+            # extract 3 from 'step #3'
+            last_step = int(steps[-1][steps[-1].find('#')+1:]) if steps else 0
+
+            step = int(self.step) if self.step is not None else last_step
+            prefix = '/step #%d' % step + '/importance_samples'
+
+            # if self.step is not None:
+            #     prefix = '/step #' + self.step + prefix
+            # else:
+            #     if steps:
+            #         prefix = steps[-1] + prefix
                 # or don't update prefix if no group name step_* exists
 
-            samples = hdf5_file[prefix + '/samples'][self.select[0]:self.select[1]]
+            if self.deterministic_mixture:
+                print(groups)
 
-            if self.equal_weights:
-                weights = np.ones(len(samples))
+                # read samples
+                group = hdf5_file['/step #%d/combination' % step]
+                combinations = sorted(filter(lambda x:re.search(r'^weights #', x), group.keys()))
+                assert combinations, 'No deterministic-mixture weights found'
+                assert len(combinations) == len(steps), \
+                "samples (%d) and combined weights (%d) don't match %s" % (len(combinations), len(steps), combinations)
+
+                # reduce to some steps, or all steps if self.step not given
+#                 step = self.step if self.step is not None else last_step
+                steps = steps[:step+1]
+#                 combinations = combinations[:step]
+
+                print(steps)
+                n_samples = np.array([hdf5_file[s + '/importance_samples/samples'].len() for s in steps])
+                n_comb_weights = self._n_combined_weights(group)
+                np.testing.assert_equal(n_samples, n_comb_weights)
+                if self.select[1] is None:
+                    self.select[1] = np.sum(n_samples)
+                else:
+                    assert n_samples.sum() > self.select[1]
+                if self.select[0] is None:
+                    self.select[0] = 0
+
+                # base offsets from individual arrays into merged array
+                # manually add zero as first offset, and remove final offset
+                offsets = np.hstack((np.zeros(1), np.cumsum(n_comb_weights)[:-1]))
+
+                # create array with right size and data type
+                ds = hdf5_file[steps[0] + '/importance_samples/samples']
+                samples = np.empty((self.select[1] - self.select[0], ds.shape[1]), dtype=ds.dtype)
+                weights = np.empty((self.select[1] - self.select[0], 1), dtype=ds.dtype)
+
+                # convert indices from local to merged array => need offsets
+                for i,s in enumerate(steps):
+                    # lower index in this data set
+                    a = int(max(self.select[0] - offsets[i], 0))
+                    # upper index in this data set
+                    b = int(min(self.select[1] - offsets[i], n_comb_weights[i]))
+                    if a >= b:
+                        continue
+
+                    source_slice = np.s_[a:b]
+                    offset = int(offsets[i] - self.select[0])
+                    destination_slice = np.s_[a + offset:b + offset]
+                    
+                    # now write directly to array without intermediate arrays
+                    hdf5_samples = hdf5_file[s + '/importance_samples/samples']
+                    hdf5_samples.read_direct(samples, source_slice, destination_slice)
+
+                    hdf5_weights = hdf5_file[steps[-1] + '/combination/weights #%d' % i]
+                    print(hdf5_weights.shape, weights.shape, source_slice, destination_slice)
+                    hdf5_weights.read_direct(weights, source_slice, destination_slice)
+
+                # turn (n,1) array into n array 
+                weights = weights.view().reshape(len(weights))
             else:
-                weights = hdf5_file[prefix + '/weights'][self.select[0]:self.select[1]]
+                print(prefix + '/samples')
+                # todo use read_direct to avoid reading samples that are discarded immediately
+                samples = hdf5_file[prefix + '/samples'][self.select[0]:self.select[1]]
 
-            print(weights)
+                if self.equal_weights:
+                    weights = np.ones(len(samples))
+                else:
+                    weights = hdf5_file[prefix + '/weights'][self.select[0]:self.select[1]]
 
             if self.crop_outliers > 0:
                 crop(weights, self.crop_outliers)
@@ -994,6 +1064,28 @@ class EOS_PYPMC_IS(SamplingOutput):
         self.priors = priors
         self.stats = None
         self.components = None
+
+    # def _n_samples(self, hdf5_file, steps):
+    #     '''
+    #     hdf5_file: open HDF5 file
+    #     steps: iterable of group names
+
+    #     '''
+    #     n = 0
+    #     for s in steps:
+    #         n += hdf5_file[s]['/importance_samples/samples'].len()
+
+    #     return
+
+    def _n_combined_weights(self, hdf5_group):
+        n = []
+#         elements = hdf5_group.keys()
+        weights = sorted(filter(lambda x:re.search(r'^weights #', x), hdf5_group.keys()))
+        print(weights)
+        for i, c in enumerate(weights):
+            assert c == 'weights #%d' % i
+            n.append(hdf5_group[c].len())
+        return np.array(n)
 
 class EOS_PYPMC_MCMC(SamplingOutput):
     '''The structure in the HDF5 file is supposed to be
@@ -1017,7 +1109,8 @@ class EOS_PYPMC_MCMC(SamplingOutput):
         if hasattr(self.chains, '__len__') and len(self.chains) == 1:
             self.single_chain = str(self.chains[0])
 
-        with h5py.File(self.input_file_name, 'r') as hdf5_file:
+
+        with open_hdf5(self.input_file_name) as hdf5_file:
 
             # select all chains
             if self.chains:

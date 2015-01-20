@@ -5,9 +5,11 @@ from __future__ import print_function, division
 
 import eos
 import hdf5_io
+from hdf5_io import primary_group
 from make_analysis import make_analysis
 from pypmc.mix_adapt.r_value import make_r_gaussmix
 from pypmc.mix_adapt.variational import GaussianInference
+from pypmc.sampler.importance_sampling import combine_weights
 from pypmc.tools import plot_mixture
 
 import argparse
@@ -20,12 +22,6 @@ sys.path.append(os.path.realpath('../plot'))
 import samplingOutput
 
 hdf5_subdirectory = '/vb'
-
-def primary_group(step):
-#     assert step is not None
-    if step is None:
-        return ''
-    return '/step #%d' % step
 
 def read_chains(file_name, **kwargs):
     '''Read mcmc chains and return a list of arrays'''
@@ -44,9 +40,9 @@ class VB(object):
         self.analysis = analysis
         self.args = args
         if args.mcmc_input:
-            self._init_mcmc(args)
+            self._init_mcmc()
         elif args.is_input:
-            self._init_is(args)
+            self._init_is()
         else:
             raise ArgumentError('No input file specified')
 
@@ -58,64 +54,72 @@ class VB(object):
 
         hdf5_io.save_analysis(args.output, '/', self.analysis)
 
-    def _init_is(self, args):
+    def _init_is(self):
+        deterministic = self.args.deterministic_mixture and self.args.step > 1
         # parse samples and weights
-        output = samplingOutput.EOS_PYPMC_IS(args.is_input, args.step)
+        output = samplingOutput.EOS_PYPMC_IS(self.args.is_input, self.args.step, 
+                                             deterministic_mixture=deterministic)
 
         # use MCMC results as prior
-        hyperpar = hdf5_io.read_vb_hyperparameters(args.is_input, primary_group(args.step) + hdf5_subdirectory)
+        hyperpar = hdf5_io.read_vb_hyperparameters(self.args.is_input, primary_group(self.args.step) + hdf5_subdirectory)
         hyperpar_prior = self._posterior2prior(hyperpar)
 
-        # but ignore weights from MCMC
-        if args.step == 0:
-            hyperpar_prior['alpha0'][:] = 1e-5
+        if deterministic:
+            (samples, merged_samples), (weights, merged_weights), proposals = \
+                hdf5_io.read_is_history(self.args.is_input, '/', last_step=self.args.step)
+            mixture_weights = combine_weights(samples, weights, proposals)
+            # weights (N,1) matrix => take only first column
+            self.vb = GaussianInference(merged_samples[:], weights=merged_weights[:].T[0],
+                                        components=len(hyperpar['alpha']), **hyperpar)
 
-        # now combine both dicts
-        hyperpar.update(hyperpar_prior)
+        else:
+            # but ignore weights from MCMC
+            if self.args.step == 0:
+                hyperpar_prior['alpha0'][:] = 1e-5
 
-        initial_guess = hdf5_io.read_mixture(args.is_input, primary_group(args.step) + hdf5_subdirectory)
+            # now combine both dicts
+            hyperpar.update(hyperpar_prior)
 
-        self.vb = GaussianInference(output.samples, weights=output.weights,
-                                    components=len(hyperpar['alpha']), **hyperpar)
+            self.vb = GaussianInference(output.samples, weights=output.weights,
+                                        components=len(hyperpar['alpha']), **hyperpar)
 
         # now save results in next step
-        args.step += 1
+        self.args.step += 1
 
-    def _init_mcmc(self, args):
-        print(args.mcmc_input)
-        output = samplingOutput.EOS_PYPMC_MCMC(args.mcmc_input,
-                                               chains=args.chains,
-                                               skip_initial=args.skip_initial)
+    def _init_mcmc(self):
+        output = samplingOutput.EOS_PYPMC_MCMC(self.args.mcmc_input,
+                                               chains=self.args.chains,
+                                               skip_initial=self.args.skip_initial)
 
-        K_g = args.components_per_group
+        K_g = self.args.components_per_group
         long_patches = make_r_gaussmix(output.individual_chains(),
-                                       K_g=K_g, critical_r=args.R_value,
-                                       indices=self._indices(args))
+                                       K_g=K_g, critical_r=self.args.R_value,
+                                       indices=self._indices())
         print("K_g:", K_g)
         print('Found %d groups with a total of %d patches' %
               (len(long_patches) // K_g, len(long_patches)))
 
-        if args.thin:
-            samples = output.samples[::args.thin]
+        if self.args.thin:
+            samples = output.samples[::self.args.thin]
         else:
             samples = output.samples
 
 
-        if args.init_method == 'random':
-            initial_guess = args.init_method
-        elif args.init_method == 'long-patches':
+        if self.args.init_method == 'random':
+            initial_guess = self.args.init_method
+        elif self.args.init_method == 'long-patches':
             initial_guess = long_patches
         else:
-            raise ArgumentError('Invalid initialization method: "%s"' % args.init_method)
+            raise ArgumentError('Invalid initialization method: "%s"' % self.args.init_method)
 
         self.vb = GaussianInference(samples, initial_guess=initial_guess, components=len(long_patches),
                                     W0=np.diag([1e20] * len(self.analysis.priors)))
 
-    def _indices(self, args):
+    def _indices(self):
         '''Indices of parameters to compute R value for'''
-        if args.indices:
-            indices = args.indices
-        elif args.group_nuisance:
+        if self.args.indices:
+            indices = self.args.indices
+        elif self.args.group_nuisance:
             # all parameters
             indices = list(range(len(self.analysis.priors)))
         else:
@@ -137,8 +141,8 @@ class VB(object):
         self.vb.run(verbose=True, prune=self.prune)
         # todo code dublication
         mix = self.vb.make_mixture()
-        hdf5_io.save_mixture(self.args.output, primary_group(args.step) + hdf5_subdirectory, mix)
-        hdf5_io.save_vb_hyperparameters(self.args.output, primary_group(args.step) + hdf5_subdirectory, self.vb)
+        hdf5_io.save_mixture(self.args.output, primary_group(self.args.step) + hdf5_subdirectory, mix)
+        hdf5_io.save_vb_hyperparameters(self.args.output, primary_group(self.args.step) + hdf5_subdirectory, self.vb)
         # plot_mixture(mix, 0, 2)
         # from matplotlib import pyplot as plt
         # plt.savefig('/tmp/vb.pdf')
@@ -158,6 +162,9 @@ if __name__ == '__main__':
                         help="Use only the specified chains for plotting, instead of all available chains. Example: --chains 0 2 5")
     parser.add_argument("--components-per-group", help='Number of components per group as determined by R value of chains',
                         type=int)
+    parser.add_argument("--deterministic-mixture", help='Merge samples of all previous steps and recompute' \
+                        'the weights according to the deterministic-mixture algorithm by Cornuet et al.',
+                        type=int, default=1)
     parser.add_argument("--group-nuisance", help='Compute R value in grouping also for nuisance parameters',
                         type=int, default=0)
     parser.add_argument('--indices', help="Use only the specified parameters for R value grouping. Example: --indices 0 2 5",

@@ -166,3 +166,12 @@ def read_is_history(file, directory, last_step=None):
     for i, step in enumerate(steps[:last_step + 1]):
         proposals.append(read_mixture(file, step + '/vb'))
     return (samples, histories[0]), (weights, histories[1]), proposals
+
+def save_combined_weights(file, directory, combined_weights):
+    '''Save combined weights stored in the History separately for each step'''
+    with h5py.File(file, 'a') as f:
+#         last_step = len(combined_weights)
+        grp = f.create_group(directory + '/combination') #%d' %  (last_step - 1))
+        for i in range(len(combined_weights)):
+            ds = grp.create_dataset('weights #%d' % i, data=combined_weights[i])
+

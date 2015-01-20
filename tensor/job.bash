@@ -17,12 +17,6 @@ non_empty() {
 export EOS_IS_INPUT=  # default: $output_dir/vb.hdf5
 
 is() {
-    scenario=${1}
-    shift
-
-    data=${1}
-    shift
-
     step=${1}
     shift
 
@@ -213,6 +207,20 @@ main() {
     shift
 
     case ${cmd} in
+        driver)
+            out=$output_dir/vb.hdf5
+            rm $out
+            vb mcmc 0 $out &&
+            is 0 &&
+            vb is 0 APPEND &&
+            is 1 &&
+            vb is 1 APPEND &&
+            is 2 &&
+            vb is 2 APPEND &&
+            is 3 &&
+            vb is 3 APPEND &&
+            is 4
+            ;;
         mcmc)
             mcmc ${scenario} ${data} $@
             ;;
@@ -220,7 +228,7 @@ main() {
             ../py-eos/analysis_info.py
             ;;
         is)
-            is  ${scenario} ${data} $@
+            is $@
             ;;
         opt)
             opt ${scenario} ${data} $@
