@@ -982,28 +982,24 @@ class EOS_PYPMC_IS(SamplingOutput):
                 # or don't update prefix if no group name step_* exists
 
             if self.deterministic_mixture:
-                print(groups)
+
+                # reduce to some steps, or all steps if self.step not given
+                steps = steps[:step+1]
 
                 # read samples
                 group = hdf5_file['/step #%d/combination' % step]
                 combinations = sorted(filter(lambda x:re.search(r'^weights #', x), group.keys()))
                 assert combinations, 'No deterministic-mixture weights found'
                 assert len(combinations) == len(steps), \
-                "samples (%d) and combined weights (%d) don't match %s" % (len(combinations), len(steps), combinations)
+                "samples (%d) and combined weights (%d) don't match" % (len(steps), len(combinations))
 
-                # reduce to some steps, or all steps if self.step not given
-#                 step = self.step if self.step is not None else last_step
-                steps = steps[:step+1]
-#                 combinations = combinations[:step]
-
-                print(steps)
                 n_samples = np.array([hdf5_file[s + '/importance_samples/samples'].len() for s in steps])
                 n_comb_weights = self._n_combined_weights(group)
                 np.testing.assert_equal(n_samples, n_comb_weights)
                 if self.select[1] is None:
                     self.select[1] = np.sum(n_samples)
                 else:
-                    assert n_samples.sum() > self.select[1]
+                    assert n_samples.sum() >= self.select[1]
                 if self.select[0] is None:
                     self.select[0] = 0
 
@@ -1028,19 +1024,17 @@ class EOS_PYPMC_IS(SamplingOutput):
                     source_slice = np.s_[a:b]
                     offset = int(offsets[i] - self.select[0])
                     destination_slice = np.s_[a + offset:b + offset]
-                    
+
                     # now write directly to array without intermediate arrays
                     hdf5_samples = hdf5_file[s + '/importance_samples/samples']
                     hdf5_samples.read_direct(samples, source_slice, destination_slice)
 
                     hdf5_weights = hdf5_file[steps[-1] + '/combination/weights #%d' % i]
-                    print(hdf5_weights.shape, weights.shape, source_slice, destination_slice)
                     hdf5_weights.read_direct(weights, source_slice, destination_slice)
 
-                # turn (n,1) array into n array 
+                # turn (n,1) array into n array
                 weights = weights.view().reshape(len(weights))
             else:
-                print(prefix + '/samples')
                 # todo use read_direct to avoid reading samples that are discarded immediately
                 samples = hdf5_file[prefix + '/samples'][self.select[0]:self.select[1]]
 
