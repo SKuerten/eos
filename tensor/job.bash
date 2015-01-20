@@ -210,8 +210,10 @@ main() {
         driver)
             out=$output_dir/vb.hdf5
             rm $out
+            export EOS_IS_SAMPLES=100000
             vb mcmc 0 $out &&
             is 0 &&
+            export EOS_IS_SAMPLES=10000
             vb is 0 APPEND &&
             is 1 &&
             vb is 1 APPEND &&

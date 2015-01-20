@@ -12,13 +12,13 @@ export EOS_MCMC_UPDATE_SIZE=500
 export EOS_MCMC_SAMPLES=50000
 export EOS_MCMC_PROPOSAL='cauchy'
 
-export EOS_VB_COMPONENTS_PER_GROUP=10
+export EOS_VB_COMPONENTS_PER_GROUP=5
 export EOS_VB_EXTRA_OPTIONS='--indices 0 2'
-export EOS_VB_MCMC_INPUT='/data/eos/2014-tensor/2015-01-15/scSP_Bsmumu/mcmc_1532.hdf5'
+export EOS_VB_MCMC_INPUT='/data/eos/2014-tensor/2015-01-15/scSP_Bsmumu/mcmc_pre_merged.hdf5'
 #export EOS_VB_IS_INPUT='/data/eos/2014-tensor/2014-12-12/scTT5_FH/is.hdf5'
 export EOS_VB_PRUNE=100
-export EOS_VB_R_VALUE=5
+export EOS_VB_R_VALUE=2
 export EOS_VB_SKIP_INITIAL=0.05
-export EOS_VB_THIN=20
+export EOS_VB_THIN=5
 
 main $@
