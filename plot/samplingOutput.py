@@ -957,7 +957,7 @@ class UncertaintyPropagation(IS_Output):
 
         hdf5_file.close()
 
-class EOS_PYPMC_IS(SamplingOutput):
+class EOS_PYPMC_IS(IS_Output):
     def _read(self, *args, **kwargs):
         self.crop_outliers = kwargs.get('crop_outliers', 0)
         self.equal_weights = kwargs.get('equal_weights', False)
