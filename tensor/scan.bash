@@ -18,8 +18,8 @@ export SCAN_sc910TT5="
 --global-option scan-mode cartesian
 
 --scan      Re{c9}      -7     +7                    --prior flat
---scan      Im{c9}      -4     +4                    --prior flat
---scan      Re{c10}     -7     -1                    --prior flat
+--scan      Im{c9}      -7     +7                    --prior flat
+--scan      Re{c10}     -7     +7                    --prior flat
 --scan      Im{c10}     -7     +7                    --prior flat
 --scan      Re{cT}      $non_sm_min     $non_sm_max  --prior flat
 --scan      Im{cT}      $non_sm_min     $non_sm_max  --prior flat
