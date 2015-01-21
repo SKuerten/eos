@@ -57,7 +57,7 @@ class VB(object):
     def _init_is(self):
         deterministic = self.args.deterministic_mixture and self.args.step > 1
         # parse samples and weights
-        output = samplingOutput.EOS_PYPMC_IS(self.args.is_input, self.args.step, 
+        output = samplingOutput.EOS_PYPMC_IS(self.args.is_input, self.args.step,
                                              deterministic_mixture=deterministic)
 
         # use MCMC results as prior
@@ -138,11 +138,23 @@ class VB(object):
                     nu0=hyperpar['nu'].copy(), W0=hyperpar['W'].copy())
 
     def run(self):
-        self.vb.run(verbose=True, prune=self.prune)
+        output_directory = primary_group(self.args.step) + hdf5_subdirectory
+
+        if hdf5_io.exists_mixture(self.args.output, output_directory):
+            raise KeyError('Output mixture exists already in directory "%s" in file "%s"' % \
+                               (output_directory, self.args.output))
+
+        kwargs = dict(prune=self.prune, verbose=True)
+        if self.args.rel_tol is not None:
+            kwargs['rel_tol'] = self.args.rel_tol
+        print('kwargs:')
+        print(kwargs)
+        self.vb.run(**kwargs)
+
         # todo code dublication
         mix = self.vb.make_mixture()
-        hdf5_io.save_mixture(self.args.output, primary_group(self.args.step) + hdf5_subdirectory, mix)
-        hdf5_io.save_vb_hyperparameters(self.args.output, primary_group(self.args.step) + hdf5_subdirectory, self.vb)
+        hdf5_io.save_mixture(self.args.output, output_directory, mix)
+        hdf5_io.save_vb_hyperparameters(self.args.output, output_directory, self.vb)
         # plot_mixture(mix, 0, 2)
         # from matplotlib import pyplot as plt
         # plt.savefig('/tmp/vb.pdf')
@@ -178,6 +190,8 @@ if __name__ == '__main__':
                         "For the special name 'APPEND', the output is written to the input file.")
     parser.add_argument('--prune', help="Components responsible for less than this value are removed.",
                         default=None, const=None, nargs='?')
+    parser.add_argument('--rel-tol', type=float, default=None, const=None, nargs='?',
+                        help="Relative tolerance to determine convergence of variational Bayes")
     parser.add_argument('--R-value', help="Critical R value used in grouping of chains", type=float)
     parser.add_argument("--seed", type=int)
     parser.add_argument('--skip-initial', help="Allows to skip the first fraction of iterations", type=float, default=0.0)
