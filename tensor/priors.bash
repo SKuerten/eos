@@ -114,6 +114,9 @@ $NUISANCE_B_TO_VPARALL_FORM_FACTORS_KMPW2010
 $NUISANCE_DECAY_CONSTANTS_flag13
 "
 
+export NUISANCE_K_KstarBR_Bsmumu_gaussian=\
+${NUISANCE_K_KstarBR_Bsmumu//'log-gamma'/'gaussian'}
+
 export NUISANCE_Bsmumu="
 $NUISANCE_CKM_posthep13
 $NUISANCE_DECAY_CONSTANTS_flag13
