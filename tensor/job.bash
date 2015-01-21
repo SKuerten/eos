@@ -32,14 +32,14 @@ is() {
 
     seed=$(expr $EOS_SEED "+" 642134)
 
-    mpirun -n 2 ../py-eos/is.py \
+    ../py-eos/is.py \
         --analysis-info $EOS_ANALYSIS_INFO \
         --input $input \
         --output $output \
         --samples $EOS_IS_SAMPLES \
         --seed $seed \
-        --step $step # \
-    # > $output_dir/is.log 2>&1
+        --step $step \
+        > $output_dir/is.log 2>&1
 }
 
 export EOS_MCMC_BURN_IN=
@@ -120,6 +120,7 @@ export EOS_VB_PRUNE=
 export EOS_VB_MCMC_INPUT=
 export EOS_VB_SKIP_INITIAL=0.05
 export EOS_VB_THIN=100
+export EOS_VB_REL_TOL=
 export EOS_VB_R_VALUE=2
 
 vb() {
@@ -156,6 +157,14 @@ vb() {
 
     output=${1}
     shift
+    if [[ -z $output ]]; then
+        if [[ $step == "0" ]]; then
+            output="$output_dir/vb.hdf5"
+        else
+            output='APPEND'
+        fi
+    fi
+
     non_empty "output"
 
     seed=$(expr $EOS_SEED "+" 654198)
@@ -166,14 +175,19 @@ vb() {
         ${input_arg} \
         --output $output \
         --prune $EOS_VB_PRUNE \
+        --rel-tol $EOS_VB_REL_TOL \
         --R-value $EOS_VB_R_VALUE \
         --seed $seed \
         --step $step \
         --skip-initial $EOS_VB_SKIP_INITIAL \
         --thin $EOS_VB_THIN \
-        $EOS_VB_EXTRA_OPTIONS
-    #\
-    #        > $output_dir/vb.log 2>&1
+        $EOS_VB_EXTRA_OPTIONS # \
+#        > $output_dir/vb_${step}.log 2>&1
+
+    # create a backup of this small file
+    if [[ ${input_mode} == mcmc ]]; then
+        cp "$output" "${output}~"
+    fi
 }
 
 ## Job Main Function ##
