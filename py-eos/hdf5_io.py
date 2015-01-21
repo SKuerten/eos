@@ -70,6 +70,17 @@ def save_analysis(file, directory, analysis):
 
         assert i == len(analysis.priors)
 
+def exists_mixture(file, directory):
+    '''Return whether mixture exists where it would be written to with ``save_mixture``.'''
+
+    with h5py.File(file, 'r') as file:
+        try:
+            if 'covariances' in file[directory]:
+                return True
+        except KeyError:
+            pass
+    return False
+
 def save_mixture(file, directory, mixture):
     '''Support Gauss and Students't mixtures'''
     with h5py.File(file, 'a') as file:
@@ -174,4 +185,3 @@ def save_combined_weights(file, directory, combined_weights):
         grp = f.create_group(directory + '/combination') #%d' %  (last_step - 1))
         for i in range(len(combined_weights)):
             ds = grp.create_dataset('weights #%d' % i, data=combined_weights[i])
-
