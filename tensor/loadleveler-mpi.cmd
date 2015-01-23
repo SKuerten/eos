@@ -9,9 +9,9 @@ scenario=$1; shift
 constraints=$1; shift
 action=$1; shift
 step=$1; shift
-nproc=$1; shift
+n=$1; shift
 
-file=${scenario}_${constraints}_${action}_${step}_${nproc}.job
+file=${scenario}_${constraints}_${action}_${step}_${n}.job
 
 # beware of shell escaping: loadlever variables
 # must not be expanded by this shell
@@ -20,10 +20,20 @@ echo "#! /bin/bash
 #@ group = pr85tu
 #@ job_type = parallel
 #@ class = parallel
-#@ node_usage = shared
-#@ blocking = unlimited
 #@ resources = ConsumableCpus(1)
-#@ total_tasks = $nproc
+##@ blocking = unlimited
+#
+# shared nodes
+#
+##@ node_usage = shared
+##@ total_tasks = $n
+#
+# full nodes
+#
+#@ node_usage = not_shared
+#@ node = $n
+#@ tasks_per_node = 16
+#@ network.MPI = sn_all,not_shared,us
 #
 ###                   hh:mm:ss
 #@ wall_clock_limit = 19:59:50
@@ -35,8 +45,6 @@ echo "#! /bin/bash
 #@ notify_user=Frederik.Beaujean@lmu.de
 #@ queue
 
-export MP_TASK_AFFINITY=cpu:1
-
 # output file directory
 export BASE_NAME=$BASE_NAME
 
@@ -44,5 +52,5 @@ poe ./${scenario}-${constraints}.bash ${action} ${step}" > $file
 
 sync
 llsubmit $file
-cat $file
+#cat $file
 rm $file
