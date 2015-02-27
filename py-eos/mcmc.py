@@ -63,10 +63,12 @@ class MCMC_Sampler(object):
 
         with h5py.File(self.file_name, 'w') as file:
             # one row per sample, store parameter values and log(posterior)
+            # in resizable data set
+            kwargs = dict(dtype='float64', shape=(0,0), fletcher32=True, compression="gzip")
             self.sample_dset = hdf5_subdirectory + '/samples'
-            file.create_dataset(self.sample_dset, (self.samples, self.dim), 'float64')
+            file.create_dataset(self.sample_dset, maxshape=(self.samples, self.dim), **kwargs)
             self.target_dset = hdf5_subdirectory + '/log_posterior'
-            file.create_dataset(self.target_dset, (self.samples, 1), 'float64')
+            file.create_dataset(self.target_dset, maxshape=(self.samples, 1), **kwargs)
 
         hdf5_io.save_analysis(self.file_name, hdf5_subdirectory, self.analysis)
 
@@ -110,8 +112,13 @@ class MCMC_Sampler(object):
         '''Save batch of samples. File is closed to ensure flush to disk.'''
 
         with h5py.File(self.file_name, 'r+') as file:
-            file[self.target_dset][iterations:iterations + self.update] = self.chain.target_values[:]
-            file[self.sample_dset][iterations:iterations + self.update] = self.chain.history[:]
+            new_length = iterations + self.update
+
+            file[self.target_dset].resize(new_length, axis=0)
+            file[self.target_dset][iterations:new_length] = self.chain.target_values[:]
+
+            file[self.sample_dset].resize(new_length, axis=0)
+            file[self.sample_dset][iterations:new_length] = self.chain.history[:]
 
         self.chain.clear()
 
