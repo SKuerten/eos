@@ -1,33 +1,26 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 
-import os
 import commands
 import matplotlib
-
-# Force matplotlib to not use any Xwindows backend.
-matplotlib.use('Agg')
+from matplotlib.backends.backend_pdf import PdfPages
+import os
+from samplingOutput import *
+import sys
+import time
 
 import matplotlib.pyplot as P
-
-from matplotlib.backends.backend_pdf import PdfPages
+import numpy as np
+import priors as priorDistributions
 
 matplotlib.rcParams['text.usetex'] = False #not bool(commands.getstatusoutput('which latex')[0]) #requires LaTex installation
 matplotlib.rcParams['text.latex.unicode'] = True
-
-import numpy as np
-
-import sys
-import time
 
 #get the figtree module, assume its directory is in the python path
 try:
     import figtree
 except:
     print("plotScript: Could not import figtree module")
-
-import priors as priorDistributions
-from samplingOutput import *
 
 def histOutline(dataIn, *args, **kwargs):
     """
@@ -1299,30 +1292,16 @@ class MarginalDistributions:
 
         return self.out.integrate(self.cuts)
 
-    def proposal_2D(self, par1, par2, centers=False, solid_edge=False, **kwargs):
+    def proposal_2D(self, par1, par2, **kwargs):
         """
-        Plot the proposal distribution (PMC).
+        Plot the mixture proposal distribution (PMC, VB).
         """
 
-        from numpy import linalg
-        from matplotlib.patches import Ellipse
-        from matplotlib.cm import get_cmap
+        # get axes now before ellipses are added
+        ax = P.gca()
 
-        mask = self.out.components.T['weight'] > 0.0
-
-        # positions
-
-        nCols = len(self.out.par_defs)
-
-        cmap = get_cmap(name='spectral')
-        colors = [cmap(i) for i in np.linspace(0, 0.9, len(self.out.components.T['covariance']))]
-
-        if (self.out.par_defs[par1].nuisance or self.out.par_defs[par2].nuisance) and not self.use_nuisance:
-            return False
-        if (self.out.par_defs[par1].nuisance and self.out.par_defs[par2].nuisance) and self.no_nuisance_vs_nuisance:
-            return False
-
-        #plotting range
+        ###
+        #plot ranges
         ###
         x_min = self.out.par_defs[par1].min
         x_max = self.out.par_defs[par1].max
@@ -1336,14 +1315,12 @@ class MarginalDistributions:
             y_min = self.cuts[par2][0]
             y_max = self.cuts[par2][1]
 
-        ax = P.gca()
+        ax.set_xlim(x_min, x_max)
+        ax.set_ylim(y_min, y_max)
 
-        # plot component means
-        x_values = self.out.components.T['mean'].T[par1]
-        y_values = self.out.components.T['mean'].T[par2]
-        if centers:
-            P.scatter(x_values[mask], y_values[mask], s=0.15)
-
+        ###
+        # axis labels
+        ###
         x_label = self.tr.to_tex(self.out.par_defs[par1].name)
         y_label = self.tr.to_tex(self.out.par_defs[par2].name)
 
@@ -1355,79 +1332,14 @@ class MarginalDistributions:
         P.xlabel(x_label)
         P.ylabel(y_label)
 
-        for i, c in enumerate(self.out.components.T['covariance']):
-            #skip components by hand to retain consistent coloring
-            if self.out.components.T['weight'][i] == 0.0: # or (self.single_chain is not None and i != int(self.single_chain)):
-                continue
+        ###
+        # plot the mixture
+        ###
+        from pypmc.tools import plot_mixture
 
-            # select a subrange of components
-            if any(self.out.select) and (i < self.out.select[0] or i >= self.out.select[1]):
-                continue
-
-            cov = c.reshape((nCols, nCols))
-            submatrix = np.array([[cov[par1,par1], cov[par1,par2]], \
-                                  [cov[par2,par1], cov[par2,par2]]])
-
-            # for idea, check
-            # 'Combining error ellipses' by John E. Davis
-            correlation = np.array([[1.0, cov[par1,par2] / np.sqrt(cov[par1,par1] * cov[par2,par2])], [0.0, 1.0]])
-            correlation[1,0] = correlation[0,1]
-            assert( np.abs(correlation[0,1]) <= 1)
-
-            ew, ev = linalg.eigh(submatrix)
-            assert(ew.min() > 0)
-
-            # rotation angle of major axis with x-axis
-            if submatrix[0,0] == submatrix[1,1]:
-                theta = np.sign(correlation[0, 1]) * np.pi / 4
-            else:
-                theta = 0.5 * np.arctan( 2 * submatrix[0,1] / (submatrix[1,1] - submatrix[0,0]))
-
-            # put larger EW on y'-axis
-            height = np.sqrt(ew.max())
-            width = np.sqrt(ew.min())
-
-            # but change orientation of coordinates if the other is larger
-            if submatrix[0,0] > submatrix[1,1]:
-                height = np.sqrt(ew.min())
-                width = np.sqrt(ew.max())
-
-            # change sign to rotate in right direction
-            angle = - theta * 180 / np.pi
-
-            # repeat spectrum multiple times
-            if self.fold_color_spectrum > 0:
-                color = colors[(i * self.fold_color_spectrum) % len(self.out.components.T['covariance'])]
-            else:
-                color = colors[i]
-
-            # copy arguments
-            kwargs_clone = dict(kwargs)
-
-            # need full width/height
-            e = Ellipse(xy=(x_values[i], y_values[i]), width=2*width, height=2*height, angle=angle, \
-                        facecolor=kwargs.pop('facecolor', color), alpha=kwargs.pop('alpha', 0.3), **kwargs)
-            ax.add_artist(e)
-
-            if solid_edge:
-                # important that some args already popped
-                ax.add_artist(Ellipse(xy=(x_values[i], y_values[i]), width=2*width, height=2*height, angle=angle, \
-                        facecolor='none', alpha=1, **kwargs))
-
-        ax.set_xlim(x_min, x_max)
-        ax.set_ylim(y_min, y_max)
+        plot_mixture(self.out.proposal_mixture, par1, par2, **kwargs)
 
         return True
-
-    def proposal_weights(self):
-        """
-         Plot component weights
-        """
-        P.figure(figsize=(6,6))
-        P.plot(self.out.components.T['weight'])
-        P.xlabel('components')
-        P.ylabel('weight')
-        self.pdf_file.savefig()
 
     def compute_stats(self):
         """
@@ -1486,7 +1398,7 @@ class MarginalDistributions:
         if self.proposal:
             one_dim = lambda par : False
             two_dim = self.proposal_2D
-            epilog = self.proposal_weights
+            # epilog = self.proposal_weights
             ext = '_prop'
 
         self.plot_file_name = self.__output_base_name + ext + self.single_ext
