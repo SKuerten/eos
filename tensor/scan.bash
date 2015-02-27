@@ -1,5 +1,7 @@
 echo "[scan loaded]"
 
+sm_min=-7
+sm_max=+7
 non_sm_min=-1
 non_sm_max=+1
 sm_min=-7
