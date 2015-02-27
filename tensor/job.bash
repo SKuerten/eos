@@ -32,7 +32,7 @@ is() {
 
     seed=$(expr $EOS_SEED "+" 642134)
 
-    ../py-eos/is.py \
+    mpirun -n 4 ../py-eos/is.py \
         --analysis-info $EOS_ANALYSIS_INFO \
         --input $input \
         --output $output \
@@ -224,7 +224,7 @@ main() {
         driver)
             out=$output_dir/vb.hdf5
             rm $out
-            export EOS_IS_SAMPLES=100000
+            export EOS_IS_SAMPLES=10000
             vb mcmc 0 $out &&
             is 0 &&
             export EOS_IS_SAMPLES=10000
