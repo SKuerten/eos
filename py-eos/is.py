@@ -3,6 +3,11 @@
 """Provide an interface to variational Bayes with pypmc"""
 from __future__ import print_function, division
 
+import argparse
+import h5py
+import numpy as np
+import os, sys
+
 import eos
 import hdf5_io
 from hdf5_io import primary_group
@@ -15,10 +20,8 @@ from pypmc.sampler.importance_sampling import combine_weights, ImportanceSampler
 from pypmc.tools import plot_mixture
 from pypmc.tools.parallel_sampler import MPISampler
 
-import argparse
-import h5py
-import numpy as np
-import os, sys
+sys.path.append(os.path.realpath('../plot'))
+import samplingOutput
 
 from mpi4py.MPI import COMM_WORLD
 rank = COMM_WORLD.Get_rank()
@@ -37,7 +40,7 @@ class IS(object):
         np.random.seed(args.seed + rank)
 
         # parse mixture
-        mixture = hdf5_io.read_mixture(args.input, primary_group(args.step) + vb.hdf5_subdirectory)
+        mixture = samplingOutput.EOS_PYPMC_IS.read_mixture(args.input, primary_group(args.step) + vb.hdf5_subdirectory)
 
         # same number of n_samples in each process
         self.n_samples = args.samples // COMM_WORLD.Get_size()

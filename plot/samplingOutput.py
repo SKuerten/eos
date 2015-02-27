@@ -1035,13 +1035,19 @@ class EOS_PYPMC_IS(IS_Output):
                 # turn (n,1) array into n array
                 weights = weights.view().reshape(len(weights))
             else:
-                # todo use read_direct to avoid reading samples that are discarded immediately
-                samples = hdf5_file[prefix + '/samples'][self.select[0]:self.select[1]]
+                try:
+                    # todo use read_direct to avoid reading samples that are discarded immediately
+                    samples = hdf5_file[prefix + '/samples'][self.select[0]:self.select[1]]
+                except KeyError:
+                    samples = None
 
                 if self.equal_weights:
-                    weights = np.ones(len(samples))
+                    weights = np.ones(len(samples)) if weights is not None else None
                 else:
-                    weights = hdf5_file[prefix + '/weights'][self.select[0]:self.select[1]]
+                    if len(samples) > 0:
+                        weights = hdf5_file[prefix + '/weights'][self.select[0]:self.select[1]]
+                    else:
+                        weights = np.empty_like(samples)
 
             if self.crop_outliers > 0:
                 crop(weights, self.crop_outliers)
@@ -1051,6 +1057,9 @@ class EOS_PYPMC_IS(IS_Output):
                                                  npar=len(samples[0]),
                                                  samples=samples)
 
+            # get proposal
+            mix = EOS_PYPMC_IS.read_mixture(self.input_file_name, '/step #%d/vb' % step)
+
         # assign members
         self.weights = weights
         self.samples = samples
@@ -1058,6 +1067,7 @@ class EOS_PYPMC_IS(IS_Output):
         self.priors = priors
         self.stats = None
         self.components = None
+        self.proposal_mixture = mix
 
     # def _n_samples(self, hdf5_file, steps):
     #     '''
@@ -1080,6 +1090,22 @@ class EOS_PYPMC_IS(IS_Output):
             assert c == 'weights #%d' % i
             n.append(hdf5_group[c].len())
         return np.array(n)
+
+    @staticmethod
+    def read_mixture(file, directory):
+        import pypmc
+
+        with h5py.File(file, 'r') as file:
+            means = file[directory + '/means'][:]
+            covs = file[directory + '/covariances'][:]
+            weights = file[directory + '/weights'][:]
+
+            # student's t has extra data: dof
+            try:
+                dofs = file[directory + '/dofs'][:]
+                return pypmc.density.mixture.create_t_mixture(means, covs, dofs, weights)
+            except KeyError:
+                return pypmc.density.mixture.create_gaussian_mixture(means, covs, weights)
 
 class EOS_PYPMC_MCMC(SamplingOutput):
     '''The structure in the HDF5 file is supposed to be

@@ -4,7 +4,10 @@ from __future__ import print_function
 import pypmc
 import h5py
 import numpy as np
-import os, re
+import os, re, sys
+
+sys.path.append(os.path.realpath('../plot'))
+from samplingOutput import EOS_PYPMC_IS
 
 def primary_group(step):
     '''Return directory name for given step (integer).'''
@@ -96,19 +99,6 @@ def save_mixture(file, directory, mixture):
         except AttributeError:
             pass
 
-def read_mixture(file, directory):
-    with h5py.File(file, 'r') as file:
-        means = file[directory + '/means'][:]
-        covs = file[directory + '/covariances'][:]
-        weights = file[directory + '/weights'][:]
-
-        # student's t has extra data: dof
-        try:
-            dofs = file[directory + '/dofs'][:]
-            return pypmc.density.mixture.create_t_mixture(means, covs, dofs, weights)
-        except KeyError:
-            return pypmc.density.mixture.create_gaussian_mixture(means, covs, weights)
-
 def save_vb_hyperparameters(file, directory, vb):
     with h5py.File(file, 'a') as file:
         file.create_dataset(directory + '/alpha', data=vb.alpha)
@@ -175,7 +165,7 @@ def read_is_history(file, directory, last_step=None):
 
     # can't open file multiple times, so stay away from context manager
     for i, step in enumerate(steps[:last_step + 1]):
-        proposals.append(read_mixture(file, step + '/vb'))
+        proposals.append(EOS_PYPMC_IS.read_mixture(file, step + '/vb'))
     return (samples, histories[0]), (weights, histories[1]), proposals
 
 def save_combined_weights(file, directory, combined_weights):
