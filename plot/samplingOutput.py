@@ -309,7 +309,6 @@ def extract_chain_modes(output):
 
         Assume that each chain of same length. Designed for use with EOS_PYPMC_MCMC
         """
-        print("There are %d chains" % output.n_chains)
         output._modes = []
 
         global_max = -np.inf
@@ -320,7 +319,8 @@ def extract_chain_modes(output):
 
             index = np.argmax(output.log_posterior[i * output.reduced_length : (i + 1) * output.reduced_length])
             for j in range(output.npar):
-                mode.append(output.samples[i * output.reduced_length + index][j])
+                total_index = i * output.reduced_length + index
+                mode.append(output.samples[total_index][j])
             max = output.log_posterior[i * output.reduced_length + index]
 
             if max > global_max:
@@ -347,6 +347,26 @@ def extract_chain_modes(output):
         output.global_mode_index = global_max_index
         if output.single_chain is None:
             print("Global mode found in chain %d" % output.global_mode_index)
+
+def autocorrelation(samples):
+    try:
+        import acor
+    except ImportError:
+        pass
+    else:
+        print("computing integrated autocorrelation time, mean, standard deviation:")
+        try:
+            npar = samples.shape[1]
+            tau = np.zeros(npar)
+            for i in xrange(npar):
+                results = acor.acor(samples[:, i])
+                tau[i] = results[0]
+                print("par %d: %g, %g, %g" %
+                      (i, tau[i], results[1], np.sqrt(np.var(samples.T[i], ddof=1))))
+            print('min max autocorrelation time: %g, %g' % (np.min(tau), np.max(tau)))
+        except RuntimeError:
+            print("Skipping, probably because acor reports that " +
+                  "The autocorrelation time is too long relative to the variance in dimension 1.")
 
 def crop(weights, n):
     '''Set the `n` highest elements in `weights` to zero. Modify in place.'''
@@ -1160,10 +1180,19 @@ class EOS_PYPMC_MCMC(SamplingOutput):
 
             self.reduced_length = self.select[1] - self.select[0]
 
+            source_slice = np.s_[self.select[0]:self.select[1]]
+            destination_slice = np.s_[0:self.reduced_length]
+            group = hdf5_file['/chain #' + first_chain]
+
             merged_chains = np.empty((self.n_chains * self.reduced_length, samples.shape[1]), dtype='float64')
-            merged_chains[:self.reduced_length] = hdf5_file['/chain #' + first_chain + '/samples'][self.select[0]:self.select[1]]
-            merged_posteriors = np.empty((self.n_chains * self.reduced_length, 1), dtype='float64')
-            merged_posteriors[:self.reduced_length] = hdf5_file['/chain #' + first_chain + '/log_posterior'][self.select[0]:self.select[1]]
+            group['samples'].read_direct(merged_chains, source_slice, destination_slice)
+            print()
+            print("Analyze first chain")
+            autocorrelation(merged_chains[:self.reduced_length])
+            print()
+
+            merged_posteriors = np.empty((self.n_chains * self.reduced_length), dtype='float64')
+            group['log_posterior'].read_direct(merged_posteriors, source_slice, destination_slice)
             n_chains_parsed = 1
 
             par_defs, priors = read_descriptions(hdf5_file,

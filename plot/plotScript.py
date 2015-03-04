@@ -1,6 +1,8 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 
+from __future__ import print_function
+
 import commands
 import matplotlib
 from matplotlib.backends.backend_pdf import PdfPages
@@ -320,7 +322,7 @@ class MarginalDistributions:
                  projection=False):
 
         self.out = sampling_output
-        print 'data shape:', self.out.samples.shape
+        print('data shape:', self.out.samples.shape)
 
         #alternatively use KDE
         self.use_histogram = not use_KDE
@@ -1649,7 +1651,6 @@ def factory(cmd_line=None):
             marg.gof_point[int(pair[0])] = float(pair[1])
     if args.mode is not None:
         mode = args.mode[0][1:-2].split()
-        print mode, marg.out.npar
         assert len(mode) == marg.out.npar, \
         "Mode length (%d) does not match the number of parameters (%d) in %s" % (len(mode), marg.out.npar, marg.out.input_file_name)
         for i, val in enumerate(mode):
