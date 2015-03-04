@@ -15,6 +15,7 @@ non_empty() {
 }
 
 export EOS_IS_INPUT=  # default: $output_dir/vb.hdf5
+export EOS_IS_INTEGRATION_POINTS=32
 
 is() {
     step=${1}
@@ -34,6 +35,7 @@ is() {
 
     mpirun -n 4 ../py-eos/is.py \
         --analysis-info $EOS_ANALYSIS_INFO \
+        --eos-integration-points $EOS_IS_INTEGRATION_POINTS \
         --input $input \
         --output $output \
         --samples $EOS_IS_SAMPLES \
@@ -43,7 +45,7 @@ is() {
 }
 
 export EOS_MCMC_BURN_IN=
-export EOS_INTEGRATION_POINTS=16
+export EOS_MCMC_INTEGRATION_POINTS=16
 export EOS_MCMC_SAMPLES=40000
 export EOS_MCMC_UPDATE_SIZE=1000
 export EOS_MCMC_SCALE_NUISANCE=1
@@ -67,7 +69,7 @@ mcmc() {
     ../py-eos/mcmc.py \
         --analysis-info $EOS_ANALYSIS_INFO \
         --burn-in $EOS_MCMC_BURN_IN \
-        --eos-integration-points $EOS_INTEGRATION_POINTS \
+        --eos-integration-points $EOS_MCMC_INTEGRATION_POINTS \
         --output $output_dir/mcmc_${prerun_index}.hdf5 \
         --proposal $EOS_MCMC_PROPOSAL \
         --samples $EOS_MCMC_SAMPLES \

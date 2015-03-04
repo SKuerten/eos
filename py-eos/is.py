@@ -36,6 +36,10 @@ class IS(object):
 
         self.args = args
 
+        # not too clean but fast prerun
+        if args.eos_integration_points is not None:
+            eos.set_integrate_n(args.eos_integration_points)
+
         # make sure that every process has a different random number generator seed
         np.random.seed(args.seed + rank)
 
@@ -77,6 +81,7 @@ if __name__ == '__main__':
     parser.add_argument("--deterministic-mixture", help='Merge samples of all previous steps and recompute' \
                         'the weights according to the deterministic-mixture algorithm by Cornuet et al.',
                         type=int, default=1)
+    parser.add_argument("--eos-integration-points", type=int)
     parser.add_argument("--input", help="Input file name that contains the proposal")
     parser.add_argument("--output", help="Output file name")
     parser.add_argument("--samples", type=int,
