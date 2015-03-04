@@ -64,11 +64,11 @@ class MCMC_Sampler(object):
         with h5py.File(self.file_name, 'w') as file:
             # one row per sample, store parameter values and log(posterior)
             # in resizable data set
-            kwargs = dict(dtype='float64', shape=(0,0), fletcher32=True, compression="gzip")
+            kwargs = dict(dtype='float64', fletcher32=True, compression="gzip")
             self.sample_dset = hdf5_subdirectory + '/samples'
-            file.create_dataset(self.sample_dset, maxshape=(self.samples, self.dim), **kwargs)
+            file.create_dataset(self.sample_dset, shape=(0, self.dim), maxshape=(self.samples, self.dim), **kwargs)
             self.target_dset = hdf5_subdirectory + '/log_posterior'
-            file.create_dataset(self.target_dset, maxshape=(self.samples, 1), **kwargs)
+            file.create_dataset(self.target_dset, shape=(0,), maxshape=(self.samples,), **kwargs)
 
         hdf5_io.save_analysis(self.file_name, hdf5_subdirectory, self.analysis)
 
@@ -114,8 +114,9 @@ class MCMC_Sampler(object):
         with h5py.File(self.file_name, 'r+') as file:
             new_length = iterations + self.update
 
+            # history has rank 2 but 2nd rank can be ignored
             file[self.target_dset].resize(new_length, axis=0)
-            file[self.target_dset][iterations:new_length] = self.chain.target_values[:]
+            file[self.target_dset][iterations:new_length] = self.chain.target_values[:][0,:]
 
             file[self.sample_dset].resize(new_length, axis=0)
             file[self.sample_dset][iterations:new_length] = self.chain.history[:]
