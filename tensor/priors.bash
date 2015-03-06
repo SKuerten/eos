@@ -28,40 +28,38 @@ export NUISANCE_DECAY_CONSTANTS_flag13="
 export NUISANCE_B_TO_VPERPLL_FORM_FACTORS_KMPW2010="
     --global-option form-factors KMPW2010
 
-    --nuisance    B->K^*::F^V(0)@KMPW2010                                   ${N_SIGMAS}     --prior    log-gamma   0.24      0.36      0.59
-    --nuisance    B->K^*::b^V_1@KMPW2010                        -6.0   5.4  ${N_SIGMAS}     --prior    log-gamma  -5.20     -4.80     -4.00
+    --nuisance    B->K^*::F^V(0)@KMPW2010                                   ${N_SIGMAS}     --prior    gaussian   0.24      0.36      0.59
+    --nuisance    B->K^*::b^V_1@KMPW2010                        -6.0   5.4  ${N_SIGMAS}     --prior    gaussian  -5.20     -4.80     -4.00
 "
 
 export NUISANCE_B_TO_VPARALL_FORM_FACTORS_KMPW2010="
     --global-option form-factors KMPW2010
 
-    --nuisance    B->K^*::F^A1(0)@KMPW2010                                  ${N_SIGMAS}     --prior    log-gamma   0.15      0.25      0.41
-    --nuisance    B->K^*::b^A1_1@KMPW2010                       -2.06  5.4  ${N_SIGMAS}     --prior    log-gamma  -0.46     +0.34     +1.20
-    --nuisance    B->K^*::F^A2(0)@KMPW2010                                  ${N_SIGMAS}     --prior    log-gamma   0.13      0.23      0.42
-    --nuisance    B->K^*::b^A2_1@KMPW2010                       -4.9   5.4  ${N_SIGMAS}     --prior    log-gamma  -2.20     -0.85     +2.03
+    --nuisance    B->K^*::F^A1(0)@KMPW2010                                  ${N_SIGMAS}     --prior    gaussian   0.15      0.25      0.41
+    --nuisance    B->K^*::b^A1_1@KMPW2010                       -2.06  5.4  ${N_SIGMAS}     --prior    gaussian  -0.46     +0.34     +1.20
+    --nuisance    B->K^*::F^A2(0)@KMPW2010                                  ${N_SIGMAS}     --prior    gaussian   0.13      0.23      0.42
+    --nuisance    B->K^*::b^A2_1@KMPW2010                       -4.9   5.4  ${N_SIGMAS}     --prior    gaussian  -2.20     -0.85     +2.03
 "
-
-
 
 # results as quoted in KMPW2010
 export NUISANCE_B_TO_PLL_FORM_FACTORS_PLUS_KMPW2010="
     --global-option form-factors KMPW2010
 
-    --nuisance    B->K::F^p(0)@KMPW2010                          0.10  0.49 ${N_SIGMAS}     --prior    log-gamma   0.32      0.34      0.39
-    --nuisance    B->K::b^p_1@KMPW2010                          -6.9   0.6  ${N_SIGMAS}     --prior    log-gamma  -3.7      -2.1      -1.2
+    --nuisance    B->K::F^p(0)@KMPW2010                          0.10  0.49 ${N_SIGMAS}     --prior    gaussian   0.32      0.34      0.39
+    --nuisance    B->K::b^p_1@KMPW2010                          -6.9   0.6  ${N_SIGMAS}     --prior    gaussian  -3.7      -2.1      -1.2
 "
 
 export NUISANCE_B_TO_PLL_FORM_FACTORS_SCALAR_KMPW2010="
     --global-option form-factors KMPW2010
 
-    --nuisance    B->K::b^0_1@KMPW2010                          -7.0   1.9  ${N_SIGMAS}     --prior    log-gamma  -5.2      -4.3      -3.5
+    --nuisance    B->K::b^0_1@KMPW2010                          -7.0   1.9  ${N_SIGMAS}     --prior    gaussian  -5.2      -4.3      -3.5
 "
 
 export NUISANCE_B_TO_PLL_FORM_FACTORS_TENSOR_KMPW2010="
     --global-option form-factors KMPW2010
 
-    --nuisance    B->K::F^t(0)@KMPW2010                          0.30  0.54 ${N_SIGMAS}     --prior    log-gamma   0.36      0.39      0.44
-    --nuisance    B->K::b^t_1@KMPW2010                          -8.2   0.8  ${N_SIGMAS}     --prior    log-gamma  -4.2      -2.2      -1.2
+    --nuisance    B->K::F^t(0)@KMPW2010                          0.30  0.54 ${N_SIGMAS}     --prior    gaussian   0.36      0.39      0.44
+    --nuisance    B->K::b^t_1@KMPW2010                          -8.2   0.8  ${N_SIGMAS}     --prior    gaussian  -4.2      -2.2      -1.2
 "
 
 export NUISANCE_B_TO_PLL_FORM_FACTORS_ALL_KMPW2010="
@@ -113,9 +111,6 @@ $NUISANCE_B_TO_VPERPLL_FORM_FACTORS_KMPW2010
 $NUISANCE_B_TO_VPARALL_FORM_FACTORS_KMPW2010
 $NUISANCE_DECAY_CONSTANTS_flag13
 "
-
-export NUISANCE_K_KstarBR_Bsmumu_gaussian=\
-${NUISANCE_K_KstarBR_Bsmumu//'log-gamma'/'gaussian'}
 
 export NUISANCE_Bsmumu="
 $NUISANCE_CKM_posthep13
