@@ -44,3 +44,21 @@ export SCAN_scSP="
 --scan      Re{cP'}     $non_sm_min     $non_sm_max  --prior flat
 --scan      Im{cP'}     $non_sm_min     $non_sm_max  --prior flat
 "
+
+export SCAN_sc10SP="
+--global-option model WilsonScan
+--global-option scan-mode cartesian
+
+--scan      Re{c10}     $sm_min         $sm_max      --prior flat
+--scan      Im{c10}     $sm_min         $sm_max      --prior flat
+--scan      Re{c10'}    $sm_min         $sm_max      --prior flat
+--scan      Im{c10'}    $sm_min         $sm_max      --prior flat
+--scan      Re{cS}      $non_sm_min     $non_sm_max  --prior flat
+--scan      Im{cS}      $non_sm_min     $non_sm_max  --prior flat
+--scan      Re{cS'}     $non_sm_min     $non_sm_max  --prior flat
+--scan      Im{cS'}     $non_sm_min     $non_sm_max  --prior flat
+--scan      Re{cP}      $non_sm_min     $non_sm_max  --prior flat
+--scan      Im{cP}      $non_sm_min     $non_sm_max  --prior flat
+--scan      Re{cP'}     $non_sm_min     $non_sm_max  --prior flat
+--scan      Im{cP'}     $non_sm_min     $non_sm_max  --prior flat
+"
