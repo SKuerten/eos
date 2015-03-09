@@ -315,15 +315,13 @@ def extract_chain_modes(output):
         global_max_index = None
 
         for i in range(output.n_chains):
-            mode = []
-
-            index = np.argmax(output.log_posterior[i * output.reduced_length : (i + 1) * output.reduced_length])
-            for j in range(output.npar):
-                total_index = i * output.reduced_length + index
-                mode.append(output.samples[total_index][j])
-            max = output.log_posterior[i * output.reduced_length + index]
+            base_index = i * output.reduced_length
+            index = np.argmax(output.log_posterior[base_index:base_index + output.reduced_length])
+            mode = output.samples[base_index + index]
+            max = output.log_posterior[base_index + index]
 
             if max > global_max:
+                global_max = max
                 global_max_index = i
 
             # special case: only one chain
@@ -341,7 +339,7 @@ def extract_chain_modes(output):
             w('}"\n')
             sys.stdout.flush()
 
-            output._modes.append(np.array(mode))
+            output._modes.append(mode)
 
         # global mode
         output.global_mode_index = global_max_index
@@ -1204,7 +1202,9 @@ class EOS_PYPMC_MCMC(SamplingOutput):
             for chain in chains[1:]:
                 c = hdf5_file['/chain #%d' % chain + '/samples']
                 assert len(c) == self.chain_length, 'Length of chain %d (%d) differs from length of chain %s (%d)' % (chain, len(c), first_chain, self.chain_length)
-                merged_chains[n_chains_parsed * self.reduced_length:(n_chains_parsed + 1) * self.reduced_length] = c[self.select[0]:self.select[1]]
+                destination_slice = np.s_[destination_slice.start + self.reduced_length:destination_slice.stop + self.reduced_length]
+                c.read_direct(merged_chains, source_slice, destination_slice)
+                hdf5_file['/chain #%d' % chain + "/log_posterior"].read_direct(merged_posteriors, source_slice, destination_slice)
                 n_chains_parsed += 1
 
         print('Merged %d chains, total number of samples: %d' % (n_chains_parsed, len(merged_chains)))

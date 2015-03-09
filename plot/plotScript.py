@@ -822,7 +822,6 @@ class MarginalDistributions:
              # the data used for credibility regions
              probability_array = hist_normal[1]
 
-
              if self.use_contours:
 
                  level_68, level_95 = self.find_hist_limits(hist_normal[1])
