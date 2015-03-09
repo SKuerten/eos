@@ -19,21 +19,21 @@ echo "#! /bin/bash
 #
 #@ group = pr85tu
 #@ job_type = parallel
-#@ class = parallel
+#@ class = shorttest
 #@ resources = ConsumableCpus(1)
-##@ blocking = unlimited
 #
 # shared nodes
 #
 ##@ node_usage = shared
 ##@ total_tasks = $n
+##@ blocking = unlimited
 #
 # full nodes
 #
 #@ node_usage = not_shared
 #@ node = $n
-#@ tasks_per_node = 16
-#@ network.MPI = sn_all,not_shared,us
+#@ tasks_per_node = 32
+##@ network.MPI = sn_all,not_shared,us
 #
 ###                   hh:mm:ss
 #@ wall_clock_limit = 19:59:50
@@ -47,6 +47,9 @@ echo "#! /bin/bash
 
 # output file directory
 export BASE_NAME=$BASE_NAME
+
+export OMP_NUM_THREADS=1
+export MP_TASK_AFFINITY=cpu:$OMP_NUM_THREADS
 
 poe ./${scenario}-${constraints}.bash ${action} ${step}" > $file
 
