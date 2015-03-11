@@ -11,6 +11,12 @@ action=$1; shift
 low=$1; shift
 high=$1; shift
 
+script=./${scenario}-${constraints}.bash
+if [ ! -f $script ]; then
+    echo "Script $script not found!"
+    exit -1
+fi
+
 for i in $(seq -f %01.0f $low $high); do
     file=j${i}.job
     # beware of shell escaping: loadlever variables
@@ -36,7 +42,7 @@ for i in $(seq -f %01.0f $low $high); do
 # output file directory
 export BASE_NAME=$BASE_NAME
 
-./${scenario}-${constraints}.bash ${action} $i" > $file
+${script} ${action} $i" > $file
 
     sync
     llsubmit $file
