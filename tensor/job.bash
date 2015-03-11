@@ -146,7 +146,7 @@ vb() {
             fi
             ;;
         *)
-            echo "Invalid command ${cmd} given!"
+            echo "Invalid input mode '"${input_mode}"' given! Choose 'mcmc' or 'is'!"
             exit -1
             ;;
     esac
