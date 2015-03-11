@@ -247,6 +247,7 @@ class MarginalContours(object):
             # then zoom will work correctly
             density, xrange, yrange = self.__density_cache[(i, j, s, solution)]
             line = bool(k)
+            line=False
             artist = self.margs[s].contours_two(xrange, yrange, density,
                                                 color=self.scen[s].c, line=line, grid=True,
                                                 desired_levels=desired_levels)
@@ -403,31 +404,40 @@ class Spring2015(object):
         # scenarios
         ###
         s = 'scSP_Bsmumu'
-        scenarios = [s]
-
-        marg.scen[s] = Scenario(os.path.join(marg.input_base, 'mcmc_scSP_Bsmumu.hdf5'), 'OrangeRed',
+        marg.scen[s] = Scenario(os.path.join(marg.input_base, 'mcmc_' + s + '.hdf5'), 'OrangeRed',
                                 nbins=300)
 #                                         local_mode=[[-0.348441713,   3.787226592, -4.420530192],
 #                                                     [ 0.5021320352, -4.568457245,  4.25129282]])
+        marg.scen[s].set_bandwidth(0, 2, 0.015)
+        marg.scen[s].set_bandwidth(2, 6, 0.008)
+
+        s = 'scSP_FH'
+        marg.scen[s] = Scenario(os.path.join(marg.input_base, 'mcmc_' + s + '.hdf5'), 'Blue',
+                                nbins=300)
+#                                         local_mode=[[-0.348441713,   3.787226592, -4.420530192],
+#                                                     [ 0.5021320352, -4.568457245,  4.25129282]])
+        marg.scen[s].set_bandwidth(0, 2, 0.025)
+        marg.scen[s].set_bandwidth(2, 6, 0.015)
 
         marg.read_data()
-        m = marg.margs[s]
-        data = m.out.samples
+        scenarios = marg.scen.keys()
 
         ###
         # transformations
         ###
-        transform(data, 0, 2)
-        transform(data, 4, 6)
+        for s in scenarios:
+            data = marg.margs[s].out.samples
+            transform(data, 0, 2)
+            transform(data, 4, 6)
 
+        ###
+        # plot settings
+        ###
         defs = [ParameterDefinition(index=0, name=r"$\Re(\mathcal{C}_S + \mathcal{C}_S^{\prime})$", min=-1, max=1),
                 ParameterDefinition(index=2, name=r"$\Re(\mathcal{C}_S - \mathcal{C}_S^{\prime})$", min=-1, max=1),
                 ParameterDefinition(index=4, name=r"$\Re(\mathcal{C}_P + \mathcal{C}_P^{\prime})$", min=-1, max=1),
                 ParameterDefinition(index=6, name=r"$\Re(\mathcal{C}_P - \mathcal{C}_P^{\prime})$", min=-1, max=1),
                 ]
-
-        marg.scen[s].set_bandwidth(0, 2, 0.015)
-        marg.scen[s].set_bandwidth(2, 6, 0.008)
 
         square_figure(self.fig_size)
 
@@ -468,7 +478,7 @@ class Spring2015(object):
             m.use_contours = True
             m.fixed_1D_binning = False
             m.nBins[-1] = 200
-            
+
             P.clf()
             m.one_dimensional(data.shape[1]-1)
             P.savefig(marg.out(s+'_Betrag_' + name))
@@ -495,6 +505,6 @@ if __name__ == '__main__':
     matplotlib.rcParams['axes.linewidth'] = major['width']
 
     f = Spring2015()
-#     f.figSP()
-    f.figTT5()
+    f.figSP()
+#    f.figTT5()
 #    f.all()
