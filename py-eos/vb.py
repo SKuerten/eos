@@ -90,29 +90,27 @@ class VB(object):
         output = samplingOutput.EOS_PYPMC_MCMC(self.args.mcmc_input,
                                                chains=self.args.chains,
                                                skip_initial=self.args.skip_initial)
-
         K_g = self.args.components_per_group
-        long_patches = make_r_gaussmix(output.individual_chains(),
-                                       K_g=K_g, critical_r=self.args.R_value,
-                                       indices=self._indices())
         print("K_g:", K_g)
-        print('Found %d groups with a total of %d patches' %
-              (len(long_patches) // K_g, len(long_patches)))
+
+        if self.args.init_method == 'random':
+            initial_guess = self.args.init_method
+        elif self.args.init_method == 'long-patches':
+            long_patches = make_r_gaussmix(output.individual_chains(),
+                                           K_g=K_g, critical_r=self.args.R_value,
+                                           indices=self._indices())
+            print('Found %d groups with a total of %d patches' %
+                  (len(long_patches) // K_g, len(long_patches)))
+            initial_guess = long_patches
+        else:
+            raise ArgumentError('Invalid initialization method: "%s"' % self.args.init_method)
 
         if self.args.thin:
             samples = output.samples[::self.args.thin]
         else:
             samples = output.samples
 
-
-        if self.args.init_method == 'random':
-            initial_guess = self.args.init_method
-        elif self.args.init_method == 'long-patches':
-            initial_guess = long_patches
-        else:
-            raise ArgumentError('Invalid initialization method: "%s"' % self.args.init_method)
-
-        self.vb = GaussianInference(samples, initial_guess=initial_guess, components=len(long_patches),
+        self.vb = GaussianInference(samples, initial_guess=initial_guess, components=K_g,
                                     W0=np.diag([1e20] * len(self.analysis.priors)))
 
     def _indices(self):
