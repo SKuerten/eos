@@ -17,10 +17,13 @@ def natural_sort_key(key):
     import re
     return [int(t) if t.isdigit() else t for t in re.split(r'(\d+)', key)]
 
-def invalid_chain(file, chain, cut_off=None):
+def invalid_chain(file, chain, cut_off=None, format='eos'):
     """Check if mode larger than cut off"""
-    # last value of the last mode is the best found in all updates sequences
-    mode = file['/prerun/chain #%d/stats/mode' % chain][-1][-1]
+    if format == 'eos':
+        # last value of the last mode is the best found in all updates sequences
+        mode = file['/prerun/chain #%d/stats/mode' % chain][-1][-1]
+    elif format == 'pypmc':
+        mode = file['/chain #%d' % chain + '/log_posterior'][:].max()
 
     if cut_off is None:
         print('chain %d has mode %g' % (chain, mode))
@@ -81,7 +84,7 @@ def merge_preruns(output_file_name, search='*.hdf5', input_files=None,
 
         # copy data
         for i in range(nchains_in_file):
-            if invalid_chain(input_file, i, cut_off):
+            if invalid_chain(input_file, i, cut_off, format='eos'):
                 continue
             for g in groups:
                 input_file.copy(g + "/chain #%d" % i, output_file, name=g + "/chain #%d" % nchains_copied)
@@ -92,7 +95,8 @@ def merge_preruns(output_file_name, search='*.hdf5', input_files=None,
 
     output_file.close()
 
-def merge_pypmc(output_file_name, search='mcmc_*.hdf5', input_files=None):
+def merge_pypmc(output_file_name, search='mcmc_*.hdf5', input_files=None,
+                cut_off=None):
     '''
     Merge Markov chains from eos-to-pypmc interface.
     '''
@@ -126,6 +130,8 @@ def merge_pypmc(output_file_name, search='mcmc_*.hdf5', input_files=None):
             np.testing.assert_equal(input_file['/chain #%d/descriptions/constraints' % i][:], constraints)
             assert len(input_file['/chain #%d/samples' % i]) == n_samples
 
+            if invalid_chain(input_file, i, cut_off, format='pypmc'):
+                continue
             # copy data
             for g in groups:
                 input_file.copy('/chain #%d' % i + g, output_file, name='/chain #%d' % nchains_copied + g)
@@ -243,7 +249,7 @@ def main():
         merge_sm_unc(output_file_name=args.output, input_files=input_files)
     elif args.pypmc:
         merge_pypmc(output_file_name=args.output, search=args.search,
-                      input_files=input_files)
+                      input_files=input_files, cut_off=cut_off)
     else:
         # default: merge mcmc
         merge_preruns(output_file_name=args.output, search=args.search,
