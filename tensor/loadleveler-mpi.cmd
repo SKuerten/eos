@@ -11,6 +11,12 @@ action=$1; shift
 step=$1; shift
 n=$1; shift
 
+script=./${scenario}-${constraints}.bash
+if [ ! -f $script ]; then
+    echo "Script $script not found!"
+    exit -1
+fi
+
 file=${scenario}_${constraints}_${action}_${step}_${n}.job
 
 # beware of shell escaping: loadlever variables
@@ -51,7 +57,7 @@ export BASE_NAME=$BASE_NAME
 export OMP_NUM_THREADS=1
 export MP_TASK_AFFINITY=cpu:$OMP_NUM_THREADS
 
-poe ./${scenario}-${constraints}.bash ${action} ${step}" > $file
+poe ./${script}.bash ${action} ${step}" > $file
 
 sync
 llsubmit $file
