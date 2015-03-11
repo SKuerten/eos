@@ -322,7 +322,8 @@ class MarginalDistributions:
                  projection=False):
 
         self.out = sampling_output
-        print('data shape:', self.out.samples.shape)
+        if self.out.samples:
+            print('data shape:', self.out.samples.shape)
 
         #alternatively use KDE
         self.use_histogram = not use_KDE
@@ -442,6 +443,9 @@ class MarginalDistributions:
         """
         self.min = np.empty((self.out.npar,))
         self.max = np.empty((self.out.npar,))
+
+        if self.out.samples is None:
+            return
 
         for index in range(self.min.shape[0]):
             self.min[index] = np.min(self.out.samples.T[index])

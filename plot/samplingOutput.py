@@ -1060,7 +1060,10 @@ class EOS_PYPMC_IS(IS_Output):
                     samples = None
 
                 if self.equal_weights:
-                    weights = np.ones(len(samples)) if weights is not None else None
+                    try:
+                        weights = np.ones(len(samples))
+                    except TypeError:
+                        weights = None
                 else:
                     if len(samples) > 0:
                         weights = hdf5_file[prefix + '/weights'][self.select[0]:self.select[1]]
@@ -1072,7 +1075,7 @@ class EOS_PYPMC_IS(IS_Output):
 
             par_defs, priors = read_descriptions(hdf5_file,
                                                  data_set='/descriptions/parameters',
-                                                 npar=len(samples[0]),
+                                                 npar=len(hdf5_file['/descriptions/parameters']),
                                                  samples=samples)
 
             # get proposal
