@@ -2,12 +2,17 @@
 Provide consistent interface to parsing sampling output from various algorithms, and in various formats.
 
 """
+from __future__ import print_function
 
 import priors as priorDistributions
 
 import h5py
 import numpy as np
 import os, re, sys
+
+def open_hdf5(name, mode='r'):
+    print('Opening ' + name)
+    return h5py.File(name, mode)
 
 # todo rename to description
 class ParameterDefinition(object):
@@ -297,6 +302,69 @@ class MCMC_Output(SamplingOutput):
                 return 'chain %d' % self.chains[0]
         else:
             return 'All chains'
+
+def extract_chain_modes(output):
+        """
+        Find the mode of each Markov chain and display it
+
+        Assume that each chain of same length. Designed for use with EOS_PYPMC_MCMC
+        """
+        output._modes = []
+
+        global_max = -np.inf
+        global_max_index = None
+
+        for i in range(output.n_chains):
+            base_index = i * output.reduced_length
+            index = np.argmax(output.log_posterior[base_index:base_index + output.reduced_length])
+            mode = output.samples[base_index + index]
+            max = output.log_posterior[base_index + index]
+
+            if max > global_max:
+                global_max = max
+                global_max_index = i
+
+            # special case: only one chain
+            if output.single_chain is not None:
+                i = int(output.single_chain)
+            print("Mode of chain %d with log posterior = %.16f is at:" % (i, max))
+
+            # print in a format friendly for eos-scan-mc
+            w = sys.stdout.write
+
+            # all on one line
+            w('"{ ')
+            for p in mode:
+                w("%+.16f " % p)
+            w('}"\n')
+            sys.stdout.flush()
+
+            output._modes.append(mode)
+
+        # global mode
+        output.global_mode_index = global_max_index
+        if output.single_chain is None:
+            print("Global mode found in chain %d" % output.global_mode_index)
+
+def autocorrelation(samples):
+    try:
+        import acor
+    except ImportError:
+        pass
+    else:
+        print("computing integrated autocorrelation time, mean, standard deviation:")
+        try:
+            npar = samples.shape[1]
+            tau = np.zeros(npar)
+            for i in xrange(npar):
+                results = acor.acor(samples[:, i])
+                tau[i] = results[0]
+                print("par %d: %g, %g, %g" %
+                      (i, tau[i], results[1], np.sqrt(np.var(samples.T[i], ddof=1))))
+            print('min max autocorrelation time: %g, %g' % (np.min(tau), np.max(tau)))
+        except RuntimeError:
+            print("Skipping, probably because acor reports that " +
+                  "The autocorrelation time is too long relative to the variance in dimension 1.")
 
 def crop(weights, n):
     '''Set the `n` highest elements in `weights` to zero. Modify in place.'''
@@ -907,40 +975,111 @@ class UncertaintyPropagation(IS_Output):
 
         hdf5_file.close()
 
-class EOS_PYPMC_IS(SamplingOutput):
+class EOS_PYPMC_IS(IS_Output):
     def _read(self, *args, **kwargs):
         self.crop_outliers = kwargs.get('crop_outliers', 0)
         self.equal_weights = kwargs.get('equal_weights', False)
         self.step = kwargs.get('step', None)
+        self.deterministic_mixture = kwargs.get('deterministic_mixture', False)
 
-        with h5py.File(self.input_file_name, 'r') as hdf5_file:
-            prefix = '/importance_samples'
-            if self.step is not None:
-                prefix = '/step_%d' % self.step + prefix
-            else:
-                # find last step
-                groups = list(hdf5_file['/'].keys())
-                steps = sorted(filter(lambda x:re.search(r'^step', x), groups))
-                if steps:
-                    prefix = steps[-1] + prefix
+        with open_hdf5(self.input_file_name) as hdf5_file:
+            # find last step
+            groups = list(hdf5_file['/'].keys())
+            steps = sorted(filter(lambda x:re.search(r'^step #', x), groups))
+            # extract 3 from 'step #3'
+            last_step = int(steps[-1][steps[-1].find('#')+1:]) if steps else 0
+
+            step = int(self.step) if self.step is not None else last_step
+            prefix = '/step #%d' % step + '/importance_samples'
+
+            # if self.step is not None:
+            #     prefix = '/step #' + self.step + prefix
+            # else:
+            #     if steps:
+            #         prefix = steps[-1] + prefix
                 # or don't update prefix if no group name step_* exists
 
-            samples = hdf5_file[prefix + '/samples'][self.select[0]:self.select[1]]
+            if self.deterministic_mixture:
 
-            if self.equal_weights:
-                weights = np.ones(len(samples))
+                # reduce to some steps, or all steps if self.step not given
+                steps = steps[:step+1]
+
+                # read samples
+                group = hdf5_file['/step #%d/combination' % step]
+                combinations = sorted(filter(lambda x:re.search(r'^weights #', x), group.keys()))
+                assert combinations, 'No deterministic-mixture weights found'
+                assert len(combinations) == len(steps), \
+                "samples (%d) and combined weights (%d) don't match" % (len(steps), len(combinations))
+
+                n_samples = np.array([hdf5_file[s + '/importance_samples/samples'].len() for s in steps])
+                n_comb_weights = self._n_combined_weights(group)
+                np.testing.assert_equal(n_samples, n_comb_weights)
+                if self.select[1] is None:
+                    self.select[1] = np.sum(n_samples)
+                else:
+                    assert n_samples.sum() >= self.select[1]
+                if self.select[0] is None:
+                    self.select[0] = 0
+
+                # base offsets from individual arrays into merged array
+                # manually add zero as first offset, and remove final offset
+                offsets = np.hstack((np.zeros(1), np.cumsum(n_comb_weights)[:-1]))
+
+                # create array with right size and data type
+                ds = hdf5_file[steps[0] + '/importance_samples/samples']
+                samples = np.empty((self.select[1] - self.select[0], ds.shape[1]), dtype=ds.dtype)
+                weights = np.empty((self.select[1] - self.select[0], 1), dtype=ds.dtype)
+
+                # convert indices from local to merged array => need offsets
+                for i,s in enumerate(steps):
+                    # lower index in this data set
+                    a = int(max(self.select[0] - offsets[i], 0))
+                    # upper index in this data set
+                    b = int(min(self.select[1] - offsets[i], n_comb_weights[i]))
+                    if a >= b:
+                        continue
+
+                    source_slice = np.s_[a:b]
+                    offset = int(offsets[i] - self.select[0])
+                    destination_slice = np.s_[a + offset:b + offset]
+
+                    # now write directly to array without intermediate arrays
+                    hdf5_samples = hdf5_file[s + '/importance_samples/samples']
+                    hdf5_samples.read_direct(samples, source_slice, destination_slice)
+
+                    hdf5_weights = hdf5_file[steps[-1] + '/combination/weights #%d' % i]
+                    hdf5_weights.read_direct(weights, source_slice, destination_slice)
+
+                # turn (n,1) array into n array
+                weights = weights.view().reshape(len(weights))
             else:
-                weights = hdf5_file[prefix + '/weights'][self.select[0]:self.select[1]]
+                try:
+                    # todo use read_direct to avoid reading samples that are discarded immediately
+                    samples = hdf5_file[prefix + '/samples'][self.select[0]:self.select[1]]
+                except KeyError:
+                    samples = None
 
-            print(weights)
+                if self.equal_weights:
+                    try:
+                        weights = np.ones(len(samples))
+                    except TypeError:
+                        weights = None
+                else:
+                    if len(samples) > 0:
+                        weights = hdf5_file[prefix + '/weights'][self.select[0]:self.select[1]]
+                    else:
+                        weights = np.empty_like(samples)
 
             if self.crop_outliers > 0:
                 crop(weights, self.crop_outliers)
 
             par_defs, priors = read_descriptions(hdf5_file,
                                                  data_set='/descriptions/parameters',
-                                                 npar=len(samples[0]),
+                                                 npar=len(hdf5_file['/descriptions/parameters']),
                                                  samples=samples)
+
+            # get proposal
+            mix = EOS_PYPMC_IS.read_mixture(self.input_file_name, '/step #%d/vb' % step)
 
         # assign members
         self.weights = weights
@@ -949,8 +1088,58 @@ class EOS_PYPMC_IS(SamplingOutput):
         self.priors = priors
         self.stats = None
         self.components = None
+        self.proposal_mixture = mix
+
+    # def _n_samples(self, hdf5_file, steps):
+    #     '''
+    #     hdf5_file: open HDF5 file
+    #     steps: iterable of group names
+
+    #     '''
+    #     n = 0
+    #     for s in steps:
+    #         n += hdf5_file[s]['/importance_samples/samples'].len()
+
+    #     return
+
+    def _n_combined_weights(self, hdf5_group):
+        n = []
+#         elements = hdf5_group.keys()
+        weights = sorted(filter(lambda x:re.search(r'^weights #', x), hdf5_group.keys()))
+        print(weights)
+        for i, c in enumerate(weights):
+            assert c == 'weights #%d' % i
+            n.append(hdf5_group[c].len())
+        return np.array(n)
+
+    @staticmethod
+    def read_mixture(file, directory):
+        import pypmc
+
+        with h5py.File(file, 'r') as file:
+            means = file[directory + '/means'][:]
+            covs = file[directory + '/covariances'][:]
+            weights = file[directory + '/weights'][:]
+
+            # student's t has extra data: dof
+            try:
+                dofs = file[directory + '/dofs'][:]
+                return pypmc.density.mixture.create_t_mixture(means, covs, dofs, weights)
+            except KeyError:
+                return pypmc.density.mixture.create_gaussian_mixture(means, covs, weights)
 
 class EOS_PYPMC_MCMC(SamplingOutput):
+    '''The structure in the HDF5 file is supposed to be
+
+    /                        Group
+    /chain\ #0               Group
+    /chain\ #0/descriptions  Group
+    /chain\ #0/descriptions/constraints Dataset {1}
+    /chain\ #0/descriptions/parameters Dataset {13}
+    /chain\ #0/log_posterior Dataset {30000, 1}
+    /chain\ #0/samples       Dataset {30000, 13}
+
+    '''
 
     def _read(self, *args, **kwargs):
         self.chains = kwargs.get('chains', None)
@@ -961,59 +1150,76 @@ class EOS_PYPMC_MCMC(SamplingOutput):
         if hasattr(self.chains, '__len__') and len(self.chains) == 1:
             self.single_chain = str(self.chains[0])
 
-        with h5py.File(self.input_file_name, 'r') as hdf5_file:
 
-            prefix = '/samples'
+        with open_hdf5(self.input_file_name) as hdf5_file:
 
             # select all chains
             if self.chains:
                 chains = self.chains
             else:
-                chains = range(len(list(hdf5_file[prefix])))
+                n_chains = 0
+                for g in hdf5_file['/'].iterkeys():
+                    if g.startswith('chain #'):
+                        n_chains += 1
+                # search for 'chain #%d'
+                chains = range(n_chains)
+            self.n_chains = len(chains)
 
             first_chain = str(chains[0])
 
             #read data
-            chain = hdf5_file[prefix + '/chain #' + first_chain]
-            full_length = len(chain)
+            samples = hdf5_file['/chain #' + first_chain + '/samples']
+            self.chain_length = len(samples)
 
             #adjust which range is drawn, default: full range
             if self.skip_initial > 0:
-                self.select[0] = int(self.skip_initial * full_length)
+                self.select[0] = int(self.skip_initial * self.chain_length)
             if self.select[0] is None:
                 self.select[0] = 0
             if self.select[1] is None:
-                self.select[1] = full_length
+                self.select[1] = self.chain_length
 
             self.reduced_length = self.select[1] - self.select[0]
 
-            merged_chains = np.empty((len(chains) * self.reduced_length, chain.shape[1]), dtype='float64')
-            merged_chains[:self.reduced_length] = hdf5_file[prefix + '/chain #' + first_chain][self.select[0]:self.select[1]]
+            source_slice = np.s_[self.select[0]:self.select[1]]
+            destination_slice = np.s_[0:self.reduced_length]
+            group = hdf5_file['/chain #' + first_chain]
+
+            merged_chains = np.empty((self.n_chains * self.reduced_length, samples.shape[1]), dtype='float64')
+            group['samples'].read_direct(merged_chains, source_slice, destination_slice)
+            print()
+            print("Analyze first chain")
+            autocorrelation(merged_chains[:self.reduced_length])
+            print()
+
+            merged_posteriors = np.empty((self.n_chains * self.reduced_length), dtype='float64')
+            group['log_posterior'].read_direct(merged_posteriors, source_slice, destination_slice)
             n_chains_parsed = 1
 
             par_defs, priors = read_descriptions(hdf5_file,
-                                                 data_set='descriptions/chain #' + first_chain + "/parameters",
+                                                 data_set='/chain #' + first_chain + "/descriptions/parameters",
                                                  npar=merged_chains.shape[1],
                                                  samples=merged_chains)
 
             # read all remaining chains
             for chain in chains[1:]:
-                c = hdf5_file[prefix + '/chain #%d' % chain]
-                assert len(c) == full_length, 'Length of chain %d (%d) differs from length of chain %s (%d)' % (chain, len(c), first_chain, full_length)
-                merged_chains[n_chains_parsed * self.reduced_length:(n_chains_parsed + 1) * self.reduced_length] = c[self.select[0]:self.select[1]]
+                c = hdf5_file['/chain #%d' % chain + '/samples']
+                assert len(c) == self.chain_length, 'Length of chain %d (%d) differs from length of chain %s (%d)' % (chain, len(c), first_chain, self.chain_length)
+                destination_slice = np.s_[destination_slice.start + self.reduced_length:destination_slice.stop + self.reduced_length]
+                c.read_direct(merged_chains, source_slice, destination_slice)
+                hdf5_file['/chain #%d' % chain + "/log_posterior"].read_direct(merged_posteriors, source_slice, destination_slice)
                 n_chains_parsed += 1
 
         print('Merged %d chains, total number of samples: %d' % (n_chains_parsed, len(merged_chains)))
 
-        ###
-        # assign members
-        ###
-
         # all weights equal
         self.weights = np.ones(len(merged_chains))
         self.samples = merged_chains
+        self.log_posterior = merged_posteriors
         self.par_defs = par_defs
         self.priors = priors
+
+        extract_chain_modes(self)
 
     def individual_chains(self):
         '''Return list of individual chains.'''

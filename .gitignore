@@ -1,2 +1,10 @@
+*.aux
+*.bbl
+*.blg
+*.out
+*.synctex.gz
 *.pdf
 *.png
+
+# emacs creates this subdirectory with auctex
+auto/

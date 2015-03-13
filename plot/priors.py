@@ -18,17 +18,39 @@ class Prior(object):
 
 class Gauss(Prior):
 
-    def __init__(self, range, mu, sigma):
+    def __init__(self, range, mu, a, b=None):
         from scipy.stats.distributions import norm as Gaussian
         Prior.__init__(self, range)
         self.mu = mu
-        self.sigma = sigma
-        self.norm = 1.0 / np.sqrt(2 * np.pi) / sigma \
-                     / (Gaussian.cdf(self.max, self.mu, self.sigma) \
-                      - Gaussian.cdf(self.min, self.mu, self.sigma))
+        self.a = a
+        if b is None:
+            b = a
+        self.b = b
+        self.ca = 1.0 / (b / a * (0.5 - Gaussian.cdf(self.min, mu, b)) + Gaussian.cdf(self.max, mu, a) - 0.5)
+        self.cb = b / a * self.ca
+        self.norma = self.ca / np.sqrt(2.0 * np.pi) / a
+        self.normb = self.cb / np.sqrt(2.0 * np.pi) / b
 
     def evaluate(self, x):
-        return self.norm * np.exp(- ((x - self.mu) / self.sigma)**2 / 2)
+
+        # do fancy dance for vectorization of if statement
+        x = np.asarray(x)
+
+        mask = x < self.mu
+        lower = np.where(mask)
+        upper = np.where(~mask)
+        result = np.empty_like(x)
+        result[lower] = self._evaluate_lower(x[lower])
+        result[upper] = self._evaluate_upper(x[upper])
+        return result
+
+    def _evaluate_lower(self, x):
+        '''Evaluate vector of arguments assumed on lower tail'''
+        return self.normb * np.exp(-((x-self.mu) / self.b)**2 / 2)
+
+    def _evaluate_upper(self, x):
+        '''Evaluate vector of arguments assumed on upper tail'''
+        return self.norma * np.exp(-((x-self.mu) / self.a)**2 / 2)
 
 class LogGamma(Prior):
 
@@ -118,11 +140,13 @@ class PriorFactory(object):
                 sigma_up = float(s[i + 1:j])
 
                 i = j
-                j = s.find(',', i)
-                sigma_down = float(s[i+1:j])
 
                 if prior_type == 'Gaussian':
-                    raise KeyError("Asymmetric Gaussian not implemented yet.")
+                    sigma_down = float(s[j+1:])
+                    return par_name, Gauss((min, max), x, sigma_up, sigma_down)
+
+                j = s.find(',', i)
+                sigma_down = float(s[i+1:j])
 
                 # now find parameters nu, lambda, alpha
                 i = s.find('nu:', j)
@@ -161,4 +185,3 @@ def test_priors():
     assert(par_name == 'Re{c9}')
 
     par_name, prior = f.create('Parameter: mass::c, prior type: LogGamma, range: [1,1.48], x = 1.27 + 0.07 - 0.09, nu: 1.201633227, lambda: 0.1046632085, alpha: 1.921694426')
-

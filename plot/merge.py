@@ -17,10 +17,13 @@ def natural_sort_key(key):
     import re
     return [int(t) if t.isdigit() else t for t in re.split(r'(\d+)', key)]
 
-def invalid_chain(file, chain, cut_off=None):
+def invalid_chain(file, chain, cut_off=None, format='eos'):
     """Check if mode larger than cut off"""
-    # last value of the last mode is the best found in all updates sequences
-    mode = file['/prerun/chain #%d/stats/mode' % chain][-1][-1]
+    if format == 'eos':
+        # last value of the last mode is the best found in all updates sequences
+        mode = file['/prerun/chain #%d/stats/mode' % chain][-1][-1]
+    elif format == 'pypmc':
+        mode = file['/chain #%d' % chain + '/log_posterior'][:].max()
 
     if cut_off is None:
         print('chain %d has mode %g' % (chain, mode))
@@ -81,7 +84,7 @@ def merge_preruns(output_file_name, search='*.hdf5', input_files=None,
 
         # copy data
         for i in range(nchains_in_file):
-            if invalid_chain(input_file, i, cut_off):
+            if invalid_chain(input_file, i, cut_off, format='eos'):
                 continue
             for g in groups:
                 input_file.copy(g + "/chain #%d" % i, output_file, name=g + "/chain #%d" % nchains_copied)
@@ -92,7 +95,8 @@ def merge_preruns(output_file_name, search='*.hdf5', input_files=None,
 
     output_file.close()
 
-def merge_pypmc(output_file_name, search='*.hdf5', input_files=None):
+def merge_pypmc(output_file_name, search='mcmc_*.hdf5', input_files=None,
+                cut_off=None):
     '''
     Merge Markov chains from eos-to-pypmc interface.
     '''
@@ -100,12 +104,12 @@ def merge_pypmc(output_file_name, search='*.hdf5', input_files=None):
         input_files = search_files(search, output_file_name)
 
     # hdf5 groups
-    groups = ['/samples', '/descriptions']
+    groups = ['/samples', '/descriptions', '/log_posterior']
 
     f = h5py.File(input_files[0], 'r')
-    par = f['/descriptions/chain #0/parameters'][:]
-    constraints = f['/descriptions/chain #0/constraints'][:]
-    n_samples = len(f['/samples/chain #0'])
+    par = f['/chain #0/descriptions/parameters'][:]
+    constraints = f['/chain #0/descriptions/constraints'][:]
+    n_samples = len(f['/chain #0/samples'])
     f.close()
 
     # count chains copied
@@ -118,17 +122,19 @@ def merge_pypmc(output_file_name, search='*.hdf5', input_files=None):
     for f_i, file_name in enumerate(input_files):
         print("merging %s" % file_name)
         input_file = h5py.File(file_name, 'r')
-        nchains_in_file = len(input_file[groups[0]].keys())
+        nchains_in_file = len(input_file['/'].keys())
 
         for i in range(nchains_in_file):
             # check agreement
-            np.testing.assert_equal(input_file['/descriptions/chain #%d/parameters' % i][:], par)
-            np.testing.assert_equal(input_file['/descriptions/chain #%d/constraints' % i][:], constraints)
-            assert len(input_file['/samples/chain #%d' % i]) == n_samples
+            np.testing.assert_equal(input_file['/chain #%d/descriptions/parameters' % i][:], par)
+            np.testing.assert_equal(input_file['/chain #%d/descriptions/constraints' % i][:], constraints)
+            assert len(input_file['/chain #%d/samples' % i]) == n_samples
 
+            if invalid_chain(input_file, i, cut_off, format='pypmc'):
+                continue
             # copy data
             for g in groups:
-                input_file.copy(g + "/chain #%d" % i, output_file, name=g + "/chain #%d" % nchains_copied)
+                input_file.copy('/chain #%d' % i + g, output_file, name='/chain #%d' % nchains_copied + g)
             nchains_copied += 1
         input_file.close()
 
@@ -202,7 +208,7 @@ def main():
     parser.add_argument('--output',
                         help='Output file name', action='store')
     parser.add_argument('--search', dest='search',
-                        help='HDF5 input file name pattern', action='store', default='*.hdf5')
+                        help='HDF5 input file name pattern', action='store', default='mcmc_*.hdf5')
     parser.add_argument('--sm-unc', dest='sm_unc',
                         help='Merge uncertainty propagation files', action='store_true')
     parser.add_argument('--pypmc',
@@ -243,7 +249,7 @@ def main():
         merge_sm_unc(output_file_name=args.output, input_files=input_files)
     elif args.pypmc:
         merge_pypmc(output_file_name=args.output, search=args.search,
-                      input_files=input_files)
+                      input_files=input_files, cut_off=cut_off)
     else:
         # default: merge mcmc
         merge_preruns(output_file_name=args.output, search=args.search,

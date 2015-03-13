@@ -15,14 +15,9 @@ non_empty() {
 }
 
 export EOS_IS_INPUT=  # default: $output_dir/vb.hdf5
+export EOS_IS_INTEGRATION_POINTS=32
 
 is() {
-    scenario=${1}
-    shift
-
-    data=${1}
-    shift
-
     step=${1}
     shift
 
@@ -38,18 +33,19 @@ is() {
 
     seed=$(expr $EOS_SEED "+" 642134)
 
-    mpirun -n 2 ../py-eos/is.py \
+    mpirun -n 4 ../py-eos/is.py \
         --analysis-info $EOS_ANALYSIS_INFO \
+        --eos-integration-points $EOS_IS_INTEGRATION_POINTS \
         --input $input \
         --output $output \
         --samples $EOS_IS_SAMPLES \
         --seed $seed \
-        --step $step # \
-    # > $output_dir/is.log 2>&1
+        --step $step \
+        > $output_dir/is.log 2>&1
 }
 
 export EOS_MCMC_BURN_IN=
-export EOS_INTEGRATION_POINTS=16
+export EOS_MCMC_INTEGRATION_POINTS=16
 export EOS_MCMC_SAMPLES=40000
 export EOS_MCMC_UPDATE_SIZE=1000
 export EOS_MCMC_SCALE_NUISANCE=1
@@ -73,7 +69,7 @@ mcmc() {
     ../py-eos/mcmc.py \
         --analysis-info $EOS_ANALYSIS_INFO \
         --burn-in $EOS_MCMC_BURN_IN \
-        --eos-integration-points $EOS_INTEGRATION_POINTS \
+        --eos-integration-points $EOS_MCMC_INTEGRATION_POINTS \
         --output $output_dir/mcmc_${prerun_index}.hdf5 \
         --proposal $EOS_MCMC_PROPOSAL \
         --samples $EOS_MCMC_SAMPLES \
@@ -126,6 +122,7 @@ export EOS_VB_PRUNE=
 export EOS_VB_MCMC_INPUT=
 export EOS_VB_SKIP_INITIAL=0.05
 export EOS_VB_THIN=100
+export EOS_VB_REL_TOL=
 export EOS_VB_R_VALUE=2
 
 vb() {
@@ -135,31 +132,42 @@ vb() {
 
     local input_file=
 
-     case ${input_mode} in
+    case ${input_mode} in
         mcmc)
-             input_file="$output_dir/mcmc_pre_merged.hdf5"
-             if [[ -f $EOS_VB_MCMC_INPUT ]]; then
-                 input_file=$EOS_VB_MCMC_INPUT
-             fi
+            input_file="$output_dir/mcmc_pre_merged.hdf5"
+            if [[ -f $EOS_VB_MCMC_INPUT ]]; then
+                input_file=$EOS_VB_MCMC_INPUT
+            fi
             ;;
         is)
-             input_file="$output_dir/vb.hdf5"
-             if [[ -f $EOS_VB_IS_INPUT ]]; then
-                 input_file=$EOS_VB_IS_INPUT
-             fi
+            input_file="$output_dir/vb.hdf5"
+            if [[ -f $EOS_VB_IS_INPUT ]]; then
+                input_file=$EOS_VB_IS_INPUT
+            fi
             ;;
         *)
-            echo "Invalid command ${cmd} given!"
+            echo "Invalid input mode '"${input_mode}"' given! Choose 'mcmc' or 'is'!"
             exit -1
             ;;
-     esac
-     local input_arg="--${input_mode}-input ${input_file}"
+    esac
+    non_empty "input_file"
+    local input_arg="--${input_mode}-input ${input_file}"
 
     step=${1}
     shift
+    non_empty "step"
 
     output=${1}
     shift
+    if [[ -z $output ]]; then
+        if [[ $step == "0" ]]; then
+            output="$output_dir/vb.hdf5"
+        else
+            output='APPEND'
+        fi
+    fi
+
+    non_empty "output"
 
     seed=$(expr $EOS_SEED "+" 654198)
     ../py-eos/vb.py \
@@ -169,14 +177,19 @@ vb() {
         ${input_arg} \
         --output $output \
         --prune $EOS_VB_PRUNE \
+        --rel-tol $EOS_VB_REL_TOL \
         --R-value $EOS_VB_R_VALUE \
         --seed $seed \
         --step $step \
         --skip-initial $EOS_VB_SKIP_INITIAL \
         --thin $EOS_VB_THIN \
-        $EOS_VB_EXTRA_OPTIONS
-    #\
-#        > $output_dir/vb.log 2>&1
+        $EOS_VB_EXTRA_OPTIONS # \
+#        > $output_dir/vb_${step}.log 2>&1
+
+    # create a backup of this small file
+    if [[ ${input_mode} == mcmc ]]; then
+        cp "$output" "${output}~"
+    fi
 }
 
 ## Job Main Function ##
@@ -203,13 +216,29 @@ main() {
     EOS_CONSTRAINTS=CONSTRAINTS_${data}
     export EOS_CONSTRAINTS=${!EOS_CONSTRAINTS}
 
-    cmd=${1}
-    shift
-
     export output_dir=${BASE_NAME}/${scenario}_${data}
     mkdir -p $output_dir
 
+    cmd=${1}
+    shift
+
     case ${cmd} in
+        driver)
+            out=$output_dir/vb.hdf5
+            rm $out
+            export EOS_IS_SAMPLES=10000
+            vb mcmc 0 $out &&
+            is 0 &&
+            export EOS_IS_SAMPLES=10000
+            vb is 0 APPEND &&
+            is 1 &&
+            vb is 1 APPEND &&
+            is 2 &&
+            vb is 2 APPEND &&
+            is 3 &&
+            vb is 3 APPEND &&
+            is 4
+            ;;
         mcmc)
             mcmc ${scenario} ${data} $@
             ;;
@@ -217,7 +246,7 @@ main() {
             ../py-eos/analysis_info.py
             ;;
         is)
-            is  ${scenario} ${data} $@
+            is $@
             ;;
         opt)
             opt ${scenario} ${data} $@
