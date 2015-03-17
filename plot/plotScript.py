@@ -322,7 +322,7 @@ class MarginalDistributions:
                  projection=False):
 
         self.out = sampling_output
-        if self.out.samples:
+        if self.out.samples is not None:
             print('data shape:', self.out.samples.shape)
 
         #alternatively use KDE
