@@ -128,7 +128,7 @@ def merge_pypmc(output_file_name, search='mcmc_*.hdf5', input_files=None,
             # check agreement
             np.testing.assert_equal(input_file['/chain #%d/descriptions/parameters' % i][:], par)
             np.testing.assert_equal(input_file['/chain #%d/descriptions/constraints' % i][:], constraints)
-            assert len(input_file['/chain #%d/samples' % i]) == n_samples
+            assert input_file['/chain #%d/samples' % i].len() == n_samples, 'expected %d samples, got %d samples for chain %d in %s' % (n_samples, input_file['/chain #%d/samples' % i].len(), i, file_name)
 
             if invalid_chain(input_file, i, cut_off, format='pypmc'):
                 continue
