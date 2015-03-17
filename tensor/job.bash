@@ -33,7 +33,7 @@ is() {
 
     seed=$(expr $EOS_SEED "+" 642134)
 
-    mpirun -n 4 ../py-eos/is.py \
+    ../py-eos/is.py \
         --analysis-info $EOS_ANALYSIS_INFO \
         --eos-integration-points $EOS_IS_INTEGRATION_POINTS \
         --input $input \
@@ -183,8 +183,8 @@ vb() {
         --step $step \
         --skip-initial $EOS_VB_SKIP_INITIAL \
         --thin $EOS_VB_THIN \
-        $EOS_VB_EXTRA_OPTIONS # \
-#        > $output_dir/vb_${step}.log 2>&1
+        $EOS_VB_EXTRA_OPTIONS \
+        > $output_dir/vb_${step}.log 2>&1
 
     # create a backup of this small file
     if [[ ${input_mode} == mcmc ]]; then
@@ -217,6 +217,7 @@ main() {
     export EOS_CONSTRAINTS=${!EOS_CONSTRAINTS}
 
     export output_dir=${BASE_NAME}/${scenario}_${data}
+    echo "[output dir = ${output_dir}]"
     mkdir -p $output_dir
 
     cmd=${1}

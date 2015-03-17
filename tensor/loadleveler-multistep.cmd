@@ -1,25 +1,26 @@
 #!/bin/bash
 
-# examples:
+# usage example: run 5 steps on one node
+# BASE_NAME=$WORK/eos/2015-tensor/2015-03-09 ./loadleveler-multistep.cmd scSP-Bsmumu.bash 5 1
 
-# importance sampling at step 1 with 200 processes
-# BASE_NAME=$BASE_NAME/2014-11-28 ./loadleveler-single.cmd sc910TT5 K_KstarBR_Bsmumu is 1 200
-
-scenario=$1; shift
-constraints=$1; shift
+script=./$1; shift
 steps=$1; shift
 nnode=$1; shift
 
-script=./${scenario}-${constraints}.bash
+# file name without path and extension, example:
+# ./${scenario}-${constraints}.bash
+name=${name##*/}
+name=${name%%.*}
 if [ ! -f $script ]; then
    echo "Script $script not found!"
    exit -1
 fi
-# job class
-# job_class=shorttest
-
 # job file
-file=${scenario}_${constraints}_${steps}_${nnode}.job
+
+file=${name}_${steps}_${nnode}.job
+
+export OMP_NUM_THREADS=1
+export MP_TASK_AFFINITY=cpu:$OMP_NUM_THREADS
 
 common() {
 echo "#! /bin/bash
@@ -33,6 +34,8 @@ echo "#! /bin/bash
 #@ error  = /gpfs/work/pr85tu/ru72xaf2/log/\$(jobid).err
 #@ notification=error
 #@ notify_user=Frederik.Beaujean@lmu.de
+## any environment variable set in .profile overwrites the below settings!
+#@ environment = \$BASE_NAME; \$OMP_NUM_THREADS; \$MP_TASK_AFFINITY;
 "
 }
 
@@ -71,32 +74,29 @@ echo "
 #@ step_name = vb_${step}_\$(jobid)
 #@ job_type = serial
 #@ class = shorttest
-#@ executable = /usr/bin/poe
-#@ arguments = $script vb is $step APPEND
+#@ executable = $script
+#@ arguments = vb is $step APPEND
 #@ queue
 "
 }
 
-# output file directory
-export BASE_NAME=$BASE_NAME
+create_job_file() {
+    common >> $file
 
-export OMP_NUM_THREADS=1
-export MP_TASK_AFFINITY=cpu:$OMP_NUM_THREADS
+    # number of VB steps
+    let n_vb=$steps-1
+    let i=0
 
-common >> $file
+    for ((; i < n_vb; i++)); do
+        sampling_step $i >> $file
+        vb_step $i >> $file
+    done
 
-# number of VB steps
-let n_vb=$steps-1
-let i=0
-
-for ((; i < n_vb; i++)); do
     sampling_step $i >> $file
-    vb_step $i >> $file
-done
+}
 
-sampling_step $i >> $file
-
-#cat $file
+create_job_file
+# cat $file
 sync
 llsubmit $file
 rm $file
