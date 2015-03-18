@@ -9,14 +9,13 @@ nnode=$1; shift
 
 # file name without path and extension, example:
 # ./${scenario}-${constraints}.bash
-name=${name##*/}
+name=${script##*/}
 name=${name%%.*}
 if [ ! -f $script ]; then
    echo "Script $script not found!"
    exit -1
 fi
 # job file
-
 file=${name}_${steps}_${nnode}.job
 
 export OMP_NUM_THREADS=1
@@ -40,26 +39,26 @@ echo "#! /bin/bash
 }
 
 sampling_step() {
-step=$1; shift
+let step=$1; shift
+if [[ $step -gt 0 ]]; then
+    dependency="#@ dependency = vb_${step} == 0"
+fi
 
 # beware of shell escaping: loadlever variables
 # must not be expanded by this shell
 echo "
-#@ step_name = is_${step}_\$(jobid)
+#@ step_name = is_${step}
+$dependency
 #@ job_type = parallel
-#@ class = shorttest
-#
-# shared nodes
+#@ class = parallel
 #
 ##@ node_usage = shared
 ##@ total_tasks = $nnode
 ##@ blocking = unlimited
 #
-# full nodes
-#
 #@ node_usage = not_shared
 #@ node = $nnode
-#@ tasks_per_node = 32
+#@ tasks_per_node = 16
 #
 #@ executable = /usr/bin/poe
 #@ arguments = $script is $step
@@ -69,11 +68,12 @@ echo "
 
 vb_step() {
 step=$1; shift
-
+let isstep=$step-1
 echo "
-#@ step_name = vb_${step}_\$(jobid)
+#@ step_name = vb_${step}
+#@ dependency = is_${isstep} == 0
 #@ job_type = serial
-#@ class = shorttest
+#@ class = serial
 #@ executable = $script
 #@ arguments = vb is $step APPEND
 #@ queue
@@ -83,16 +83,11 @@ echo "
 create_job_file() {
     common >> $file
 
-    # number of VB steps
-    let n_vb=$steps-1
-    let i=0
-
-    for ((; i < n_vb; i++)); do
-        sampling_step $i >> $file
+    sampling_step 0 >> $file
+    for ((i=1; i <= steps; i++)); do
         vb_step $i >> $file
+        sampling_step $i >> $file
     done
-
-    sampling_step $i >> $file
 }
 
 create_job_file
