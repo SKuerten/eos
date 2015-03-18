@@ -1,5 +1,3 @@
-echo "[priors loaded]"
-
 # defines the allowed parameter range in terms of sigmas for Gaussian and LogGamma distributions
 export N_SIGMAS=3
 
@@ -132,3 +130,7 @@ $NUISANCE_B_TO_PLL_FORM_FACTORS_ALL_KMPW2010
 $NUISANCE_B_TO_PLL_SUBLEADING
 $NUISANCE_DECAY_CONSTANTS_flag13
 "
+export NUISANCE_test1=$NUISANCE_K_KstarBR_Bsmumu
+export NUISANCE_test2=$NUISANCE_test1
+export NUISANCE_test3=$NUISANCE_test1
+export NUISANCE_test4=$NUISANCE_test1
