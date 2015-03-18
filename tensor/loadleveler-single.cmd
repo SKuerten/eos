@@ -3,15 +3,13 @@
 # examples:
 
 # 15 chains
-# BASE_NAME=$BASE_NAME/2014-11-28 ./loadleveler-single.cmd sc910TT5 K_KstarBR_Bsmumu mcmc 1 15
+# BASE_NAME=$WORK/eos/2015-tensor/2015-03-09 ./loadleveler-single.cmd sm-test1.bash mcmc 1 30
 
-scenario=$1; shift
-constraints=$1; shift
+script=./$1; shift
 action=$1; shift
 low=$1; shift
 high=$1; shift
 
-script=./${scenario}-${constraints}.bash
 if [ ! -f $script ]; then
     echo "Script $script not found!"
     exit -1
