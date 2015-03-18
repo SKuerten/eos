@@ -2,6 +2,8 @@
 
 source ${EOS_SCRIPT_PATH}/job.bash
 
+export EOS_SEED=983219898721
+
 export EOS_ANALYSIS_INFO=0
 
 export EOS_MCMC_BURN_IN=500

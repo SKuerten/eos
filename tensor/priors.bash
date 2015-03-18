@@ -39,24 +39,28 @@ export NUISANCE_B_TO_VPARALL_FORM_FACTORS_KMPW2010="
     --nuisance    B->K^*::b^A2_1@KMPW2010                       -4.9   5.4  ${N_SIGMAS}     --prior    gaussian  -2.20     -0.85     +2.03
 "
 
-# results as quoted in KMPW2010
+# naive average of [BZ2004] and [KMPW2010] for the mean values. Widen
+# uncertainty to provide larger tail on the short side
+# b^p taken from [KMPW2010], not given in [BZ2004]
 export NUISANCE_B_TO_PLL_FORM_FACTORS_PLUS_KMPW2010="
     --global-option form-factors KMPW2010
 
-    --nuisance    B->K::F^p(0)@KMPW2010                          0.10  0.49 ${N_SIGMAS}     --prior    gaussian   0.32      0.34      0.39
+    --nuisance    B->K::F^p(0)@KMPW2010                          0.19  0.49 ${N_SIGMAS}     --prior    gaussian   0.29      0.34      0.39
     --nuisance    B->K::b^p_1@KMPW2010                          -6.9   0.6  ${N_SIGMAS}     --prior    gaussian  -3.7      -2.1      -1.2
 "
 
+# F^0(0)=F^p(0) => eliminate F^0(0)
 export NUISANCE_B_TO_PLL_FORM_FACTORS_SCALAR_KMPW2010="
     --global-option form-factors KMPW2010
 
     --nuisance    B->K::b^0_1@KMPW2010                          -7.0   1.9  ${N_SIGMAS}     --prior    gaussian  -5.2      -4.3      -3.5
 "
 
+# see F^p
 export NUISANCE_B_TO_PLL_FORM_FACTORS_TENSOR_KMPW2010="
     --global-option form-factors KMPW2010
 
-    --nuisance    B->K::F^t(0)@KMPW2010                          0.30  0.54 ${N_SIGMAS}     --prior    gaussian   0.36      0.39      0.44
+    --nuisance    B->K::F^t(0)@KMPW2010                          0.20  0.56 ${N_SIGMAS}     --prior    gaussian   0.32      0.38      0.44
     --nuisance    B->K::b^t_1@KMPW2010                          -8.2   0.8  ${N_SIGMAS}     --prior    gaussian  -4.2      -2.2      -1.2
 "
 
