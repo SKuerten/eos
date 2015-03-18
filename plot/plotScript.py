@@ -665,8 +665,8 @@ class MarginalDistributions:
             # reverse list with ::-1
             artist = P.contourf(densities, levels, colors=colors[::-1], extent=extent)
 
-            # make 'outer' contour -- the lowest part -- fill opaque
-            P.setp(artist.collections[0], alpha=1)
+            # make 'outer' contour -- the lowest part -- transparent to allow overlays
+            P.setp(artist.collections[0], alpha=0.0)
 
             # handle case of more than two contours
             # highest is opaque, lower contours increasingly transparent

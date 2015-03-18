@@ -350,7 +350,7 @@ def autocorrelation(samples):
     try:
         import acor
     except ImportError:
-        pass
+        print("Install `acor` to compute autocorrelation")
     else:
         print("computing integrated autocorrelation time, mean, standard deviation:")
         try:
