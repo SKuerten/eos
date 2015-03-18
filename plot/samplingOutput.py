@@ -1065,10 +1065,10 @@ class EOS_PYPMC_IS(IS_Output):
                     except TypeError:
                         weights = None
                 else:
-                    if len(samples) > 0:
+                    if samples is not None:
                         weights = hdf5_file[prefix + '/weights'][self.select[0]:self.select[1]]
                     else:
-                        weights = np.empty_like(samples)
+                        weights = None
 
             if self.crop_outliers > 0:
                 crop(weights, self.crop_outliers)
