@@ -56,25 +56,25 @@ class VB(object):
 
     def _init_is(self):
         deterministic = self.args.deterministic_mixture and self.args.step > 1
-        # parse samples and weights
-        output = samplingOutput.EOS_PYPMC_IS(self.args.is_input, self.args.step,
-                                             deterministic_mixture=deterministic)
 
         # use MCMC results as prior
-        hyperpar = hdf5_io.read_vb_hyperparameters(self.args.is_input, primary_group(self.args.step) + hdf5_subdirectory)
+        hyperpar = hdf5_io.read_vb_hyperparameters(self.args.is_input, primary_group(self.args.step - 1) + hdf5_subdirectory)
         hyperpar_prior = self._posterior2prior(hyperpar)
 
         if deterministic:
             (samples, merged_samples), (weights, merged_weights), proposals = \
-                hdf5_io.read_is_history(self.args.is_input, '/', last_step=self.args.step)
+                hdf5_io.read_is_history(self.args.is_input, '/', last_step=self.args.step - 1)
             mixture_weights = combine_weights(samples, weights, proposals)
             # weights (N,1) matrix => take only first column
             self.vb = GaussianInference(merged_samples[:], weights=merged_weights[:].T[0],
                                         components=len(hyperpar['alpha']), **hyperpar)
 
         else:
+            # parse samples and weights
+            output = samplingOutput.EOS_PYPMC_IS(self.args.is_input, self.args.step - 1,
+                                                 deterministic_mixture=deterministic)
             # but ignore weights from MCMC
-            if self.args.step == 0:
+            if self.args.step == 1:
                 hyperpar_prior['alpha0'][:] = 1e-5
 
             # now combine both dicts
@@ -82,9 +82,6 @@ class VB(object):
 
             self.vb = GaussianInference(output.samples, weights=output.weights,
                                         components=len(hyperpar['alpha']), **hyperpar)
-
-        # now save results in next step
-        self.args.step += 1
 
     def _init_mcmc(self):
         output = samplingOutput.EOS_PYPMC_MCMC(self.args.mcmc_input,

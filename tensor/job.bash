@@ -41,7 +41,7 @@ is() {
         --samples $EOS_IS_SAMPLES \
         --seed $seed \
         --step $step \
-        > $output_dir/is.log 2>&1
+        > $output_dir/is_$step.log 2>&1
 }
 
 export EOS_MCMC_BURN_IN=
@@ -227,17 +227,15 @@ main() {
         driver)
             out=$output_dir/vb.hdf5
             rm $out
-            export EOS_IS_SAMPLES=10000
-            vb mcmc 0 $out &&
+            vb mcmc 0 &&
             is 0 &&
-            export EOS_IS_SAMPLES=10000
-            vb is 0 APPEND &&
-            is 1 &&
             vb is 1 APPEND &&
-            is 2 &&
+            is 1 &&
             vb is 2 APPEND &&
-            is 3 &&
+            is 2 &&
             vb is 3 APPEND &&
+            is 3 &&
+            vb is 4 APPEND &&
             is 4
             ;;
         mcmc)
