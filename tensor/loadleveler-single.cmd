@@ -10,17 +10,21 @@ action=$1; shift
 low=$1; shift
 high=$1; shift
 
+# file name without path and extension, example:
+# ./${scenario}-${constraints}.bash
+name=${script##*/}
+name=${name%%.*}
 if [ ! -f $script ]; then
     echo "Script $script not found!"
     exit -1
 fi
 
-for i in $(seq -f %01.0f $low $high); do
-    file=j${i}.job
-    # beware of shell escaping: loadlever variables
-    # must not be expanded by this shell
-    echo "#! /bin/bash
-#
+file=${name}.job
+
+# beware of shell escaping: loadlever variables
+# must not be expanded by this shell
+echo "#! /bin/bash
+#@ job_name = ${name}_${action}_${low}_${high}
 #@ group = pr85tu
 #@ job_type = serial
 #@ class = serial
@@ -29,20 +33,24 @@ for i in $(seq -f %01.0f $low $high); do
 #
 ###                    hh:mm:ss
 #@ wall_clock_limit = 47:59:50
-#@ job_name = eos-\$(jobid)
 #@ initialdir = \$(home)/workspace/eos-scripts/tensor
 #@ output = /gpfs/work/pr85tu/ru72xaf2/log/\$(jobid).out
 #@ error  = /gpfs/work/pr85tu/ru72xaf2/log/\$(jobid).err
 #@ notification=error
 #@ notify_user=Frederik.Beaujean@lmu.de
+#@ environment = \$BASE_NAME
+#@ executable = $script
+" > $file
+
+# all jobs are independent
+for i in $(seq -f %01.0f $low $high); do
+   echo "
+#@ step_name = ${action}_$i
+#@ arguments = $action $i
 #@ queue
-
-# output file directory
-export BASE_NAME=$BASE_NAME
-
-${script} ${action} $i" > $file
-
-    sync
-    llsubmit $file
-    rm $file
+" >> $file
 done
+
+sync
+llsubmit $file
+rm $file
