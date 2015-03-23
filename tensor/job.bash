@@ -192,6 +192,16 @@ vb() {
     fi
 }
 
+unc() {
+    local low=$1; shift
+    local high=$1; shift
+
+    ../py-eos/unc.py \
+        ${input_arg} \
+        --range $low $high \
+        --thin $EOS_UNC_THIN
+}
+
 ## Job Main Function ##
 main() {
     local name=${0}
@@ -248,7 +258,10 @@ main() {
             is $@
             ;;
         opt)
-            opt ${scenario} ${data} $@
+            opt $@
+            ;;
+        unc)
+            unc $@
             ;;
         vb)
             vb $@
