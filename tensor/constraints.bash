@@ -109,6 +109,18 @@ export CONSTRAINTS_B_TO_KSTAR_FF_LATTICE="
 "
 
 #####################
+## inclusive ##
+#####################
+export CONSTRAINTS_B_TO_XSGAMMA="
+    --constraint B->X_sgamma::BR[1.8]@BaBar-2012
+    --constraint B->X_sgamma::BR[1.8]@Belle-2009B
+"
+
+export CONSTRAINTS_B_MASS_SPLITTING="
+    --constraint B^0::M_B^*-M_B@PDG-2012
+"
+
+#####################
 ## named data sets ##
 #####################
 
@@ -175,4 +187,9 @@ $CONSTRAINTS_B_TO_KMUMU_LOW_RECOIL_BR
 export CONSTRAINTS_test4="
 $CONSTRAINTS_test3
 $CONSTRAINTS_B_TO_KMUMU_LARGE_RECOIL_BR
+"
+export CONSTRAINTS_test5="
+$CONSTRAINTS_test4
+$CONSTRAINTS_B_TO_XSGAMMA
+$CONSTRAINTS_B_MASS_SPLITTING
 "
