@@ -1,4 +1,6 @@
 #! /usr/bin/env python
+'''Merge multiple input files into one output file.'''
+
 from __future__ import print_function
 import commands
 import glob
@@ -96,7 +98,7 @@ def merge_preruns(output_file_name, search='*.hdf5', input_files=None,
     output_file.close()
 
 def merge_pypmc(output_file_name, search='mcmc_*.hdf5', input_files=None,
-                cut_off=None):
+                cut_off=None, single_chain=True, skip_initial=0.0, thin=1):
     '''
     Merge Markov chains from eos-to-pypmc interface.
     '''
@@ -106,41 +108,70 @@ def merge_pypmc(output_file_name, search='mcmc_*.hdf5', input_files=None,
     # hdf5 groups
     groups = ['/samples', '/descriptions', '/log_posterior']
 
-    f = h5py.File(input_files[0], 'r')
-    par = f['/chain #0/descriptions/parameters'][:]
-    constraints = f['/chain #0/descriptions/constraints'][:]
-    n_samples = len(f['/chain #0/samples'])
-    f.close()
+    with h5py.File(input_files[0], 'r') as f:
+        par = f['/chain #0/descriptions/parameters'][:]
+        constraints = f['/chain #0/descriptions/constraints'][:]
+        n_samples = len(f['/chain #0/samples'])
 
     # count chains copied
-    nchains_copied = 0
+    nchains_valid = 0
+    valid_files = []
 
-    output_file = h5py.File(output_file_name, "w")
-    for g in groups:
-        output_file.create_group(g)
+    with h5py.File(output_file_name, "w") as output_file:
+        for file_name in input_files:
+            print("merging %s" % file_name)
+            with h5py.File(file_name, 'r') as input_file:
+                nchains_in_file = len(input_file['/'].keys())
 
-    for f_i, file_name in enumerate(input_files):
-        print("merging %s" % file_name)
-        input_file = h5py.File(file_name, 'r')
-        nchains_in_file = len(input_file['/'].keys())
+                for i in range(nchains_in_file):
+                    # check agreement
+                    np.testing.assert_equal(input_file['/chain #%d/descriptions/parameters' % i][:], par)
+                    np.testing.assert_equal(input_file['/chain #%d/descriptions/constraints' % i][:], constraints)
+                    assert input_file['/chain #%d/samples' % i].len() == n_samples, 'expected %d samples, got %d samples for chain %d in %s' % (n_samples, input_file['/chain #%d/samples' % i].len(), i, file_name)
 
-        for i in range(nchains_in_file):
-            # check agreement
-            np.testing.assert_equal(input_file['/chain #%d/descriptions/parameters' % i][:], par)
-            np.testing.assert_equal(input_file['/chain #%d/descriptions/constraints' % i][:], constraints)
-            assert input_file['/chain #%d/samples' % i].len() == n_samples, 'expected %d samples, got %d samples for chain %d in %s' % (n_samples, input_file['/chain #%d/samples' % i].len(), i, file_name)
+                    if invalid_chain(input_file, i, cut_off, format='pypmc'):
+                        continue
 
-            if invalid_chain(input_file, i, cut_off, format='pypmc'):
-                continue
-            # copy data
-            for g in groups:
-                input_file.copy('/chain #%d' % i + g, output_file, name='/chain #%d' % nchains_copied + g)
-            nchains_copied += 1
-        input_file.close()
+                    # copy data
+                    for g in groups:
+                        if not single_chain:
+                            input_file.copy('/chain #%d' % i + g, output_file, name='/chain #%d' % nchains_valid + g)
+                    nchains_valid += 1
+                valid_files.append(file_name)
 
-    print("Merged %d chains of %d files" % (nchains_copied, len(input_files)))
+        # compress into one big chain
+        if single_chain:
+            # with thinning and skipping, read fewer samples from each chain
+            first_index = int(skip_initial * n_samples)
+            new_samples = (n_samples - first_index) // thin
+            n_samples_total = new_samples * nchains_valid
+            print("Select %d samples from each chain" % new_samples)
 
-    output_file.close()
+            # predefine data sets large enough to hold everything
+            grp = output_file.create_group('/chain #0')
+            data_groups = [('/samples', (n_samples_total, len(par))), ('/log_posterior', (n_samples_total,))]
+            data_sets = [grp.create_dataset(g[0], g[1]) for g in data_groups]
+
+            # loop over valid input files
+            for j, file_name in enumerate(valid_files):
+                with h5py.File(file_name, 'r') as input_file:
+                    # copy descriptions only once
+                    if j == 0:
+                        s = '/chain #0/descriptions'
+                        input_file.copy(s, output_file, name=s)
+                    # loop over chains
+                    for i, c in enumerate(input_file['/'].iterkeys()):
+                        for g, ds in zip(data_groups, data_sets):
+                            old_length = len(ds)
+                            data = input_file[c + g[0]][first_index::thin]
+
+                            # 1D versus 2D assignment
+                            if g[0] == '/log_posterior':
+                                ds[old_length:old_length + new_samples] = data
+                            else:
+                                ds[old_length:old_length + new_samples, :] = data
+
+    print("Merged %d chains from %d files" % (nchains_valid, len(input_files)))
 
 def merge_sm_unc(output_file_name, input_files):
     """
@@ -197,22 +228,28 @@ def main():
 
     import argparse
 
-    parser  = argparse.ArgumentParser(description='Merge MCMC input files')
+    parser  = argparse.ArgumentParser(description=__doc__)
     parser.add_argument('--compression', dest='compression', default=0,
-                        help='Compress the copied data with a compression level. Default: 0', action='store')
-    parser.add_argument('--cut-off', help='Skip chains whose maximum posterior is below the cut-off', action='store', default=None)
+                        help='Compress the copied data with a compression level. Default: 0')
+    parser.add_argument('--cut-off', default=None,
+                        help='Skip chains whose maximum posterior is below the cut-off')
     parser.add_argument('--descriptions', dest='desc',
-                        help='Copy descriptions from this HDF5 input file to output', action='store')
+                        help='Copy descriptions from this HDF5 input file to output')
     parser.add_argument('--input-file-list', dest='input_file_list',
-                        help='List input files as text, one line per file in a file', action='store')
-    parser.add_argument('--output',
-                        help='Output file name', action='store')
-    parser.add_argument('--search', dest='search',
-                        help='HDF5 input file name pattern', action='store', default='mcmc_*.hdf5')
-    parser.add_argument('--sm-unc', dest='sm_unc',
-                        help='Merge uncertainty propagation files', action='store_true')
-    parser.add_argument('--pypmc',
-                        help='Merge mcmc from pypmc', action='store_true')
+                        help='List input files as text, one line per file in a file')
+    parser.add_argument('--output', help='Output file name')
+    parser.add_argument('--pypmc', action='store_true',
+                        help='Merge mcmc from pypmc')
+    parser.add_argument('--search', default='mcmc_*.hdf5',
+                        help='HDF5 input file name pattern')
+    parser.add_argument('--single-chain', action='store_true',
+                        help='Merge all input chains into one big output chain.')
+    parser.add_argument('--skip-initial', type=float, default=0.,
+                        help="Allows to skip the first fraction of iterations. Applies only with `--pypmc` and `--single-output`")
+    parser.add_argument('--sm-unc', action='store_true',
+                        help='Merge uncertainty propagation files')
+    parser.add_argument('--thin', type=int, default=1,
+                        help='Thin MCMC samples. Applies only with `--pypmc` and `--single-output`')
 
     args = parser.parse_args()
 
@@ -249,7 +286,9 @@ def main():
         merge_sm_unc(output_file_name=args.output, input_files=input_files)
     elif args.pypmc:
         merge_pypmc(output_file_name=args.output, search=args.search,
-                      input_files=input_files, cut_off=cut_off)
+                      input_files=input_files, cut_off=cut_off,
+                      single_chain=args.single_chain, skip_initial=args.skip_initial,
+                      thin=args.thin)
     else:
         # default: merge mcmc
         merge_preruns(output_file_name=args.output, search=args.search,

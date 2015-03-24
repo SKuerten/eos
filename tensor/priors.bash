@@ -1,4 +1,4 @@
-# defines the allowed parameter range in terms of sigmas for Gaussian and LogGamma distributions
+# defines the allowed parameter range in terms of sigmas for Gaussian distributions
 export N_SIGMAS=3
 
 # From UTfit Summer 2013 (post-EPS13)
@@ -95,6 +95,15 @@ export NUISANCE_B_TO_PLL_SUBLEADING="
 "
 
 #####################
+## inclusive
+#####################
+
+export NUISANCE_B_TO_XS_HQE="
+    --nuisance    B->B::mu_pi^2@1GeV                             0.0   2.0  ${N_SIGMAS}     --prior    gaussian    0.35      0.45      0.55
+    --nuisance    B->B::mu_G^2@1GeV                              0.0   2.0  ${N_SIGMAS}     --prior    gaussian    0.33      0.35      0.38
+"
+
+#####################
 ## named parameter sets
 #####################
 
@@ -138,3 +147,16 @@ export NUISANCE_test1=$NUISANCE_K_KstarBR_Bsmumu
 export NUISANCE_test2=$NUISANCE_test1
 export NUISANCE_test3=$NUISANCE_test1
 export NUISANCE_test4=$NUISANCE_test1
+export NUISANCE_test5="
+$NUISANCE_test1
+$NUISANCE_B_TO_XS_HQE
+"
+export NUISANCE_unc_K=$NUISANCE_FH
+export NUISANCE_unc_Kstar="
+$NUISANCE_CKM_posthep13
+$NUISANCE_QUARK_MASSES_PDG2012
+$NUISANCE_B_TO_VPARALL_SUBLEADING
+$NUISANCE_B_TO_VPERPLL_SUBLEADING
+$NUISANCE_B_TO_VPERPLL_FORM_FACTORS_KMPW2010
+$NUISANCE_B_TO_VPARALL_FORM_FACTORS_KMPW2010
+"
