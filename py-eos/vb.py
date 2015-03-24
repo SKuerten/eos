@@ -146,13 +146,9 @@ class VB(object):
         print(kwargs)
         self.vb.run(**kwargs)
 
-        # todo code dublication
         mix = self.vb.make_mixture()
         hdf5_io.save_mixture(self.args.output, output_directory, mix)
         hdf5_io.save_vb_hyperparameters(self.args.output, output_directory, self.vb)
-        # plot_mixture(mix, 0, 2)
-        # from matplotlib import pyplot as plt
-        # plt.savefig('/tmp/vb.pdf')
 
 if __name__ == '__main__':
     parser = argparse.ArgumentParser(description="Run MCMC on EOS analysis from python")
