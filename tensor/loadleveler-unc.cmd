@@ -10,19 +10,19 @@ njobs=$1; shift
 
 # file name without path and extension, example:
 # ./${scenario}-${constraints}.bash
-name=${script##*/}
-name=${name%%.*}
+script_name=${script##*/}
+script_name=${script_name%%.*}
 if [ ! -f $script ]; then
     echo "Script $script not found!"
     exit -1
 fi
 
-file=${name}.job
+file=${script_name}.job
 
 # beware of shell escaping: loadlever variables
 # must not be expanded by this shell
 echo "#! /bin/bash
-#@ job_name = unc_${name}
+#@ job_name = unc_${script_name}
 #@ group = pr85tu
 #@ job_type = serial
 #@ class = serial
@@ -44,6 +44,11 @@ echo "#! /bin/bash
 # we just want the variables defined in the script.
 source $script noop
 
+if [ ! -f $EOS_UNC_INPUT ]; then
+    echo "Input file ${EOS_UNC_INPUT} does not exist"
+    exit -1
+fi
+
 ###
 # extract the number of samples
 ###
@@ -53,7 +58,11 @@ source $script noop
 # egrep -o only output the match instead of the full line
 nsamples=$(h5ls -r $EOS_UNC_INPUT | grep '/chain\\ #0/samples' | egrep -o '\{.*,')
 # remove '{' and ',' from '{20000,'
-let nsamples=${nsamples:1:${#nsamples}-2}
+nsamples=${nsamples:1:${#nsamples}-2}
+if [ -z $nsamples ]; then
+    echo "Could not determine number of input samples"
+    exit -1
+fi
 
 # number of samples per job, integer division!
 nperjob=$(($nsamples / $njobs))
@@ -67,8 +76,8 @@ for i in $(seq -f %01.0f 1 $njobs ); do
         high=$nsamples
     fi
     echo "
-#@ step_name = $i $low $high
-#@ arguments = $low $high
+#@ step_name = step_${i}_${low}_${high}
+#@ arguments = unc $low $high
 #@ queue
 " >> $file
 done

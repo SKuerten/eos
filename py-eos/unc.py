@@ -19,7 +19,7 @@ class Unc(object):
 
         # read MCMC input file
         select = [int(x) for x in args.input_range]
-        self.input = samplingOutput.EOS_PYPMC_MCMC(self.args.mcmc_input,
+        self.input = samplingOutput.EOS_PYPMC_MCMC(self.args.mcmc_input, skip_initial=0.0,
                                                    select=select)
 
         self.fixed_name = args.parameter[0]
@@ -46,6 +46,10 @@ class Unc(object):
             for i, par in enumerate(self.fixed_values):
                 cmd = self.build_cmd(x, par)
                 status, output = commands.getstatusoutput(cmd)
+                if status:
+                    print(cmd)
+                    print(output)
+                    exit(status)
                 self.results[n, i] = float(output.splitlines()[-1].split()[0])
 
         # dump results
@@ -58,17 +62,17 @@ class Unc(object):
         for i, p in enumerate(self.input.par_defs):
             cmd += ' --parameter "' + p.name + '" %.16f' % x[i]
         cmd += ' --parameter "' + self.fixed_name + '" %.16f' % par
-        cmd += ' ' + self.args.extra_args
+        for k,v in self.args.kinematics.iteritems():
+            cmd += ' --kinematics %s %s' % (k, v)
         cmd += ' --observable "' + self.args.observable + '"'
         return cmd
 
 if __name__ == '__main__':
     parser = argparse.ArgumentParser(description=__doc__)
 
-    parser.add_argument("--extra-args", const='', nargs='?',
-                        help='''passed on as extra argument when calling `eos-evaluate`.
-                        Use it to define kinematics or other options.
-                        Example: --extra-args "--kinematics s_min 1 --kinematics s_max 6" ''')
+    parser.add_argument("--kinematics", nargs='*',
+                        help='''Use it to define kinematics or other options.
+                        Example: --kinematics s_min 1 s_max 6''')
     parser.add_argument("--input-range", help='The range of input samples used. Example: --input-range 3800 4100', nargs=2)
     parser.add_argument("--mcmc-input", help='File name with MCMC samples. Only `chain #0` is used!')
     parser.add_argument('--observable',
@@ -84,6 +88,13 @@ if __name__ == '__main__':
     ###
     # validate and use arguments
     ###
+    # keyword and value stored after one another
+    if len(args.kinematics) % 2 == 1:
+        raise argparse.ArgumentError("Supply kinematics as 'key1 value1 key2 value2'")
+    k = dict()
+    for i in range(len(args.kinematics) // 2):
+        k[args.kinematics[2 * i]] = args.kinematics[2 * i + 1]
+    args.kinematics = k
 
     ###
     # take action

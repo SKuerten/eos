@@ -199,7 +199,7 @@ unc() {
 
     ../py-eos/unc.py \
         ${input_arg} \
-        --extra-args ${EOS_UNC_EXTRA_ARGS} \
+        --kinematics ${EOS_UNC_KINEMATICS} \
         --input-range $low $high \
         --mcmc-input ${EOS_UNC_INPUT} \
         --observable ${EOS_UNC_OBSERVABLE}${EOS_UNC_GLOBAL_OPTIONS} \
