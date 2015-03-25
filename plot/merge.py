@@ -107,11 +107,12 @@ def merge_pypmc(output_file_name, search='mcmc_*.hdf5', input_files=None,
 
     # hdf5 groups
     groups = ['/samples', '/descriptions', '/log_posterior']
+    first = '/chain #0'
 
     with h5py.File(input_files[0], 'r') as f:
-        par = f['/chain #0/descriptions/parameters'][:]
-        constraints = f['/chain #0/descriptions/constraints'][:]
-        n_samples = len(f['/chain #0/samples'])
+        par = f[first + '/descriptions/parameters'][:]
+        constraints = f[first + '/descriptions/constraints'][:]
+        n_samples = len(f[first + '/samples'])
 
     # count chains copied
     nchains_valid = 0
@@ -148,21 +149,22 @@ def merge_pypmc(output_file_name, search='mcmc_*.hdf5', input_files=None,
             print("Select %d samples from each chain" % new_samples)
 
             # predefine data sets large enough to hold everything
-            grp = output_file.create_group('/chain #0')
+            grp = output_file.create_group(first)
             data_groups = [('/samples', (n_samples_total, len(par))), ('/log_posterior', (n_samples_total,))]
-            data_sets = [grp.create_dataset(g[0], g[1]) for g in data_groups]
+            data_sets = [output_file.create_dataset(first + g[0], g[1]) for g in data_groups]
 
             # loop over valid input files
+            nchain = 0
             for j, file_name in enumerate(valid_files):
                 with h5py.File(file_name, 'r') as input_file:
                     # copy descriptions only once
                     if j == 0:
-                        s = '/chain #0/descriptions'
+                        s = first + '/descriptions'
                         input_file.copy(s, output_file, name=s)
                     # loop over chains
                     for i, c in enumerate(input_file['/'].iterkeys()):
                         for g, ds in zip(data_groups, data_sets):
-                            old_length = len(ds)
+                            old_length = nchain * new_samples
                             data = input_file[c + g[0]][first_index::thin]
 
                             # 1D versus 2D assignment
@@ -170,6 +172,7 @@ def merge_pypmc(output_file_name, search='mcmc_*.hdf5', input_files=None,
                                 ds[old_length:old_length + new_samples] = data
                             else:
                                 ds[old_length:old_length + new_samples, :] = data
+                    nchain += 1
 
     print("Merged %d chains from %d files" % (nchains_valid, len(input_files)))
 
