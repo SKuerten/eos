@@ -23,18 +23,13 @@ class Unc(object):
                                                    select=select)
 
         self.fixed_name = args.parameter[0]
-        self.fixed_values = np.linspace(*tuple([float(x) for x in args.parameter[1:]]))
 
-        self.results = np.empty((len(self.input.samples), len(self.fixed_values)))
+        self.results = np.empty((len(self.input.samples), int(args.parameter[-1])))
 
         desc = 'descriptions'
         with h5py.File(args.output, 'w') as output_file:
             with h5py.File(args.mcmc_input, 'r') as input_file:
-                # todo Don't hardcode chain id!
                 input_file.copy('/chain #0/' + desc, output_file, name=desc)
-
-            ds_fixed = output_file.create_dataset(desc + '/fixed parameter', data=self.fixed_values)
-            ds_fixed.attrs['name'] = self.fixed_name
 
             ds_par = output_file[desc + '/parameters']
             ds_par.attrs['input file'] = self.args.mcmc_input
@@ -43,25 +38,30 @@ class Unc(object):
 
     def run(self):
         for n, x in enumerate(self.input.samples):
-            for i, par in enumerate(self.fixed_values):
-                cmd = self.build_cmd(x, par)
-                status, output = commands.getstatusoutput(cmd)
-                if status:
-                    print(cmd)
-                    print(output)
-                    exit(status)
-                self.results[n, i] = float(output.splitlines()[-1].split()[0])
+            cmd = self.build_cmd(x)
+            status, output = commands.getstatusoutput(cmd)
+            if status:
+                print(cmd)
+                print(output)
+                exit(status)
+            # ignore first two lines, then extract second column
+            arr = np.loadtxt(output.splitlines()[2:])
+            self.results[n] = arr.T[1]
 
         # dump results
         with h5py.File(args.output, 'a') as output_file:
             ds_obs = output_file.create_dataset('/observable', data=self.results)
             ds_obs.attrs['name'] = self.args.observable
 
-    def build_cmd(self, x, par):
+            # fixed values always the same, only use from last output
+            ds_fixed = output_file.create_dataset('/descriptions/fixed parameter', data=arr.T[0])
+            ds_fixed.attrs['name'] = self.fixed_name
+
+    def build_cmd(self, x):
         cmd = 'eos-evaluate --precision 16'
         for i, p in enumerate(self.input.par_defs):
             cmd += ' --parameter "' + p.name + '" %.16f' % x[i]
-        cmd += ' --parameter "' + self.fixed_name + '" %.16f' % par
+        cmd += ' --parameter-range %s %s %s %s' % tuple(self.args.parameter)
         for k,v in self.args.kinematics.iteritems():
             cmd += ' --kinematics %s %s' % (k, v)
         cmd += ' --observable "' + self.args.observable + '"'
