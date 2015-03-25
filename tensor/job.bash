@@ -203,7 +203,7 @@ unc() {
         --input-range $low $high \
         --mcmc-input ${EOS_UNC_INPUT} \
         --observable ${EOS_UNC_OBSERVABLE}${EOS_UNC_GLOBAL_OPTIONS} \
-        --output $output_dir/unc_${data}.hdf5 \
+        --output $output_dir/unc_${data}_${low}_${high}.hdf5 \
         --parameter ${EOS_UNC_PARAMETER}
 }
 

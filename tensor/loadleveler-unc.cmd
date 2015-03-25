@@ -44,19 +44,36 @@ echo "#! /bin/bash
 # we just want the variables defined in the script.
 source $script noop
 
+###
 # extract the number of samples
-let nsamples=`h5ls -r $EOS_UNC_INPUT | grep ...`
-echo $EOS_UNC_INPUT
-# all jobs are independent
-for i in $(seq -f %01.0f 1 $njobs); do
-   echo "
-#@ step_name = $i
-#@ arguments = $i
+###
+# ack-grep not available everywhere but so much easier to read!
+# nsamples=$(h5ls -r $EOS_UNC_INPUT| ack '/chain\\ #0/samples' | ack -ho "Dataset {(\d*)," --output '$1')
+
+# egrep -o only output the match instead of the full line
+nsamples=$(h5ls -r $EOS_UNC_INPUT | grep '/chain\\ #0/samples' | egrep -o '\{.*,')
+# remove '{' and ',' from '{20000,'
+let nsamples=${nsamples:1:${#nsamples}-2}
+
+# number of samples per job, integer division!
+nperjob=$(($nsamples / $njobs))
+
+for i in $(seq -f %01.0f 1 $njobs ); do
+    low=$(((i-1) * nperjob))
+    if [ $i -lt $njobs ]; then
+        high=$((i * nperjob))
+    else
+        # last job gets rest of samples if nsamples not divisible by njobs
+        high=$nsamples
+    fi
+    echo "
+#@ step_name = $i $low $high
+#@ arguments = $low $high
 #@ queue
 " >> $file
 done
 
-cat $file
-# sync
-# llsubmit $file
-# rm $file
+# cat $file
+sync
+llsubmit $file
+rm $file
