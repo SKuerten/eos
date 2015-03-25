@@ -199,8 +199,13 @@ class MCMC_Output(SamplingOutput):
         full_length = len(hdf5_file[prefix + '/chain #' + first_chain + "/samples"])
 
         #adjust which range is drawn, default: full range
-        if self.skip_initial > 0:
-            self.select[0] = int(self.skip_initial * full_length)
+        if self.select[0] is None:
+            if self.skip_initial > 0:
+                self.select[0] = int(self.skip_initial * full_length)
+            else:
+                self.select[0] = 0
+        if self.select[1] is None:
+            self.select[1] = self.chain_length
 
         merged_chains = hdf5_file[prefix + '/chain #' + first_chain + "/samples"][self.select[0]:self.select[1]]
         n_chains_parsed += 1
@@ -1172,14 +1177,16 @@ class EOS_PYPMC_MCMC(SamplingOutput):
             self.chain_length = len(samples)
 
             #adjust which range is drawn, default: full range
-            if self.skip_initial > 0:
-                self.select[0] = int(self.skip_initial * self.chain_length)
             if self.select[0] is None:
-                self.select[0] = 0
+                if self.skip_initial > 0:
+                    self.select[0] = int(self.skip_initial * self.chain_length)
+                else:
+                    self.select[0] = 0
             if self.select[1] is None:
                 self.select[1] = self.chain_length
 
             self.reduced_length = self.select[1] - self.select[0]
+            assert self.reduced_length > 0, "Invalid selection: " + str(self.select)
 
             source_slice = np.s_[self.select[0]:self.select[1]]
             destination_slice = np.s_[0:self.reduced_length]
