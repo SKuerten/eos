@@ -262,6 +262,9 @@ main() {
         is)
             is $@
             ;;
+        noop)
+            # do nothing
+            ;;
         opt)
             opt $@
             ;;
