@@ -1,6 +1,7 @@
 *.aux
 *.bbl
 *.blg
+*.log
 *.out
 *.synctex.gz
 *.pdf
@@ -8,3 +9,6 @@
 
 # emacs creates this subdirectory with auctex
 auto/
+
+# eclipse files
+*.*project
