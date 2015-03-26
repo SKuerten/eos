@@ -176,7 +176,63 @@ def merge_pypmc(output_file_name, search='mcmc_*.hdf5', input_files=None,
 
     print("Merged %d chains from %d files" % (nchains_valid, len(input_files)))
 
-def merge_sm_unc(output_file_name, input_files):
+def merge_unc_pypmc(output_file_name, search='unc*.hdf5', input_files=None):
+    if not input_files:
+        input_files = search_files(search, output_file_name)
+
+
+    with h5py.File(output_file_name, "w") as output_file:
+        # check if files agree with first input file
+        with h5py.File(input_files[0], 'r') as f:
+            constraints = f['/descriptions/constraints'][:]
+
+            par_ds = f['/descriptions/parameters']
+            parameters = par_ds[:]
+            sample_input_file = par_ds.attrs['input file']
+
+            fixed_par_ds = f['/descriptions/fixed parameter']
+            fixed_par = fixed_par_ds[:]
+            fixed_par_name = fixed_par_ds.attrs['name']
+
+            obs_ds = f['observable']
+            obs_name = obs_ds.attrs['name']
+
+            print("Definining data format from %s" % os.path.split(input_files[0])[1])
+
+            # copy meta data to output file
+            f.copy('/descriptions', output_file)
+
+            # create observable data set and initialize with first input file
+            obs_ds = output_file.create_dataset('/observable', data=obs_ds[:], maxshape=(None, obs_ds.shape[1]))
+            obs_ds.attrs['name'] = obs_name
+
+        for file_name in input_files[1:]:
+            with h5py.File(file_name, 'r') as input_file:
+                # check agreement
+                np.testing.assert_equal(input_file['/descriptions/constraints'][:], constraints)
+
+                par_ds = input_file['/descriptions/parameters']
+                np.testing.assert_equal(par_ds[:], parameters)
+                assert par_ds.attrs['input file'] == sample_input_file
+
+                fixed_par_ds = input_file['/descriptions/fixed parameter']
+                np.testing.assert_equal(fixed_par_ds[:], fixed_par)
+                assert fixed_par_ds.attrs['name'] == fixed_par_name
+
+                in_obs_ds = input_file['/observable']
+                assert in_obs_ds.attrs['name'] == obs_name
+
+                print("merging %s" % os.path.split(file_name)[1])
+                old_length = obs_ds.len()
+                obs_ds.resize(old_length + in_obs_ds.len(), axis=0)
+                obs_ds[old_length:old_length + in_obs_ds.len()] = in_obs_ds[:]
+
+                # reset max. There may be holes in the range of min to max
+                s = 'max sample index'
+                par_ds.attrs[s]
+                output_file['/descriptions/parameters'].attrs[s] = par_ds.attrs[s]
+
+def merge_unc(output_file_name, input_files):
     """
 
     """
@@ -249,7 +305,7 @@ def main():
                         help='Merge all input chains into one big output chain.')
     parser.add_argument('--skip-initial', type=float, default=0.,
                         help="Allows to skip the first fraction of iterations. Applies only with `--pypmc` and `--single-output`")
-    parser.add_argument('--sm-unc', action='store_true',
+    parser.add_argument('--unc', action='store_true',
                         help='Merge uncertainty propagation files')
     parser.add_argument('--thin', type=int, default=1,
                         help='Thin MCMC samples. Applies only with `--pypmc` and `--single-output`')
@@ -257,7 +313,11 @@ def main():
     args = parser.parse_args()
 
     if args.output is None:
-        args.output = os.path.join(os.getcwd(), 'mcmc_pre_merged.hdf5')
+        if args.unc:
+            output = 'unc_merged.hdf5'
+        else:
+            output = 'mcmc_pre_merged.hdf5'
+        args.output = os.path.join(os.getcwd(), output)
 
     if args.desc is not None:
         import h5py
@@ -285,19 +345,22 @@ def main():
     else:
         cut_off = None
 
-    if args.sm_unc:
-        merge_sm_unc(output_file_name=args.output, input_files=input_files)
-    elif args.pypmc:
-        merge_pypmc(output_file_name=args.output, search=args.search,
-                      input_files=input_files, cut_off=cut_off,
-                      single_chain=args.single_chain, skip_initial=args.skip_initial,
-                      thin=args.thin)
+    if args.unc:
+        if args.pypmc:
+            merge_unc_pypmc(output_file_name=args.output, input_files=input_files)
+        else:
+            merge_unc(output_file_name=args.output, input_files=input_files)
     else:
-        # default: merge mcmc
-        merge_preruns(output_file_name=args.output, search=args.search,
-                      input_files=input_files,
-                      compression=int(args.compression), cut_off=cut_off)
+        if args.pypmc:
+            merge_pypmc(output_file_name=args.output, search=args.search,
+                        input_files=input_files, cut_off=cut_off,
+                        single_chain=args.single_chain, skip_initial=args.skip_initial,
+                        thin=args.thin)
+        else:
+            # default: merge mcmc
+            merge_preruns(output_file_name=args.output, search=args.search,
+                          input_files=input_files,
+                          compression=int(args.compression), cut_off=cut_off)
 
 if __name__ == '__main__':
-#    merge_preruns(search='scenario2*.hdf5')
     main()
