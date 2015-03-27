@@ -347,7 +347,8 @@ def main():
 
     if args.unc:
         if args.pypmc:
-            merge_unc_pypmc(output_file_name=args.output, input_files=input_files)
+            merge_unc_pypmc(output_file_name=args.output, input_files=input_files,
+                            search=args.search)
         else:
             merge_unc(output_file_name=args.output, input_files=input_files)
     else:
