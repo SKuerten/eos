@@ -1231,3 +1231,22 @@ class EOS_PYPMC_MCMC(SamplingOutput):
     def individual_chains(self):
         '''Return list of individual chains.'''
         return [self.samples[i * self.reduced_length:(i+1) * self.reduced_length] for i in range(len(self.samples) // self.reduced_length)]
+
+class EOS_PYPMC_UNC(SamplingOutput):
+    '''Read samples of a single observable computed from parameter samples.'''
+
+    def _read(self, *args, **kwargs):
+        with h5py.File(self.input_file_name) as input_file:
+            obs_ds = input_file['/observable']
+            self.samples = obs_ds[:]
+            self.weights = np.ones(len(self.samples))
+            fixed_ds = input_file['/descriptions/fixed parameter']
+            fixed_name = fixed_ds.attrs['name']
+            fixed_values = fixed_ds[:]
+            self.par_defs = []
+            for i in range(len(fixed_values)):
+                # get everything up to '@' to remove lengthy options
+                name = obs_ds.attrs['name']
+                name = name[:name.find('@')] + '@' + fixed_name + '= %g' % fixed_values[i]
+                self.par_defs.append(ParameterDefinition(name, np.min(self.samples.T[i]), np.max(self.samples.T[i])))
+            self.priors = [None] * len(fixed_values)

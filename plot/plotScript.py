@@ -1581,8 +1581,13 @@ def factory(cmd_line=None):
         OutputClass = EmceeOutput
     elif args.nest:
         OutputClass = MultinestOutput
-    elif args.uncertainty_propagation:
-        OutputClass = UncertaintyPropagation
+    elif args.uncertainty_propagation or 'unc_' in args.i or '_unc' in args.i:
+        # correlations not meaningful if computed from the same random numbers
+        args.__dict__['1D_only'] = True
+        if args.pypmc:
+            OutputClass = EOS_PYPMC_UNC
+        else:
+            OutputClass = UncertaintyPropagation
     else:
         if args.i.endswith('.npy'):
             OutputClass = JahnISOutput
