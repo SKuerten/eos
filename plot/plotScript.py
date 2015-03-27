@@ -411,6 +411,14 @@ class MarginalDistributions:
         self.minimum_probability = None
 
         ###
+        # Summary of 1D marginals stored as np.array
+        # credibilities:  par index => 1sigma: [min, max, width], 2sigma: [min, max, width]
+        # marginal_modes: par index => [modes]
+        ###
+        self.credibilities = {}
+        self.marginal_modes = {}
+
+        ###
         # Marginalization options
         ###
         if projection:
@@ -570,7 +578,7 @@ class MarginalDistributions:
         self.nBins[index] = int(( self.max[index] - self.min[index])/bandwidth)
         return bandwidth
 
-    def contours_one(self, x, densities, level, specifier, mode, **kwargs):
+    def contours_one(self, x, densities, level, specifier, hist=True, **kwargs):
         """
         Plot contours and output intervals for one dim. distributions of parameter x.
         args:
@@ -578,16 +586,18 @@ class MarginalDistributions:
         densities = the estimate of the probability density
         level = the desired credibility level
         specifier = label used for text output, e.g. 'one sigma'
-        mode = if hist, use traditional plotting.
+        hist = if `True`, plot with histogram bars, else interpolate smoothly
         **kwargs are passed to the plotting routine of pylab.fill_between
         """
-        if mode == 'hist':
-            #draw 95% bins in yellow, 68% in green
+        if hist:
             for i in range(len(x)-1):
                 if densities[i] > level:
                     P.fill_between( (x[i], x[i+1]), 0, densities[i], **kwargs)
                     continue
 
+            return
+        else:
+            P.fill_between(x, densities, 0, interpolate=True, where=densities > level, **kwargs)
             return
 
         high_points = densities >= level
@@ -708,7 +718,7 @@ class MarginalDistributions:
         print("Maxima of 68 %% contours at = %s " % np.array(maxima_68))
         """
 
-    def __extract_smallest_intervals(self, x, prob_density, level_68, level_95):
+    def __extract_smallest_intervals(self, x, prob_density, level_68, level_95, index=None):
         """
         Extract set of smallest intervals in 1D
         """
@@ -718,17 +728,19 @@ class MarginalDistributions:
         runs = find_runs(points_95, True)
 
         # print intervals
-        intervals_95 = []
+        intervals95 = []
         local_modes = []
         for run in runs:
-            intervals_95.append([x[run[0]], x[run[1] - 1]])
-            intervals_95[-1].append(intervals_95[-1][1] - intervals_95[-1][0])
+            intervals95.append([x[run[0]], x[run[1] - 1]])
+            intervals95[-1].append(intervals95[-1][1] - intervals95[-1][0])
             mode_index = run[0] + np.argmax(prob_density[run[0]:run[1]])
             local_modes.append((x[mode_index] + x[mode_index + 1]) / 2.0)
+        intervals95 = np.array(intervals95)
+        local_modes = np.array(local_modes)
         print("Minimal 2 sigma intervals:")
-        print(np.array(intervals_95))
+        print(np.array(intervals95))
         print("Local marginalized mode(s):")
-        print(np.array(local_modes))
+        print(local_modes)
 
         ###
         # one sigma intervals
@@ -739,17 +751,22 @@ class MarginalDistributions:
         runs = find_runs(points_68, True)
 
         # print intervals
-        intervals_68 = []
+        intervals68 = []
         for run in runs:
-            intervals_68.append([x[run[0]], x[run[1] - 1]])
-            intervals_68[-1].append(intervals_68[-1][1] - intervals_68[-1][0])
+            intervals68.append([x[run[0]], x[run[1] - 1]])
+            intervals68[-1].append(intervals68[-1][1] - intervals68[-1][0])
 
+        intervals68 = np.array(intervals68)
         print("Minimal 1 sigma intervals:")
-        print(np.array(intervals_68))
+        print(intervals68)
 
         if len(local_modes) == 1:
             print('x +a -b:')
-            print('%g +%g -%g' % (local_modes[0], intervals_68[0][1] - local_modes[0], local_modes[0] - intervals_68[0][0]))
+            print('%g +%g -%g' % (local_modes[0], intervals68[0][1] - local_modes[0], local_modes[0] - intervals68[0][0]))
+
+        if index is not None:
+            self.credibilities[index] = intervals68, intervals95
+            self.marginal_modes[index] = local_modes
 
     def one_dimensional(self, index,
                         prior_style=dict(color='black', linestyle='dashed'),
@@ -807,45 +824,25 @@ class MarginalDistributions:
         print('')
         print("%s: x_range = [%g, %g], bins = %d" % (parameter_name, x_min, x_max, self.nBins[index]))
 
-        #KDE doesn't make sense for discrete parameters
-        if self.out.par_defs[index].discrete:
-            print("found a discrete parameter")
-            print(self.use_histogram)
-            histogram_state = self.use_histogram
-            self.use_histogram = True
-
         # general array, either from histogramming or from KDE
         probability_array = None
 
         if self.use_histogram:
-             print("Using histogram")
              (hist_outline, hist_normal) = histOutline(samples, bins=self.nBins[index], weights=self.out.weights,
                                                        normed=True, range=(x_min, x_max))
              P.plot(hist_outline[0], hist_outline[1], label=legend_label, **marginal_style)
 
-             # the data used for credibility regions
-             probability_array = hist_normal[1]
+             # data for contours
+             x_values, y_values = hist_normal
 
-             if self.use_contours:
-
-                 level_68, level_95 = self.find_hist_limits(hist_normal[1])
-
-                 self.__extract_smallest_intervals(hist_normal[0], probability_array, level_68, level_95)
-
-                 # draw 95% bins in light blue, 68% in opaque blue
-                 self.contours_one(hist_normal[0], hist_normal[1], level_95, 'two_sigma', 'hist',
-                                   linewidth=0, edgecolor='none', **two_sigma_style)
-                 self.contours_one(hist_normal[0], hist_normal[1], level_68, 'one_sigma', 'hist',
-                                   linewidth=0, edgecolor='none', **one_sigma_style)
         else: #use KDE
-            print("Using KDE with bandwidth %g" % bandwidth)
             mesh_points = np.linspace(x_min, x_max, self.nBins[index] )
 
             #setup for figtree
             start_time = time.time()
             densities = figtree.figtree(np.ascontiguousarray(samples), mesh_points, weights=self.out.weights, bandwidth=bandwidth, eval="auto")
             end_time = time.time()
-            print("figtree used %f s" % (end_time-start_time) )
+            print("figtree with bandwidth %g took %f s" % (bandwidth, end_time-start_time))
 
             from scipy import interpolate
             #do a spline interpolation on a finer grid
@@ -853,90 +850,48 @@ class MarginalDistributions:
             finer_mesh = np.linspace(x_min, x_max, 5*self.nBins[index] )
             densities_interp = interpolate.splev(finer_mesh, tck, der=0)
 
-            # can't use interpolated array, because x_min/x_max for bin index finding won't work
-            probability_array = densities
-
             # normalize to unity
             densities_interp /= np.sum(densities_interp * (x_max - x_min) / len(finer_mesh))
 
             P.plot(finer_mesh, densities_interp, label=legend_label, **marginal_style)
 
-            # todo why is this almost a copy of _extract* ?
-            #now add credibility bands
-            if self.use_contours:
-                ###
-                #minimal interval
-                ###
-                level_68, level_95 = self.find_hist_limits(densities_interp)
+            # data for contours
+            x_values, y_values = finer_mesh, densities_interp
 
-                points_95 = densities_interp >= level_95
+        #now add credibility bands
+        if self.use_contours:
+            ###
+            #minimal interval
+            ###
+            level_68, level_95 = self.find_hist_limits(y_values)
 
-                # find connected regions
-                runs = find_runs(points_95, True)
+            self.__extract_smallest_intervals(x_values, y_values, level_68, level_95, index)
 
-                #green band for each interval
-                for run in runs:
-                    P.fill_between(finer_mesh[run[0]:run[1]], 0, densities_interp[run[0]:run[1]], **two_sigma_style)
-
-                # print intervals
-                intervals_95 = []
-                local_modes = []
-                for run in runs:
-                    intervals_95.append([finer_mesh[run[0]], finer_mesh[run[1] - 1]])
-                    intervals_95[-1].append(intervals_95[-1][1] - intervals_95[-1][0])
-                    local_modes.append(finer_mesh[run[0] + np.argmax(densities_interp[run[0]:run[1]])])
-                print("Minimal 2 sigma intervals:")
-                print(np.array(intervals_95))
-
-                ###
-                # one sigma intervals
-                ###
-                points_68 = densities_interp >= level_68
-
-                # TODO runs change on the same data set? why
-
-                # find connected regions
-                runs = find_runs(points_68, True)
-
-                #green band for each interval
-                for run in runs:
-                    P.fill_between(finer_mesh[run[0]:run[1]], 0, densities_interp[run[0]:run[1]], **one_sigma_style)
-
-                # print intervals
-                intervals_68 = []
-                for run, mode in zip(runs, local_modes):
-                    intervals_68.append([finer_mesh[run[0]], finer_mesh[run[1] - 1]])
-                    intervals_68[-1].append(intervals_68[-1][1] - intervals_68[-1][0])
-
-                    print("Minimal 1 sigma intervals:")
-                    print(np.array(intervals_68))
-
-                    print("Local marginalized mode +a -b:")
-                    print('%g + %g - %g' % (mode, intervals_68[-1][1] - mode, mode - intervals_68[-1][0], ))
+            for level, tag, style in [(level_95, 'two_sigma', two_sigma_style),
+                                      (level_68, 'one_sigma', one_sigma_style)]:
+                self.contours_one(x_values, y_values, level, tag,
+                                  hist=self.use_histogram,
+                                  linewidth=0, edgecolor='none', **style)
 
         # determine goodness-of-fit
         if self.gof_point is not None:
-
             try:
-                # read out value in this this dimension
+                # read out value in this dimension
                 value = self.gof_point[index]
+            except KeyError:
+                pass
+            else:
                 # calculate index of bin containing the point
-                bin_index = np.floor((value - x_min) / (x_max - x_min) * self.nBins[index])
+                bin_index = np.floor((value - x_min) / (x_max - x_min) * len(x_values))
                 # special case: value at right edge
-                bin_index = min(bin_index, self.nBins[index] - 1)
+                bin_index = min(bin_index, len(x_values) - 1)
 
-                posterior_level = probability_array[bin_index]
+                posterior_level = y_values[bin_index]
 
-                self.print_gof(value, probability_array, posterior_level)
+                self.print_gof(value, y_values, posterior_level)
 
                 # indicate GOF point
                 P.scatter(value, 0, marker='*', s=200, color='salmon')
-
-            except KeyError:
-                pass
-
-        if self.out.par_defs[index].discrete:
-            self.use_histogram = histogram_state
 
         # plot global mode for single chains
         global_mode_index = self.out.get('global_mode_index')
@@ -954,7 +909,9 @@ class MarginalDistributions:
                 function = P.fill_between(mesh_points, np.zeros_like(mesh_points), prior_values, label=prior_label, **prior_style)
 
             P.plot(mesh_points, prior_values, label=prior_label, **prior_style)
-        P.xlim( (x_min, x_max) )
+
+        # axes decoration
+        P.xlim(x_min, x_max)
         P.ylim(0)
 
         P.xlabel(parameter_name)
@@ -967,9 +924,9 @@ class MarginalDistributions:
         return True
 
     def two_dimensional(self, par1, par2):
-
         #do nothing if one of the parameters is a nuisance parameter
-        if (not self.use_nuisance or not self.nuisance_2D) and (self.out.par_defs[par1].nuisance or self.out.par_defs[par2].nuisance):
+        if not (self.use_nuisance or self.nuisance_2D) \
+           and (self.out.par_defs[par1].nuisance or self.out.par_defs[par2].nuisance):
             return False
 
         #don't plot one nuisance vs another nuisance parameter
@@ -1018,13 +975,6 @@ class MarginalDistributions:
             twoD_bins = np.array((self.two_dim_n_bins, self.two_dim_n_bins), dtype=int)
 
         print("Grid shape %s for parameters %s" % (twoD_bins, [self.out.par_defs[par1].name, self.out.par_defs[par2].name]))
-
-        #KDE doesn't make sense for discrete parameters
-        if self.out.par_defs[par1].discrete or self.out.par_defs[par2].discrete:
-            histogram_state = self.use_histogram
-            self.use_histogram = True
-            contour_state = self.use_contours
-            self.use_contours = False
 
         # general 2D array of probablity (density) in pixels
         probability_array = None
@@ -1151,10 +1101,6 @@ class MarginalDistributions:
                         extent=[x_min, x_max, y_min, y_max],
                         origin='lower',
                         interpolation = self.kde_interpolation)
-
-        if self.out.par_defs[par1].discrete or self.out.par_defs[par2].discrete:
-            self.use_histogram = histogram_state
-            self.use_contours = contour_state
 
         # determine goodness-of-fit
         if self.gof_point is not None:
@@ -1648,8 +1594,8 @@ def factory(cmd_line=None):
         marg.single_1D = args.single_1D
         marg.use_nuisance = True
     if args.__dict__['single_2D'] is not None:
-        marg.single_2D = args.single_2D #[int(x) for x in args.__dict__['single_2D']]
-        marg.no_nuisance_vs_nuisance = False
+        marg.single_2D = args.single_2D
+        marg.nuisance_2D = True
     if args.__dict__['single_ext']:
         marg.single_ext = "." + args.__dict__['single_ext']
     if args.__dict__['output_dir'] is not None:

@@ -18,18 +18,17 @@ def open_hdf5(name, mode='r'):
 class ParameterDefinition(object):
     """Properties of a fit parameter"""
 
-    def __init__(self, name, min, max, nuisance=False, discrete=False, index=None):
+    def __init__(self, name, min, max, nuisance=False, index=None):
         self.name = name
         self.min = min
         self.max = max
         self.nuisance = nuisance
-        self.discrete = discrete
         self.range = (min, max)
         self.i = index
 
     def __repr__(self):
-        return "{Name: %s, min: %g, max: %g, nuisance: %d, discrete: %d}" % \
-                ( self.name, self.min, self.max, self.nuisance, self.discrete)
+        return "{Name: %s, min: %g, max: %g, nuisance: %d}" % \
+                ( self.name, self.min, self.max, self.nuisance)
 
 class SamplingOutput(object):
     """
@@ -974,7 +973,7 @@ class UncertaintyPropagation(IS_Output):
             sm_predictions[o] = dset.attrs['SM prediction']
             pd = ParameterDefinition(observable_names[o] + str(kinematics.get(o, '')),
                                      self.samples[:,o].min(), self.samples[:, o].max(),
-                                     nuisance=False, discrete=False, index=o)
+                                     nuisance=False, index=o)
             self.par_defs.append(pd)
             self.priors.append(None)
 
