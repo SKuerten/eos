@@ -52,19 +52,9 @@ export EOS_MCMC_SCALE_NUISANCE=1
 export EOS_MCMC_SCALE_REDUCTION=1
 export EOS_MCMC_PROPOSAL='gauss'
 mcmc() {
-    scenario=${1}
-    shift
-
-    data=${1}
-    shift
-
     prerun_index=${1}
     non_empty "prerun_index"
     seed=$(expr $EOS_SEED "+" ${prerun_index} "*" 1000)
-
-    # scan=SCAN_${scenario}
-    # constraints=CONSTRAINTS_${data}
-    # nuisance=NUISANCE_${data}
 
     ../py-eos/mcmc.py \
         --analysis-info $EOS_ANALYSIS_INFO \
@@ -86,32 +76,41 @@ export EOS_OPT_TOL=1e-14
 export EOS_OPT_TOL_LOCAL=$EOS_OPT_TOL
 
 opt() {
-    scenario=${1}
-    shift
-
-    data=${1}
-    shift
-
-    gof_index=${1}
+    gof_index=${1}; shift
     non_empty "gof_index"
-    shift
 
-    nlopt_algorithm=${1}
+    # set default if arg not given
+    nlopt_algorithm=${1:-"LN_BOBYQA"}; shift
     non_empty "nlopt_algorithm"
-    shift
 
-    local_alg=${1}
-    shift
+    local_alg=${1}; shift
 
     EOS_MODE=GOF_MODE_${gof_index}
-
-    mkdir -p ${BASE_NAME}/${scenario}_${data}
 
     ../py-eos/optimize.py --algorithm $nlopt_algorithm --local-algorithm $local_alg \
         --initial-guess ${!EOS_MODE} \
         --max-evaluations "${EOS_OPT_MAXEVAL}" --tolerance "${EOS_OPT_TOL}" \
         --max-evaluations-local "${EOS_OPT_MAXEVAL_LOCAL}" --tolerance-local "${EOS_OPT_TOL_LOCAL}"
-        > ${BASE_NAME}/${scenario}_${data}/py_opt_${nlopt_algorithm}_${local_alg}_${gof_index}.log 2>&1
+        > $output_dir/opt_${nlopt_algorithm}_${local_alg}_${gof_index}.log 2>&1
+}
+
+opt_multi () {
+    first_mode_index=${1}; shift
+    non_empty "first_mode_index"
+
+    second_mode_index=${1}; shift
+    if [[ -z ${second_mode_index} ]] ; then
+        second_mode_index=first_mode_index
+    fi
+
+    algorithms="LN_BOBYQA LN_COBYLA"
+    # for i in $(seq -f %01.0f ${first_mode_index} ${second_mode_index}); do
+    for ((i=first_mode_index; i <= second_mode_index; i++)); do
+        for alg in $algorithms; do
+            echo "Running $alg for mode $i"
+            opt $i $alg &
+        done
+    done
 }
 
 export EOS_VB_COMPONENTS_PER_GROUP=15
@@ -254,7 +253,7 @@ main() {
             is 4
             ;;
         mcmc)
-            mcmc ${scenario} ${data} $@
+            mcmc $@
             ;;
         info)
             ../py-eos/analysis_info.py
@@ -267,6 +266,9 @@ main() {
             ;;
         opt)
             opt $@
+            ;;
+        opt_multi)
+            opt_multi $@
             ;;
         unc)
             unc $@

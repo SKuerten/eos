@@ -93,6 +93,8 @@ if __name__ == '__main__':
     parser.add_argument("--algorithm", required=True)
     parser.add_argument("--analysis-from", help="Specify where the `eos.Analysis` instance shall be read off. Either specify a python module (for example `module.analysis`) or `env` (default) for reading off the environement variables.",
                         type=str, action='store', default='env')
+    parser.add_argument("--analysis-info", help='Print constraints, parameters, and observables',
+                        type=int, default=False)
     parser.add_argument("--initial-guess", nargs='*', help="Vector to seed the optimization (minus signs must be replaced by `n` if notation `0.3e-3` is used). Ex: { 0.1 n0.3e-3 -0.5 }")
     parser.add_argument("--local-algorithm", nargs='?', default=None)
     parser.add_argument("--max-evaluations", type=int, action='store')
@@ -102,7 +104,7 @@ if __name__ == '__main__':
 
     # validate arguments
     args = parser.parse_args()
-    assert len(args.initial_guess) > 2, "invalid specification of the initial guess:" + str(args.initial_guess)
+    assert len(args.initial_guess) > 2, "invalid specification of the initial guess: " + str(args.initial_guess)
 
     ana = make_analysis(args.analysis_from)
     target_density = NLOPT_Wrapper(ana)
@@ -113,7 +115,8 @@ if __name__ == '__main__':
         local_opt = make_opt(target_density, args.local_algorithm, maxeval=args.max_evaluations_local, tol=args.tolerance_local)
         opt.set_local_optimizer(local_opt)
 
-    print target_density.analysis
+    if args.analysis_info:
+        print target_density.analysis
 
     start = np.array([float(x.replace('n','-')) for x in args.initial_guess[1:-1]])
     print "Starting", print_opt(opt), " with f =", target_density.analysis(start), "at"
