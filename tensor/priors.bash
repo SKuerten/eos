@@ -41,33 +41,44 @@ export NUISANCE_B_TO_VPERPLL_FORM_FACTORS_FLAT="
     --global-option form-factors KMPW2010
 
     --nuisance    B->K^*::F^V(0)@KMPW2010                        0.0   1.0                  --prior    flat
-    --nuisance    B->K^*::b^V_1@KMPW2010                       -15.0  25.0                  --prior    flat
+    --nuisance    B->K^*::b^V_1@KMPW2010                       -10.0  10.0                  --prior    flat
 "
 export NUISANCE_B_TO_VPARALL_FORM_FACTORS_FLAT="
     --global-option form-factors KMPW2010
 
     --nuisance    B->K^*::F^A1(0)@KMPW2010                       0.0   1.0                  --prior    flat
-    --nuisance    B->K^*::b^A1_1@KMPW2010                      -15.0  15.0                  --prior    flat
+    --nuisance    B->K^*::b^A1_1@KMPW2010                      -10.0  10.0                  --prior    flat
     --nuisance    B->K^*::F^A2(0)@KMPW2010                       0.0   1.0                  --prior    flat
-    --nuisance    B->K^*::b^A2_1@KMPW2010                      -15.0  15.0                  --prior    flat
+    --nuisance    B->K^*::b^A2_1@KMPW2010                      -10.0  10.0                  --prior    flat
 "
 
 export NUISANCE_B_TO_V_FORM_FACTORS_BSZ2015="
     --global-option form-factors BSZ2015
 
     --nuisance    B->K^*::alpha^A0_0@BSZ2015                       0.0   1.0                  --prior    flat
-    --nuisance    B->K^*::alpha^A0_1@BSZ2015                     -15.0  15.0                  --prior    flat
-    --nuisance    B->K^*::alpha^A0_2@BSZ2015                     -15.0  15.0                  --prior    flat
+    --nuisance    B->K^*::alpha^A0_1@BSZ2015                     -10.0  10.0                  --prior    flat
+    --nuisance    B->K^*::alpha^A0_2@BSZ2015                     -10.0  10.0                  --prior    flat
     --nuisance    B->K^*::alpha^A1_0@BSZ2015                       0.0   1.0                  --prior    flat
-    --nuisance    B->K^*::alpha^A1_1@BSZ2015                     -15.0  15.0                  --prior    flat
-    --nuisance    B->K^*::alpha^A1_2@BSZ2015                     -15.0  15.0                  --prior    flat
-    --nuisance    B->K^*::alpha^A12_0@BSZ2015                       0.0   1.0                  --prior    flat
-    --nuisance    B->K^*::alpha^A12_1@BSZ2015                     -15.0  15.0                  --prior    flat
-    --nuisance    B->K^*::alpha^A12_2@BSZ2015                     -15.0  15.0                  --prior    flat
-    --nuisance    B->K^*::alpha^V_0@BSZ2015                       0.0   1.0                  --prior    flat
-    --nuisance    B->K^*::alpha^V_1@BSZ2015                      -15.0  15.0                  --prior    flat
-    --nuisance    B->K^*::alpha^V_2@BSZ2015                      -15.0  15.0                  --prior    flat
+    --nuisance    B->K^*::alpha^A1_1@BSZ2015                     -10.0  10.0                  --prior    flat
+    --nuisance    B->K^*::alpha^A1_2@BSZ2015                     -10.0  10.0                  --prior    flat
+    --nuisance    B->K^*::alpha^A12_1@BSZ2015                    -10.0  10.0                  --prior    flat
+    --nuisance    B->K^*::alpha^A12_2@BSZ2015                    -10.0  10.0                  --prior    flat
+    --nuisance    B->K^*::alpha^V_0@BSZ2015                        0.0   1.0                  --prior    flat
+    --nuisance    B->K^*::alpha^V_1@BSZ2015                      -10.0  10.0                  --prior    flat
+    --nuisance    B->K^*::alpha^V_2@BSZ2015                      -10.0  10.0                  --prior    flat
 "
+# only 2 parameters per form factor
+# export NUISANCE_B_TO_V_FORM_FACTORS_BSZ2015="
+#     --global-option form-factors BSZ2015
+
+#     --nuisance    B->K^*::alpha^A0_0@BSZ2015                       0.0   1.0                  --prior    flat
+#     --nuisance    B->K^*::alpha^A0_1@BSZ2015                     -15.0  15.0                  --prior    flat
+#     --nuisance    B->K^*::alpha^A1_0@BSZ2015                       0.0   1.0                  --prior    flat
+#     --nuisance    B->K^*::alpha^A1_1@BSZ2015                     -15.0  15.0                  --prior    flat
+#     --nuisance    B->K^*::alpha^A12_1@BSZ2015                    -15.0  15.0                  --prior    flat
+#     --nuisance    B->K^*::alpha^V_0@BSZ2015                        0.0   1.0                  --prior    flat
+#     --nuisance    B->K^*::alpha^V_1@BSZ2015                      -15.0  15.0                  --prior    flat
+# "
 # naive average of [BZ2004] and [KMPW2010] for the mean values. Widen
 # uncertainty to provide larger tail on the short side
 # b^p taken from [KMPW2010], not given in [BZ2004]
