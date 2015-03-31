@@ -1172,9 +1172,12 @@ class EOS_PYPMC_MCMC(SamplingOutput):
             first_chain = str(chains[0])
 
             #read data
-            samples = hdf5_file['/chain #' + first_chain + '/samples']
+            ds = '/chain #' + first_chain + '/samples'
+            samples = hdf5_file[ds]
             self.chain_length = len(samples)
+            assert self.chain_length > 0, "No samples found in " + ds
 
+            print(self.select, samples.shape)
             #adjust which range is drawn, default: full range
             if self.select[0] is None:
                 if self.skip_initial > 0:
