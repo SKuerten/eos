@@ -57,7 +57,7 @@ def adjust_subplot(fig=None, equal=True):
 class Scenario(object):
     def __init__(self, file, color, nbins=200, alpha=0.4, sigma='2 sigma',
                  bandwidth_default=None, two_sigma_color=None, queue_output=True,
-                 crop_outliers=200, local_mode=None, defs={}):
+                 crop_outliers=200, local_mode=None, defs={}, file_type='mcmc'):
         self.f = file
         self.c = color
         self.prob = {}
@@ -72,6 +72,7 @@ class Scenario(object):
         self.local_mode = local_mode
         # dictionary of name:ParameterDefinition
         self.defs = defs
+        self.file_type = file_type
 
     def get_bandwidth(self, par1, par2):
         try:
@@ -172,8 +173,13 @@ class MarginalContours(object):
         cmd_template += ' --2D-bins %d' % scenario.nbins
         if self.max_samples is not None:
             cmd_template += ' --select 0 %d' % self.max_samples
-        cmd_template += ' --contours'
-        cmd_template += ' --mcmc --pypmc --skip-init 0.2'
+        cmd_template += ' --contours  --pypmc'
+        if scenario.file_type == 'mcmc':
+            cmd_template += ' --mcmc --skip-init 0.2'
+        elif scenario.file_type == 'unc':
+            cmd_template += ' --unc'
+        else:
+            raise Exception('Unknown file type' + scenario.file_type)
 
         for p in scenario.defs:
             cmd_template += ' --cut %d %s %s' % (p.i, p.min, p.max)
@@ -186,7 +192,7 @@ class MarginalContours(object):
         for k in self.scen.keys():
             self.margs[k] = plotScript.factory(self.command_template(self.scen[k]))
 
-    def compute_marginal(self, def1, def2, scenario, solution=0):
+    def compute_marginal2D(self, def1, def2, scenario, solution=0):
         # parameter index
         i = def1.i
         j = def2.i
@@ -240,7 +246,7 @@ class MarginalContours(object):
 
         # compute and cache densities
         for s in scenarios:
-            self.compute_marginal(def1, def2, s, solution)
+            self.compute_marginal2D(def1, def2, s, solution)
 
         for k, s in enumerate(scenarios):
             # retrieve original range used to create prob_density
@@ -351,6 +357,10 @@ class MarginalContours(object):
                     CS.collections[0].remove()
 
                     P.savefig(self.out('overlay_%d_%d_%s' % (i, self.pars.index(p1) + j + 1, k)))
+
+    def prediction(self, scen):
+        # compute uncertainties
+
 
 def input_output():
     try:
@@ -483,6 +493,20 @@ class Spring2015(object):
             m.one_dimensional(data.shape[1]-1)
             P.savefig(marg.out(s+'_Betrag_' + name))
 
+    def fig_pred(self, file_name):
+        '''Plot predictions/postdictions with uncertainty varying one parameter over a fixed range.'''
+
+        marg = MarginalContours(self.input_base, self.output_base, max_samples=self.max_samples)
+        s = 'sm_unc_Bsmumu'
+        marg.scen[s] = Scenario(file_name, 'Blue', nbins=50, file_type='unc')
+        marg.read_data()
+        m = marg.margs[s]
+        m.one_dimensional(0)
+        print(m.marginal_modes, m.credibilities)
+
+    def fig_1(self):
+        fig_pred
+
     def all(self):
         import inspect
 
@@ -505,6 +529,7 @@ if __name__ == '__main__':
     matplotlib.rcParams['axes.linewidth'] = major['width']
 
     f = Spring2015()
-    f.figSP()
+#     f.figSP()
 #    f.figTT5()
+    f.fig_pred()
 #    f.all()
