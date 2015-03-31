@@ -17,6 +17,28 @@ non_empty() {
 export EOS_IS_INPUT=  # default: $output_dir/vb.hdf5
 export EOS_IS_INTEGRATION_POINTS=32
 
+gof() {
+    scenario=$1; shift
+    data=$1;shift
+
+    gof_index=${1:-0}; shift
+    non_empty "gof_index"
+
+    scan=SCAN_${scenario}
+    constraints=CONSTRAINTS_${data}
+    nuisance=NUISANCE_${data}
+    mode=GOF_MODE_${gof_index}
+
+    eos-scan-mc \
+        --debug \
+        --goodness-of-fit ${!mode} \
+        ${!scan} \
+        ${!nuisance} \
+        ${!constraints} \
+        --output $output_dir/gof_${idx}.hdf5 \
+        > $output_dir/gof_${idx}.log 2>&1
+}
+
 is() {
     step=${1}
     shift
@@ -76,8 +98,7 @@ export EOS_OPT_TOL=1e-14
 export EOS_OPT_TOL_LOCAL=$EOS_OPT_TOL
 
 opt() {
-    gof_index=${1}; shift
-    non_empty "gof_index"
+    gof_index=${1:-0}; shift
 
     # set default if arg not given
     nlopt_algorithm=${1:-"LN_BOBYQA"}; shift
@@ -95,8 +116,7 @@ opt() {
 }
 
 opt_multi () {
-    first_mode_index=${1}; shift
-    non_empty "first_mode_index"
+    first_mode_index=${1:-0}; shift
 
     second_mode_index=${1}; shift
     if [[ -z ${second_mode_index} ]] ; then
@@ -252,14 +272,17 @@ main() {
             vb is 4 APPEND &&
             is 4
             ;;
-        mcmc)
-            mcmc $@
+        gof)
+            gof ${scenario} ${data} $@
             ;;
         info)
             ../py-eos/analysis_info.py
             ;;
         is)
             is $@
+            ;;
+        mcmc)
+            mcmc $@
             ;;
         noop)
             # do nothing
