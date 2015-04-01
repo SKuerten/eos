@@ -4,25 +4,19 @@
 # parallelization.
 #
 # usage example:
-
-script=./$1; shift
+scenario=$1; shift
+observable=$1; shift
+input=$1; shift
 njobs=$1; shift
 
-# file name without path and extension, example:
-# ./${scenario}-${constraints}.bash
-script_name=${script##*/}
-script_name=${script_name%%.*}
-if [ ! -f $script ]; then
-    echo "Script $script not found!"
-    exit -1
-fi
+name=${scenario}_${observable}
 
-file=${script_name}.job
+file=$name.job
 
 # beware of shell escaping: loadlever variables
 # must not be expanded by this shell
 echo "#! /bin/bash
-#@ job_name = unc_${script_name}
+#@ job_name = unc_$name
 #@ group = pr85tu
 #@ job_type = serial
 #@ class = serial
@@ -30,22 +24,18 @@ echo "#! /bin/bash
 #@ resources = ConsumableCpus(1)
 #
 ###                    hh:mm:ss
-#@ wall_clock_limit = 47:59:50
+#@ wall_clock_limit = 15:59:50
 #@ initialdir = \$(home)/workspace/eos-scripts/tensor
 #@ output = /gpfs/work/pr85tu/ru72xaf2/log/\$(jobid).out
 #@ error  = /gpfs/work/pr85tu/ru72xaf2/log/\$(jobid).err
 #@ notification=error
 #@ notify_user=Frederik.Beaujean@lmu.de
 #@ environment = \$BASE_NAME
-#@ executable = $script
+#@ executable = ./unc_job.bash
 " > $file
 
-# script expects action. A little hack to do nothing,
-# we just want the variables defined in the script.
-source $script noop
-
-if [ ! -f $EOS_UNC_INPUT ]; then
-    echo "Input file ${EOS_UNC_INPUT} does not exist"
+if [ ! -f $input ]; then
+    echo "Input file $input does not exist"
     exit -1
 fi
 
@@ -53,10 +43,10 @@ fi
 # extract the number of samples
 ###
 # ack-grep not available everywhere but so much easier to read!
-# nsamples=$(h5ls -r $EOS_UNC_INPUT| ack '/chain\\ #0/samples' | ack -ho "Dataset {(\d*)," --output '$1')
+# nsamples=$(h5ls -r $input| ack '/chain\\ #0/samples' | ack -ho "Dataset {(\d*)," --output '$1')
 
 # egrep -o only output the match instead of the full line
-nsamples=$(h5ls -r $EOS_UNC_INPUT | grep '/chain\\ #0/samples' | egrep -o '\{.*,')
+nsamples=$(h5ls -r $input | grep '/chain\\ #0/samples' | egrep -o '\{.*,')
 # remove '{' and ',' from '{20000,'
 nsamples=${nsamples:1:${#nsamples}-2}
 if [ -z $nsamples ]; then
@@ -77,7 +67,7 @@ for i in $(seq -f %01.0f 1 $njobs ); do
     fi
     echo "
 #@ step_name = step_${i}_${low}_${high}
-#@ arguments = unc $low $high
+#@ arguments = $scenario $observable $input $low $high
 #@ queue
 " >> $file
 done

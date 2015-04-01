@@ -211,21 +211,6 @@ vb() {
     fi
 }
 
-EOS_UNC_GLOBAL_OPTIONS=",model=WilsonScan,scan-mode=cartesian,form-factors=KMPW2010"
-unc() {
-    local low=$1; shift
-    local high=$1; shift
-
-    ../py-eos/unc.py \
-        ${input_arg} \
-        --kinematics ${EOS_UNC_KINEMATICS} \
-        --input-range $low $high \
-        --mcmc-input ${EOS_UNC_INPUT} \
-        --observable ${EOS_UNC_OBSERVABLE}${EOS_UNC_GLOBAL_OPTIONS} \
-        --output $output_dir/unc_${data}_${low}_${high}.hdf5 \
-        --parameter ${EOS_UNC_PARAMETER}
-}
-
 ## Job Main Function ##
 main() {
     local name=${0}
