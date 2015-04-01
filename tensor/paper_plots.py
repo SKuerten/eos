@@ -425,7 +425,7 @@ class MarginalContours(object):
                        **one_sigma_style)
         P.xlim(m.out.fixed_values[0], m.out.fixed_values[-1])
 
-    def stack_prediction(self, scenarios, measurement, xlabel='', ylabel=''):
+    def stack_prediction(self, scenarios, measurement, xlabel='', ylabel='', legendpos='best'):
         legend_patches = []
         for scen in scenarios:
             s = self.scen[scen]
@@ -433,7 +433,7 @@ class MarginalContours(object):
             two_sigma_style = dict(one_sigma_style)
             two_sigma_style['alpha'] = 0.2
             self.prediction(scen, one_sigma_style, two_sigma_style)
-            legend_patches.append((matplotlib.patches.Patch(color=one_sigma_style['color']),s.unc_label))
+            legend_patches.append((matplotlib.patches.Patch(color=one_sigma_style['color'], alpha=one_sigma_style['alpha']), s.unc_label))
 
         x_range = P.gca().get_xlim()
 
@@ -446,7 +446,7 @@ class MarginalContours(object):
         # http://stackoverflow.com/q/14534130/987623
         patches = [p[0] for p in legend_patches]
         labels = [p[1] for p in legend_patches]
-        P.legend(patches, labels)
+        P.legend(patches, labels, loc=legendpos)
 
         P.xlabel(xlabel)
         P.ylabel(ylabel)
@@ -583,10 +583,11 @@ class Spring2015(object):
             m.one_dimensional(data.shape[1]-1)
             P.savefig(marg.out(s+'_Betrag_' + name))
 
-    def fig_pred(self, file_name):
+    def fig_pred(self, scenarios, measurement, xlabel, ylabel, legendpos='best'):
         '''Plot predictions/postdictions with uncertainty varying one parameter over a fixed range.'''
 
         marg = MarginalContours(self.input_base, self.output_base, max_samples=self.max_samples)
+        '''
         s = 'sm_unc_Bsmumu'
         marg.scen[s] = Scenario(file_name, 'Blue', nbins=25, file_type='unc', bandwidth_default=None,
                                 unc_label=r'$C_9^{NP}=0$')
@@ -600,9 +601,23 @@ class Spring2015(object):
                               xlabel=r'$C_{10}$',
                               ylabel=r'$\mathcal{B}(B_s \to \mu^+ \mu^-)$')
         P.savefig('/tmp/prediction.pdf')
+        '''
+        marg.scen = scenarios
+        marg.read_data()
+
+
+        marg.stack_prediction(scenarios, measurement,
+                              xlabel=xlabel, ylabel=ylabel, legendpos=legendpos)
+        output = os.path.join(self.output_base, ylabel + '.pdf')
+        print(output)
+        P.savefig(output)
 
     def fig_1(self):
-        self.fig_pred(os.path.join(self.input_base, 'unc_sm_Bsmumu.hdf5'))
+        scen_kw = dict(color='blue', nbins=25, unc_label=r'$C_9^{NP}=0$', file_type='unc')
+        measure_kw = dict(label='LHCb', central_style=dict(color='brown', linewidth=2.2))
+        scenarios = dict(ct_FH1to6=Scenario(os.path.join(self.input_base, 'unc_ct_FH1to6.hdf5'), **scen_kw))
+        measurement = Measurement(lower=-0.0038516, central=0.05, upper=0.13944, **measure_kw)
+        self.fig_pred(scenarios, measurement, xlabel=r'$C_{T}$', ylabel=r'$F_H[1,6]$', legendpos='upper left')
 
     def all(self):
         import inspect
