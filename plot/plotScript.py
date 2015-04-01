@@ -727,11 +727,14 @@ class MarginalDistributions:
         # find connected regions
         runs = find_runs(points_95, True)
 
+        # assume fix bin width!
+        bin_width = x[1] - x[0]
+
         # print intervals
         intervals95 = []
         local_modes = []
         for run in runs:
-            intervals95.append([x[run[0]], x[run[1] - 1]])
+            intervals95.append([x[run[0]] - 0.5 * bin_width, x[run[1] - 1] + 0.5 * bin_width ])
             intervals95[-1].append(intervals95[-1][1] - intervals95[-1][0])
             mode_index = run[0] + np.argmax(prob_density[run[0]:run[1]])
             local_modes.append((x[mode_index] + x[mode_index + 1]) / 2.0)
@@ -753,14 +756,15 @@ class MarginalDistributions:
         # print intervals
         intervals68 = []
         for run in runs:
-            intervals68.append([x[run[0]], x[run[1] - 1]])
+            # minimum interval = one bin width
+            intervals68.append([x[run[0]] - 0.5 * bin_width, x[run[1] - 1] + 0.5 * bin_width])
             intervals68[-1].append(intervals68[-1][1] - intervals68[-1][0])
 
         intervals68 = np.array(intervals68)
         print("Minimal 1 sigma intervals:")
         print(intervals68)
 
-        if len(local_modes) == 1:
+        if len(local_modes) == 1 and len(intervals68) == 1:
             print('x +a -b:')
             print('%g +%g -%g' % (local_modes[0], intervals68[0][1] - local_modes[0], local_modes[0] - intervals68[0][0]))
 

@@ -57,7 +57,8 @@ def adjust_subplot(fig=None, equal=True):
 class Scenario(object):
     def __init__(self, file, color, nbins=200, alpha=0.4, sigma='2 sigma',
                  bandwidth_default=None, two_sigma_color=None, queue_output=True,
-                 crop_outliers=200, local_mode=None, defs={}):
+                 crop_outliers=200, local_mode=None, defs={}, file_type='mcmc',
+                 unc_label=''):
         self.f = file
         self.c = color
         self.prob = {}
@@ -72,6 +73,8 @@ class Scenario(object):
         self.local_mode = local_mode
         # dictionary of name:ParameterDefinition
         self.defs = defs
+        self.file_type = file_type
+        self.unc_label = unc_label
 
     def get_bandwidth(self, par1, par2):
         try:
@@ -79,8 +82,29 @@ class Scenario(object):
         except KeyError:
             return self.__bandwidth_default
 
+    def get_bandwidth(self, par1):
+        try:
+            return self.__bandwidth[par1]
+        except KeyError:
+            return self.__bandwidth_default
+
     def set_bandwidth(self, par1, par2, value):
         self.__bandwidth[(par1, par2)] = value
+
+    def set_bandwidth(self, par1, value):
+        self.__bandwidth[par1] = value
+
+class Measurement(object):
+    '''Store info to plot x +a -b for a measurement.'''
+    def __init__(self, lower, central, upper, central_style=dict(), one_sigma_style=None, label=''):
+        self.central = central
+        self.lower = lower
+        self.upper = upper
+        self.central_style = central_style
+        self.one_sigma_style = one_sigma_style
+        if one_sigma_style is None:
+            self.one_sigma_style = self.central_style
+        self.label = label
 
 class ScenarioComparison(object):
     """Store parameter definitions and bandwidths to compare
@@ -169,11 +193,17 @@ class MarginalContours(object):
         # input file
         cmd_template += ' %s' % scenario.f
 #         cmd_template += ' --pmc-crop-outliers %d' % scenario.crop_outliers
-        cmd_template += ' --2D-bins %d' % scenario.nbins
         if self.max_samples is not None:
             cmd_template += ' --select 0 %d' % self.max_samples
-        cmd_template += ' --contours'
-        cmd_template += ' --mcmc --pypmc --skip-init 0.2'
+        cmd_template += ' --contours  --pypmc'
+        if scenario.file_type == 'mcmc':
+            cmd_template += ' --mcmc --skip-init 0.2'
+            cmd_template += ' --2D-bins %d' % scenario.nbins
+        elif scenario.file_type == 'unc':
+            cmd_template += ' --unc'
+            cmd_template += ' --1D-bins %d' % scenario.nbins
+        else:
+            raise Exception('Unknown file type' + scenario.file_type)
 
         for p in scenario.defs:
             cmd_template += ' --cut %d %s %s' % (p.i, p.min, p.max)
@@ -186,7 +216,25 @@ class MarginalContours(object):
         for k in self.scen.keys():
             self.margs[k] = plotScript.factory(self.command_template(self.scen[k]))
 
-    def compute_marginal(self, def1, def2, scenario, solution=0):
+    def compute_marginal1D(self, def1, scenario):
+        i = def1.i
+        m = self.margs[scenario]
+        if m.marginal_modes.has_key(i):
+            return
+
+        bandwidth = self.scen[scenario].get_bandwidth(i)
+        if bandwidth is None:
+            m.use_histogram = True
+        else:
+            m.use_histogram = False
+            m.kde_bandwidth = bandwidth
+
+        if def1.min != def1.max:
+            m.cuts[i] = def1.range
+        m.one_dimensional(i)
+        assert len(m.credibilities[0][0]) == 1, "Found disconnected 1sigma interval\n" + str(m.credibilities[0][0])
+
+    def compute_marginal2D(self, def1, def2, scenario, solution=0):
         # parameter index
         i = def1.i
         j = def2.i
@@ -240,7 +288,7 @@ class MarginalContours(object):
 
         # compute and cache densities
         for s in scenarios:
-            self.compute_marginal(def1, def2, s, solution)
+            self.compute_marginal2D(def1, def2, s, solution)
 
         for k, s in enumerate(scenarios):
             # retrieve original range used to create prob_density
@@ -351,6 +399,58 @@ class MarginalContours(object):
                     CS.collections[0].remove()
 
                     P.savefig(self.out('overlay_%d_%d_%s' % (i, self.pars.index(p1) + j + 1, k)))
+
+    def prediction(self, scen, one_sigma_style={}, two_sigma_style=None):
+        '''Plot uncertainty band for one observable'''
+        m = self.margs[scen]
+
+        # compute uncertainties
+        lower_one_sigma = np.empty(len(m.out.par_defs))
+        upper_one_sigma = np.empty_like(lower_one_sigma)
+        lower_two_sigma = np.empty_like(lower_one_sigma)
+        upper_two_sigma = np.empty_like(lower_one_sigma)
+        mode = np.empty_like(lower_one_sigma)
+        for def1 in m.out.par_defs:
+            self.compute_marginal1D(def1, scen)
+            lower_one_sigma[def1.i] = m.credibilities[def1.i][0][0,0]
+            upper_one_sigma[def1.i] = m.credibilities[def1.i][0][0,1]
+            lower_two_sigma[def1.i] = m.credibilities[def1.i][1][0,0]
+            upper_two_sigma[def1.i] = m.credibilities[def1.i][1][0,1]
+
+        # plot every one
+        P.clf()
+        if two_sigma_style is not None:
+            P.fill_between(m.out.fixed_values, lower_two_sigma, upper_two_sigma, **two_sigma_style)
+        P.fill_between(m.out.fixed_values, lower_one_sigma, upper_one_sigma,
+                       **one_sigma_style)
+        P.xlim(m.out.fixed_values[0], m.out.fixed_values[-1])
+
+    def stack_prediction(self, scenarios, measurement, xlabel='', ylabel=''):
+        legend_patches = []
+        for scen in scenarios:
+            s = self.scen[scen]
+            one_sigma_style = dict(alpha=0.5, color=s.c)
+            two_sigma_style = dict(one_sigma_style)
+            two_sigma_style['alpha'] = 0.2
+            self.prediction(scen, one_sigma_style, two_sigma_style)
+            legend_patches.append((matplotlib.patches.Patch(color=one_sigma_style['color']),s.unc_label))
+
+        x_range = P.gca().get_xlim()
+
+        P.plot(x_range, [measurement.central] * 2, **measurement.central_style)
+        P.plot(x_range, [measurement.lower] * 2, **measurement.one_sigma_style)
+        P.plot(x_range, [measurement.upper] * 2, **measurement.one_sigma_style)
+        legend_patches.append((matplotlib.lines.Line2D([], [], **measurement.central_style), measurement.label))
+
+        # set up legend manually, labels not supported by fill_between
+        # http://stackoverflow.com/q/14534130/987623
+        patches = [p[0] for p in legend_patches]
+        labels = [p[1] for p in legend_patches]
+        P.legend(patches, labels)
+
+        P.xlabel(xlabel)
+        P.ylabel(ylabel)
+        P.tight_layout()
 
 def input_output():
     try:
@@ -483,6 +583,27 @@ class Spring2015(object):
             m.one_dimensional(data.shape[1]-1)
             P.savefig(marg.out(s+'_Betrag_' + name))
 
+    def fig_pred(self, file_name):
+        '''Plot predictions/postdictions with uncertainty varying one parameter over a fixed range.'''
+
+        marg = MarginalContours(self.input_base, self.output_base, max_samples=self.max_samples)
+        s = 'sm_unc_Bsmumu'
+        marg.scen[s] = Scenario(file_name, 'Blue', nbins=25, file_type='unc', bandwidth_default=None,
+                                unc_label=r'$C_9^{NP}=0$')
+        scenarios = [s]
+        marg.read_data()
+
+        measurement = Measurement(lower=2.2e-9, central=2.9e-9, upper=3.6e-9, label='LHCb',
+                                  central_style=dict(color='brown', linewidth=2.2))
+
+        marg.stack_prediction(scenarios, measurement,
+                              xlabel=r'$C_{10}$',
+                              ylabel=r'$\mathcal{B}(B_s \to \mu^+ \mu^-)$')
+        P.savefig('/tmp/prediction.pdf')
+
+    def fig_1(self):
+        self.fig_pred(os.path.join(self.input_base, 'unc_sm_Bsmumu.hdf5'))
+
     def all(self):
         import inspect
 
@@ -505,6 +626,7 @@ if __name__ == '__main__':
     matplotlib.rcParams['axes.linewidth'] = major['width']
 
     f = Spring2015()
-    f.figSP()
+#     f.figSP()
 #    f.figTT5()
+    f.fig_1()
 #    f.all()

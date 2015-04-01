@@ -176,10 +176,9 @@ def merge_pypmc(output_file_name, search='mcmc_*.hdf5', input_files=None,
 
     print("Merged %d chains from %d files" % (nchains_valid, len(input_files)))
 
-def merge_unc_pypmc(output_file_name, search='unc*.hdf5', input_files=None):
+def merge_unc_pypmc(output_file_name, search='unc_*.hdf5', input_files=None):
     if not input_files:
         input_files = search_files(search, output_file_name)
-
 
     with h5py.File(output_file_name, "w") as output_file:
         # check if files agree with first input file
@@ -299,7 +298,7 @@ def main():
     parser.add_argument('--output', help='Output file name')
     parser.add_argument('--pypmc', action='store_true',
                         help='Merge mcmc from pypmc')
-    parser.add_argument('--search', default='mcmc_*.hdf5',
+    parser.add_argument('--search', default=None,
                         help='HDF5 input file name pattern')
     parser.add_argument('--single-chain', action='store_true',
                         help='Merge all input chains into one big output chain.')
@@ -346,12 +345,16 @@ def main():
         cut_off = None
 
     if args.unc:
+        if args.search is None:
+            args.search = 'unc_*.hdf5'
         if args.pypmc:
             merge_unc_pypmc(output_file_name=args.output, input_files=input_files,
                             search=args.search)
         else:
             merge_unc(output_file_name=args.output, input_files=input_files)
     else:
+        if args.search is None:
+            args.search = 'mcmc_*.hdf5'
         if args.pypmc:
             merge_pypmc(output_file_name=args.output, search=args.search,
                         input_files=input_files, cut_off=cut_off,

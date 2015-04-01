@@ -145,12 +145,13 @@ def read_descriptions(file, data_set, npar=None, samples=None):
             priors.append(None)
             par_defs.append(ParameterDefinition('par%d' % i,
                                                 np.min(samples.T[i]),
-                                                np.max(samples.T[i])))
+                                                np.max(samples.T[i]),
+                                                index=i))
     # output from an Analysis includes parameters and their priors
     else:
         f = priorDistributions.PriorFactory()
-        for row in descriptions:
-            par_defs.append(ParameterDefinition(row[0], row[1], row[2], row[3], False))
+        for i, row in enumerate(descriptions):
+            par_defs.append(ParameterDefinition(row[0], row[1], row[2], row[3], index=i))
 
             try:
                 prior_name, prior = f.create(row[4])
@@ -1172,9 +1173,12 @@ class EOS_PYPMC_MCMC(SamplingOutput):
             first_chain = str(chains[0])
 
             #read data
-            samples = hdf5_file['/chain #' + first_chain + '/samples']
+            ds = '/chain #' + first_chain + '/samples'
+            samples = hdf5_file[ds]
             self.chain_length = len(samples)
+            assert self.chain_length > 0, "No samples found in " + ds
 
+            print(self.select, samples.shape)
             #adjust which range is drawn, default: full range
             if self.select[0] is None:
                 if self.skip_initial > 0:
@@ -1247,5 +1251,7 @@ class EOS_PYPMC_UNC(SamplingOutput):
                 # get everything up to '@' to remove lengthy options
                 name = obs_ds.attrs['name']
                 name = name[:name.find('@')] + '@' + fixed_name + '= %g' % fixed_values[i]
-                self.par_defs.append(ParameterDefinition(name, np.min(self.samples.T[i]), np.max(self.samples.T[i])))
+                self.par_defs.append(ParameterDefinition(name, np.min(self.samples.T[i]), np.max(self.samples.T[i]),
+                                                         index=i))
             self.priors = [None] * len(fixed_values)
+            self.fixed_values = fixed_values

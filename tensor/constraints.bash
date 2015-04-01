@@ -115,9 +115,15 @@ export CONSTRAINTS_B_TO_KSTAR_FF_LCSR="
 
     --constraint B->K^*::A_0+A_1+A_2+V@BSZ2015
 "
+export CONSTRAINTS_B_TO_KSTAR_FF_KINEMATIC_ENDPOINT="
+    --global-option form-factors BSZ2015
+
+    --constraint B->K^*::A_12(s_max)/A_1(s_max)@HLMW-2015
+"
 export CONSTRAINTS_B_TO_KSTAR_FF_ALL="
     ${CONSTRAINTS_B_TO_KSTAR_FF_LATTICE}
     ${CONSTRAINTS_B_TO_KSTAR_FF_LCSR}
+    ${CONSTRAINTS_B_TO_KSTAR_FF_KINEMATIC_ENDPOINT}
 "
 #####################
 ## inclusive ##
