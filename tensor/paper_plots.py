@@ -80,8 +80,17 @@ class Scenario(object):
         except KeyError:
             return self.__bandwidth_default
 
+    def get_bandwidth(self, par1):
+        try:
+            return self.__bandwidth[par1]
+        except KeyError:
+            return self.__bandwidth_default
+
     def set_bandwidth(self, par1, par2, value):
         self.__bandwidth[(par1, par2)] = value
+
+    def set_bandwidth(self, par1, value):
+        self.__bandwidth[par1] = value
 
 class ScenarioComparison(object):
     """Store parameter definitions and bandwidths to compare
@@ -170,14 +179,15 @@ class MarginalContours(object):
         # input file
         cmd_template += ' %s' % scenario.f
 #         cmd_template += ' --pmc-crop-outliers %d' % scenario.crop_outliers
-        cmd_template += ' --2D-bins %d' % scenario.nbins
         if self.max_samples is not None:
             cmd_template += ' --select 0 %d' % self.max_samples
         cmd_template += ' --contours  --pypmc'
         if scenario.file_type == 'mcmc':
             cmd_template += ' --mcmc --skip-init 0.2'
+            cmd_template += ' --2D-bins %d' % scenario.nbins
         elif scenario.file_type == 'unc':
             cmd_template += ' --unc'
+            cmd_template += ' --1D-bins %d' % scenario.nbins
         else:
             raise Exception('Unknown file type' + scenario.file_type)
 
@@ -191,6 +201,24 @@ class MarginalContours(object):
         self.margs = {}
         for k in self.scen.keys():
             self.margs[k] = plotScript.factory(self.command_template(self.scen[k]))
+
+    def compute_marginal1D(self, def1, scenario):
+        i = def1.i
+        m = self.margs[scenario]
+        if m.marginal_modes.has_key(i):
+            return
+
+        bandwidth = self.scen[scenario].get_bandwidth(i)
+        if bandwidth is None:
+            m.use_histogram = True
+        else:
+            m.use_histogram = False
+            m.kde_bandwidth = bandwidth
+
+        if def1.min != def1.max:
+            m.cuts[i] = def1.range
+        m.one_dimensional(i)
+        assert len(m.credibilities[0][0]) == 1, "Found disconnected 1sigma interval\n" + str(m.credibilities[0][0])
 
     def compute_marginal2D(self, def1, def2, scenario, solution=0):
         # parameter index
@@ -359,8 +387,9 @@ class MarginalContours(object):
                     P.savefig(self.out('overlay_%d_%d_%s' % (i, self.pars.index(p1) + j + 1, k)))
 
     def prediction(self, scen):
+        '''Plot uncertainty band for one observable'''
         # compute uncertainties
-
+        pass
 
 def input_output():
     try:
@@ -498,14 +527,13 @@ class Spring2015(object):
 
         marg = MarginalContours(self.input_base, self.output_base, max_samples=self.max_samples)
         s = 'sm_unc_Bsmumu'
-        marg.scen[s] = Scenario(file_name, 'Blue', nbins=50, file_type='unc')
+        marg.scen[s] = Scenario(file_name, 'Blue', nbins=10, file_type='unc', bandwidth_default=None)
         marg.read_data()
-        m = marg.margs[s]
-        m.one_dimensional(0)
-        print(m.marginal_modes, m.credibilities)
+        def1 = ParameterDefinition(index=0, name='foo', min=0.0, max=0.0)
+        marg.compute_marginal1D(def1, s)
 
     def fig_1(self):
-        fig_pred
+        self.fig_pred(os.path.join(self.input_base, 'unc_sm_Bsmumu.hdf5'))
 
     def all(self):
         import inspect
@@ -531,5 +559,5 @@ if __name__ == '__main__':
     f = Spring2015()
 #     f.figSP()
 #    f.figTT5()
-    f.fig_pred()
+    f.fig_1()
 #    f.all()
