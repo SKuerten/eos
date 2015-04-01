@@ -764,7 +764,7 @@ class MarginalDistributions:
         print("Minimal 1 sigma intervals:")
         print(intervals68)
 
-        if len(local_modes) == 1:
+        if len(local_modes) == 1 and len(intervals68) == 1:
             print('x +a -b:')
             print('%g +%g -%g' % (local_modes[0], intervals68[0][1] - local_modes[0], local_modes[0] - intervals68[0][0]))
 
