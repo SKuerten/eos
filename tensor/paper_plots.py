@@ -57,7 +57,8 @@ def adjust_subplot(fig=None, equal=True):
 class Scenario(object):
     def __init__(self, file, color, nbins=200, alpha=0.4, sigma='2 sigma',
                  bandwidth_default=None, two_sigma_color=None, queue_output=True,
-                 crop_outliers=200, local_mode=None, defs={}, file_type='mcmc'):
+                 crop_outliers=200, local_mode=None, defs={}, file_type='mcmc',
+                 unc_label=''):
         self.f = file
         self.c = color
         self.prob = {}
@@ -73,6 +74,7 @@ class Scenario(object):
         # dictionary of name:ParameterDefinition
         self.defs = defs
         self.file_type = file_type
+        self.unc_label = unc_label
 
     def get_bandwidth(self, par1, par2):
         try:
@@ -91,6 +93,18 @@ class Scenario(object):
 
     def set_bandwidth(self, par1, value):
         self.__bandwidth[par1] = value
+
+class Measurement(object):
+    '''Store info to plot x +a -b for a measurement.'''
+    def __init__(self, lower, central, upper, central_style=dict(), one_sigma_style=None, label=''):
+        self.central = central
+        self.lower = lower
+        self.upper = upper
+        self.central_style = central_style
+        self.one_sigma_style = one_sigma_style
+        if one_sigma_style is None:
+            self.one_sigma_style = self.central_style
+        self.label = label
 
 class ScenarioComparison(object):
     """Store parameter definitions and bandwidths to compare
@@ -386,10 +400,57 @@ class MarginalContours(object):
 
                     P.savefig(self.out('overlay_%d_%d_%s' % (i, self.pars.index(p1) + j + 1, k)))
 
-    def prediction(self, scen):
+    def prediction(self, scen, one_sigma_style={}, two_sigma_style=None):
         '''Plot uncertainty band for one observable'''
+        m = self.margs[scen]
+
         # compute uncertainties
-        pass
+        lower_one_sigma = np.empty(len(m.out.par_defs))
+        upper_one_sigma = np.empty_like(lower_one_sigma)
+        lower_two_sigma = np.empty_like(lower_one_sigma)
+        upper_two_sigma = np.empty_like(lower_one_sigma)
+        mode = np.empty_like(lower_one_sigma)
+        for def1 in m.out.par_defs:
+            self.compute_marginal1D(def1, scen)
+            lower_one_sigma[def1.i] = m.credibilities[def1.i][0][0,0]
+            upper_one_sigma[def1.i] = m.credibilities[def1.i][0][0,1]
+            lower_two_sigma[def1.i] = m.credibilities[def1.i][1][0,0]
+            upper_two_sigma[def1.i] = m.credibilities[def1.i][1][0,1]
+
+        # plot every one
+        P.clf()
+        if two_sigma_style is not None:
+            P.fill_between(m.out.fixed_values, lower_two_sigma, upper_two_sigma, **two_sigma_style)
+        P.fill_between(m.out.fixed_values, lower_one_sigma, upper_one_sigma,
+                       **one_sigma_style)
+        P.xlim(m.out.fixed_values[0], m.out.fixed_values[-1])
+
+    def stack_prediction(self, scenarios, measurement, xlabel='', ylabel=''):
+        legend_patches = []
+        for scen in scenarios:
+            s = self.scen[scen]
+            one_sigma_style = dict(alpha=0.5, color=s.c)
+            two_sigma_style = dict(one_sigma_style)
+            two_sigma_style['alpha'] = 0.2
+            self.prediction(scen, one_sigma_style, two_sigma_style)
+            legend_patches.append((matplotlib.patches.Patch(color=one_sigma_style['color']),s.unc_label))
+
+        x_range = P.gca().get_xlim()
+
+        P.plot(x_range, [measurement.central] * 2, **measurement.central_style)
+        P.plot(x_range, [measurement.lower] * 2, **measurement.one_sigma_style)
+        P.plot(x_range, [measurement.upper] * 2, **measurement.one_sigma_style)
+        legend_patches.append((matplotlib.lines.Line2D([], [], **measurement.central_style), measurement.label))
+
+        # set up legend manually, labels not supported by fill_between
+        # http://stackoverflow.com/q/14534130/987623
+        patches = [p[0] for p in legend_patches]
+        labels = [p[1] for p in legend_patches]
+        P.legend(patches, labels)
+
+        P.xlabel(xlabel)
+        P.ylabel(ylabel)
+        P.tight_layout()
 
 def input_output():
     try:
@@ -527,10 +588,18 @@ class Spring2015(object):
 
         marg = MarginalContours(self.input_base, self.output_base, max_samples=self.max_samples)
         s = 'sm_unc_Bsmumu'
-        marg.scen[s] = Scenario(file_name, 'Blue', nbins=10, file_type='unc', bandwidth_default=None)
+        marg.scen[s] = Scenario(file_name, 'Blue', nbins=25, file_type='unc', bandwidth_default=None,
+                                unc_label=r'$C_9^{NP}=0$')
+        scenarios = [s]
         marg.read_data()
-        def1 = ParameterDefinition(index=0, name='foo', min=0.0, max=0.0)
-        marg.compute_marginal1D(def1, s)
+
+        measurement = Measurement(lower=2.2e-9, central=2.9e-9, upper=3.6e-9, label='LHCb',
+                                  central_style=dict(color='brown', linewidth=2.2))
+
+        marg.stack_prediction(scenarios, measurement,
+                              xlabel=r'$C_{10}$',
+                              ylabel=r'$\mathcal{B}(B_s \to \mu^+ \mu^-)$')
+        P.savefig('/tmp/prediction.pdf')
 
     def fig_1(self):
         self.fig_pred(os.path.join(self.input_base, 'unc_sm_Bsmumu.hdf5'))
