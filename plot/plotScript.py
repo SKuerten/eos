@@ -1520,6 +1520,22 @@ def factory(cmd_line=None):
                   deterministic_mixture=args.deterministic_mixture)
 
     OutputClass = None
+
+    # try to guess data type from file name
+    types = [args.mcmc, args.emcee, args.nest, args.uncertainty_propagation]
+    matched_types = []
+    if not any(types):
+        matches = 0
+        if 'mcmc' in args.i:
+            matched_types.append(args.mcmc)
+        if 'unc' in args.i:
+            matched_types.append(args.uncertainty_propagation)
+
+        if len(matched_types) > 1:
+            print("Cannot autodetermine the file type from its name")
+        elif len(matched_types) == 1:
+            matched_types[0] = True
+
     if args.mcmc:
         if args.i.endswith('.npy'):
             OutputClass = JahnMCMCOutput
