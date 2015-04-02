@@ -31,7 +31,7 @@ def run_command(com):
 def square_figure(size=6):
     return P.figure(figsize=(size, size))
 
-def wide_figure(x_size=8, ratio=4/3.0, left=0.08, right=0.95, top=0.95, bottom=0.15):
+def wide_figure(x_size=8, ratio=4/3.0, left=0.165, right=0.95, top=0.95, bottom=0.145):
     """
     Create a figure with aspect ratio 4:3 and sufficient room for margins
     """
@@ -58,7 +58,7 @@ class Scenario(object):
     def __init__(self, file, color, nbins=200, alpha=0.4, sigma='2 sigma',
                  bandwidth_default=None, two_sigma_color=None, queue_output=True,
                  crop_outliers=200, local_mode=None, defs={}, file_type='mcmc',
-                 unc_label=''):
+                 unc_label='', histogram=True):
         self.f = file
         self.c = color
         self.prob = {}
@@ -75,6 +75,7 @@ class Scenario(object):
         self.defs = defs
         self.file_type = file_type
         self.unc_label = unc_label
+        self.histogram = histogram
 
     def get_bandwidth(self, par1, par2):
         try:
@@ -202,8 +203,11 @@ class MarginalContours(object):
         elif scenario.file_type == 'unc':
             cmd_template += ' --unc'
             cmd_template += ' --1D-bins %d' % scenario.nbins
+            cmd_template += ' --use-data-range 0.05'
         else:
             raise Exception('Unknown file type' + scenario.file_type)
+        if not scenario.histogram:
+            cmd_template += ' --use-KDE'
 
         for p in scenario.defs:
             cmd_template += ' --cut %d %s %s' % (p.i, p.min, p.max)
@@ -223,16 +227,22 @@ class MarginalContours(object):
             return
 
         bandwidth = self.scen[scenario].get_bandwidth(i)
-        if bandwidth is None:
-            m.use_histogram = True
+        if m.use_histogram and bandwidth is None:
+                pass
         else:
             m.use_histogram = False
-            m.kde_bandwidth = bandwidth
+            if bandwidth:
+                m.kde_bandwidth = bandwidth
 
         if def1.min != def1.max:
             m.cuts[i] = def1.range
         m.one_dimensional(i)
         assert len(m.credibilities[0][0]) == 1, "Found disconnected 1sigma interval\n" + str(m.credibilities[0][0])
+
+    def compute_marginal1D_all(self, scenarios):
+        for scenario in scenarios:
+            for def1 in self.margs[scenario].out.par_defs:
+                self.compute_marginal1D(def1, scenario)
 
     def compute_marginal2D(self, def1, def2, scenario, solution=0):
         # parameter index
@@ -410,47 +420,44 @@ class MarginalContours(object):
         lower_two_sigma = np.empty_like(lower_one_sigma)
         upper_two_sigma = np.empty_like(lower_one_sigma)
         mode = np.empty_like(lower_one_sigma)
+
         for def1 in m.out.par_defs:
-            self.compute_marginal1D(def1, scen)
             lower_one_sigma[def1.i] = m.credibilities[def1.i][0][0,0]
             upper_one_sigma[def1.i] = m.credibilities[def1.i][0][0,1]
             lower_two_sigma[def1.i] = m.credibilities[def1.i][1][0,0]
             upper_two_sigma[def1.i] = m.credibilities[def1.i][1][0,1]
 
         # plot every one
-        P.clf()
         if two_sigma_style is not None:
             P.fill_between(m.out.fixed_values, lower_two_sigma, upper_two_sigma, **two_sigma_style)
         P.fill_between(m.out.fixed_values, lower_one_sigma, upper_one_sigma,
                        **one_sigma_style)
-        P.xlim(m.out.fixed_values[0], m.out.fixed_values[-1])
 
-    def stack_prediction(self, scenarios, measurement, xlabel='', ylabel='', legendpos='best'):
+    def stack_prediction(self, scenarios, measurement, legendpos='best'):
         legend_patches = []
+
+        # plot measurement first and below the patches
+        m = self.margs[scenarios[0]]
+        x_range = m.out.fixed_values[0], m.out.fixed_values[-1]
+        P.fill_between(x_range, [measurement.lower] * 2, [measurement.upper] * 2, **measurement.one_sigma_style)
+        P.plot(x_range, [measurement.central] * 2, **measurement.central_style)
+        legend_patches.append((matplotlib.patches.Patch(**measurement.one_sigma_style), measurement.label))
+
         for scen in scenarios:
             s = self.scen[scen]
-            one_sigma_style = dict(alpha=0.5, color=s.c)
+            one_sigma_style = dict(alpha=0.6, color=s.c)
             two_sigma_style = dict(one_sigma_style)
-            two_sigma_style['alpha'] = 0.2
+            two_sigma_style['alpha'] = 0.3
             self.prediction(scen, one_sigma_style, two_sigma_style)
             legend_patches.append((matplotlib.patches.Patch(color=one_sigma_style['color'], alpha=one_sigma_style['alpha']), s.unc_label))
-
-        x_range = P.gca().get_xlim()
-
-        P.plot(x_range, [measurement.central] * 2, **measurement.central_style)
-        P.plot(x_range, [measurement.lower] * 2, **measurement.one_sigma_style)
-        P.plot(x_range, [measurement.upper] * 2, **measurement.one_sigma_style)
-        legend_patches.append((matplotlib.lines.Line2D([], [], **measurement.central_style), measurement.label))
 
         # set up legend manually, labels not supported by fill_between
         # http://stackoverflow.com/q/14534130/987623
         patches = [p[0] for p in legend_patches]
         labels = [p[1] for p in legend_patches]
-        P.legend(patches, labels, loc=legendpos)
+        P.legend(patches, labels, loc=legendpos, fontsize=matplotlib.rcParams['font.size'] - 2)
 
-        P.xlabel(xlabel)
-        P.ylabel(ylabel)
-        P.tight_layout()
+        P.xlim(x_range)
 
 def input_output():
     try:
@@ -495,6 +502,9 @@ class Spring2015(object):
     input_base, output_base = input_output()
     max_samples = None
     fig_size = 6 # inches, same for x and y
+
+    def input(self, file):
+        return os.path.join(self.input_base, file)
 
     def figSP(self):
 
@@ -583,41 +593,82 @@ class Spring2015(object):
             m.one_dimensional(data.shape[1]-1)
             P.savefig(marg.out(s+'_Betrag_' + name))
 
-    def fig_pred(self, scenarios, measurement, xlabel, ylabel, legendpos='best'):
+    def fig_pred(self, scen_obs, measurement, xlabel, ylabel, yrange=None, legendpos='best'):
         '''Plot predictions/postdictions with uncertainty varying one parameter over a fixed range.'''
 
         marg = MarginalContours(self.input_base, self.output_base, max_samples=self.max_samples)
-        '''
-        s = 'sm_unc_Bsmumu'
-        marg.scen[s] = Scenario(file_name, 'Blue', nbins=25, file_type='unc', bandwidth_default=None,
-                                unc_label=r'$C_9^{NP}=0$')
-        scenarios = [s]
+
+        scen_kw = dict(nbins=200, file_type='unc', histogram=False)
+        colors = ['blue', 'red']
+        scenario_names = []
+        for i, d in enumerate(scen_obs):
+            kw = dict(scen_kw)
+            kw['color'] = colors[i]
+            name = d.pop('name')
+            kw.update(d)
+            marg.scen[name] = Scenario(self.input('unc_' + name + '.hdf5'), **kw)
+            scenario_names.append(name)
         marg.read_data()
+        marg.compute_marginal1D_all(scenario_names)
+        wide_figure(x_size=8, ratio=4/3.0, left=0.165, right=0.95, top=0.94, bottom=0.145)
 
-        measurement = Measurement(lower=2.2e-9, central=2.9e-9, upper=3.6e-9, label='LHCb',
-                                  central_style=dict(color='brown', linewidth=2.2))
+        central_style = dict(color='black', linewidth=matplotlib.rcParams['axes.linewidth'],
+                             linestyle='solid', alpha=1)
+        one_sigma_style = dict(color='grey', alpha=1)
+        if not measurement.has_key('sigma_lower'):
+            measurement['sigma_lower'] = measurement['sigma_upper']
+        measurement = Measurement(label=r'$\mathrm{LHCb}$',
+                                  central_style=central_style,
+                                  one_sigma_style=one_sigma_style,
+                                  central=measurement['central'],
+                                  lower=measurement['central'] - measurement['sigma_lower'],
+                                  upper=measurement['central'] + measurement['sigma_upper'])
 
-        marg.stack_prediction(scenarios, measurement,
-                              xlabel=r'$C_{10}$',
-                              ylabel=r'$\mathcal{B}(B_s \to \mu^+ \mu^-)$')
-        P.savefig('/tmp/prediction.pdf')
-        '''
-        marg.scen = scenarios
-        marg.read_data()
+        marg.stack_prediction(scenario_names, measurement,
+                              legendpos=legendpos)
+        P.xlabel(xlabel)
+        P.ylabel(ylabel)
 
+        if yrange:
+            P.ylim(*yrange)
+        P.savefig(marg.out(scenario_names[0]))
 
-        marg.stack_prediction(scenarios, measurement,
-                              xlabel=xlabel, ylabel=ylabel, legendpos=legendpos)
-        output = os.path.join(self.output_base, ylabel + '.pdf')
-        print(output)
-        P.savefig(output)
+    def np_label(self, value):
+        return r'$C_9^{\mathrm{NP}}=' + str(value) + '$'
 
     def fig_1(self):
-        scen_kw = dict(color='blue', nbins=25, unc_label=r'$C_9^{NP}=0$', file_type='unc')
-        measure_kw = dict(label='LHCb', central_style=dict(color='brown', linewidth=2.2))
-        scenarios = dict(ct_FH1to6=Scenario(os.path.join(self.input_base, 'unc_ct_FH1to6.hdf5'), **scen_kw))
-        measurement = Measurement(lower=-0.0038516, central=0.05, upper=0.13944, **measure_kw)
-        self.fig_pred(scenarios, measurement, xlabel=r'$C_{T}$', ylabel=r'$F_H[1,6]$', legendpos='upper left')
+        xlabel = r'$C_{T}$'
+        ylabel=r'$\langle F_H \rangle'
+#         FH_yrange = (-0.1, 0.9)
+#         self.fig_pred(scen_obs=[dict(name='ct_K_FH1to6', unc_label=self.np_label(0)),
+#                                 dict(name='ct_c9_1dot1_K_FH1to6', unc_label=self.np_label(-1.1))],
+#                       measurement=dict(central=0.03, sigma_upper=0.036),
+#                       xlabel=xlabel,
+#                       ylabel=ylabel + r'_{[1,6]}$', yrange=FH_yrange,
+#                        legendpos='upper center')
+#
+#         self.fig_pred(scen_obs=[dict(name='ct_K_FH15to22', unc_label=self.np_label(0)),
+#                                 dict(name='ct_c9_1dot1_K_FH15to22', unc_label=self.np_label(-1.1))],
+#                       measurement=dict(central=0.035, sigma_upper=0.04031),
+#                       xlabel=xlabel,
+#                       ylabel=ylabel + r'_{[15,22]}$', yrange=FH_yrange,
+#                       legendpos='upper center')
+
+        BR_yrange = (0.5e-7, 2.5e-7)
+        ylabel=r'$\langle \mathcal{B} \rangle'
+        self.fig_pred(scen_obs=[dict(name='ct_K_BR1to6', unc_label=self.np_label(0)),
+                                dict(name='ct_c9_1dot1_K_BR1to6', unc_label=self.np_label(-1.1))],
+                      measurement=dict(central=2.42e-8 * 4.9, sigma_upper=6.8072975548304046e-09),
+                      xlabel=xlabel,
+                      ylabel=ylabel + r'_{[1,6]}$', yrange=BR_yrange,
+                       legendpos='upper left')
+
+        self.fig_pred(scen_obs=[dict(name='ct_K_BR15to22', unc_label=self.np_label(0)),
+                                dict(name='ct_c9_1dot1_K_BR15to22', unc_label=self.np_label(-1.1))],
+                      measurement=dict(central=1.21e-8 * 7, sigma_upper=5.0477717856495843e-09),
+                      xlabel=xlabel,
+                      ylabel=ylabel + r'_{[15,22]}$', yrange=BR_yrange,
+                      legendpos='upper center')
 
     def all(self):
         import inspect
