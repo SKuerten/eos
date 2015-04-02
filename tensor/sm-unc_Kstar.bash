@@ -4,7 +4,7 @@ source ${EOS_SCRIPT_PATH}/job.bash
 
 export EOS_SEED=73424
 
-export EOS_ANALYSIS_INFO=0
+export EOS_ANALYSIS_INFO=1
 
 
 
