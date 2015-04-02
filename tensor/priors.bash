@@ -23,35 +23,10 @@ export NUISANCE_DECAY_CONSTANTS_flag13="
 #####################
 ## form factors    ##
 #####################
-export NUISANCE_B_TO_VPERPLL_FORM_FACTORS_KMPW2010="
-    --global-option form-factors KMPW2010
 
-    --nuisance    B->K^*::F^V(0)@KMPW2010                                   ${N_SIGMAS}     --prior    gaussian   0.24      0.36      0.59
-    --nuisance    B->K^*::b^V_1@KMPW2010                        -6.0   5.4  ${N_SIGMAS}     --prior    gaussian  -5.20     -4.80     -4.00
-"
-export NUISANCE_B_TO_VPARALL_FORM_FACTORS_KMPW2010="
-    --global-option form-factors KMPW2010
-
-    --nuisance    B->K^*::F^A1(0)@KMPW2010                                  ${N_SIGMAS}     --prior    gaussian   0.15      0.25      0.41
-    --nuisance    B->K^*::b^A1_1@KMPW2010                       -2.06  5.4  ${N_SIGMAS}     --prior    gaussian  -0.46     +0.34     +1.20
-    --nuisance    B->K^*::F^A2(0)@KMPW2010                                  ${N_SIGMAS}     --prior    gaussian   0.13      0.23      0.42
-    --nuisance    B->K^*::b^A2_1@KMPW2010                       -4.9   5.4  ${N_SIGMAS}     --prior    gaussian  -2.20     -0.85     +2.03
-"
-export NUISANCE_B_TO_VPERPLL_FORM_FACTORS_FLAT="
-    --global-option form-factors KMPW2010
-
-    --nuisance    B->K^*::F^V(0)@KMPW2010                        0.0   1.0                  --prior    flat
-    --nuisance    B->K^*::b^V_1@KMPW2010                       -10.0  10.0                  --prior    flat
-"
-export NUISANCE_B_TO_VPARALL_FORM_FACTORS_FLAT="
-    --global-option form-factors KMPW2010
-
-    --nuisance    B->K^*::F^A1(0)@KMPW2010                       0.0   1.0                  --prior    flat
-    --nuisance    B->K^*::b^A1_1@KMPW2010                      -10.0  10.0                  --prior    flat
-    --nuisance    B->K^*::F^A2(0)@KMPW2010                       0.0   1.0                  --prior    flat
-    --nuisance    B->K^*::b^A2_1@KMPW2010                      -10.0  10.0                  --prior    flat
-"
-
+###
+# B -> K*
+###
 export NUISANCE_B_TO_V_FORM_FACTORS_BSZ2015="
     --global-option form-factors BSZ2015
 
@@ -67,18 +42,10 @@ export NUISANCE_B_TO_V_FORM_FACTORS_BSZ2015="
     --nuisance    B->K^*::alpha^V_1@BSZ2015                      -10.0  10.0                  --prior    flat
     --nuisance    B->K^*::alpha^V_2@BSZ2015                      -10.0  10.0                  --prior    flat
 "
-# only 2 parameters per form factor
-# export NUISANCE_B_TO_V_FORM_FACTORS_BSZ2015="
-#     --global-option form-factors BSZ2015
+###
+# B -> K
+###
 
-#     --nuisance    B->K^*::alpha^A0_0@BSZ2015                       0.0   1.0                  --prior    flat
-#     --nuisance    B->K^*::alpha^A0_1@BSZ2015                     -15.0  15.0                  --prior    flat
-#     --nuisance    B->K^*::alpha^A1_0@BSZ2015                       0.0   1.0                  --prior    flat
-#     --nuisance    B->K^*::alpha^A1_1@BSZ2015                     -15.0  15.0                  --prior    flat
-#     --nuisance    B->K^*::alpha^A12_1@BSZ2015                    -15.0  15.0                  --prior    flat
-#     --nuisance    B->K^*::alpha^V_0@BSZ2015                        0.0   1.0                  --prior    flat
-#     --nuisance    B->K^*::alpha^V_1@BSZ2015                      -15.0  15.0                  --prior    flat
-# "
 # naive average of [BZ2004] and [KMPW2010] for the mean values. Widen
 # uncertainty to provide larger tail on the short side
 # b^p taken from [KMPW2010], not given in [BZ2004]
@@ -149,29 +116,22 @@ $NUISANCE_QUARK_MASSES_PDG2012
 $NUISANCE_B_TO_PLL_FORM_FACTORS_ALL_KMPW2010
 $NUISANCE_B_TO_PLL_SUBLEADING
 "
-
 export NUISANCE_K_KstarBR="
 $NUISANCE_FH
 $NUISANCE_B_TO_VPARALL_SUBLEADING
 $NUISANCE_B_TO_VPERPLL_SUBLEADING
-$NUISANCE_B_TO_VPERPLL_FORM_FACTORS_KMPW2010
-$NUISANCE_B_TO_VPARALL_FORM_FACTORS_KMPW2010
+$NUISANCE_B_TO_V_FORM_FACTORS_BSZ2015
 "
-
 export NUISANCE_K_KstarBR_no_ACP=$NUISANCE_K_KstarBR
-
 export NUISANCE_K_KstarBR_Bsmumu="
 $NUISANCE_K_KstarBR
 $NUISANCE_DECAY_CONSTANTS_flag13
 "
-
 export NUISANCE_K_KstarBR_no_ACP_Bsmumu=$NUISANCE_K_KstarBR_Bsmumu
-
 export NUISANCE_Bsmumu="
 $NUISANCE_CKM_posthep13
 $NUISANCE_DECAY_CONSTANTS_flag13
 "
-
 export NUISANCE_FH_Bsmumu="
 $NUISANCE_CKM_posthep13
 $NUISANCE_QUARK_MASSES_PDG2012
