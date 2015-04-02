@@ -248,8 +248,10 @@
 \def \SMp{SM+SM$'$}
 \def \SMpNine{SM+SM$'$$(9)$}
 
-
-
+%
+% useful variable for multiple same-size plots
+%
+\newlength{\relwidth}
 %--------+---------+---------+---------+---------+---------+---------+---------+
 %
 %
@@ -298,7 +300,7 @@
   angular observables. Most notably, the measurement of $F_H^\mu$ provides
   constraints on (pseudo-)scalar couplings and their chirality-flipped
   counterparts that are complementary to the ones from the branching ratio
-  $B_s\to \bar\mu\mu$, which allows to put for the first time simultaneously 
+  $B_s\to \bar\mu\mu$, which allows to put for the first time simultaneously
   upper bounds on all four couplings.
 \end{abstract}
 
@@ -391,7 +393,7 @@ In the framework of the $|\Delta B| = |\Delta S| = 1$ effective theory
 \end{align}
 the most general dimension-six flavor-changing operators $\Op_i$ mediating
 $b\to s \gamma$ and $b\to s \bar\ell\ell$ are classified according to their
-chiral structure. There are dipole ($i = 7,7')$ and vectorial ($i = 9,9',10,10'$) 
+chiral structure. There are dipole ($i = 7,7')$ and vectorial ($i = 9,9',10,10'$)
 operators
 \begin{equation}
   \label{eq:SM:ops}
@@ -490,11 +492,13 @@ $F_H^\ell$ is very sensitive to tensorial couplings whereas $A_{\rm FB}^\ell$ to
 the interference of tensorial and scalar couplings.
 
 \begin{figure*}
-  \includegraphics[width=.24\textwidth]{plots/pdf/FH-1-6_vs_cT.pdf}
-  \includegraphics[width=.24\textwidth]{plots/pdf/FH-15-22_vs_cT.pdf}
-  \includegraphics[width=.24\textwidth]{plots/pdf/Br-K-1-6_vs_cT.pdf}
-  \includegraphics[width=.24\textwidth]{plots/pdf/Br-K-15-22_vs_cT.pdf}
-\\
+  \setlength{\relwidth}{0.31\textwidth}
+  \includegraphics[width=\relwidth]{plots/pdf/ct_K_FH1to6}
+  \includegraphics[width=\relwidth]{plots/pdf/ct_K_FH15to22}
+  \\
+  \includegraphics[width=\relwidth]{plots/pdf/ct_K_BR1to6}
+  \includegraphics[width=\relwidth]{plots/pdf/ct_K_BR15to22}
+  \\
   \includegraphics[width=.24\textwidth]{plots/pdf/Br-Kstar-1-6_vs_cT.pdf}
   \includegraphics[width=.24\textwidth]{plots/pdf/Br-Kstar-14-16_vs_cT.pdf}
   \includegraphics[width=.24\textwidth]{plots/pdf/Br-Kstar-16-19_vs_cT.pdf}
@@ -573,13 +577,13 @@ respectively.
 The observables $F_H^\ell$ \refeq{eq:FH-dependence} and $A_{\rm FB}^\ell$
 \refeq{eq:AFB-dependence} are measured in the angular distribution \refeq{eq:ang-distr}
 of $B\to K \bar\ell\ell$ being normalised to the decay width $\Gamma_\ell$, such
-that uncertainties due to form factors can cancel in part \cite{Bobeth:2007dw, 
-Bobeth:2012vn}. On the other hand, $J_{6c}$,  $(J_{1s} - 3\, J_{2s})$ and 
-$(J_{1c} + J_{2c})$ appear in the unnormalised angular distribution of 
-$B\to K^* \bar\ell\ell$ and so-called ``optimised'' versions $S_1$, $M_1$ and 
-$M_2$ for the low-$q^2$ region have been identified in~\cite{Matias:2012xw}, 
-respectively, where form factors cancel in the limit of $m_b \to \infty$. 
-For the high-$q^2$ region potential normalisations are discussed in 
+that uncertainties due to form factors can cancel in part \cite{Bobeth:2007dw,
+Bobeth:2012vn}. On the other hand, $J_{6c}$,  $(J_{1s} - 3\, J_{2s})$ and
+$(J_{1c} + J_{2c})$ appear in the unnormalised angular distribution of
+$B\to K^* \bar\ell\ell$ and so-called ``optimised'' versions $S_1$, $M_1$ and
+$M_2$ for the low-$q^2$ region have been identified in~\cite{Matias:2012xw},
+respectively, where form factors cancel in the limit of $m_b \to \infty$.
+For the high-$q^2$ region potential normalisations are discussed in
 \refapp{app:BKstarellell}, which could serve to form optimised observables for
 special scenarios of either vanishing chirality-flipped vectorial or tensorial
 or scalar couplings. In the most general case, however, there are no optimised
@@ -673,7 +677,7 @@ $(\wilson{10} - \wilson{10'})$.
 Eventually we also explore the behaviour of derived constraints with respect
 to destructive interference with vectorial couplings $\wilson{9,\,10}$. For
 this purpose we include also the branching ratio \fred{and the rate CP asymmetry}
-of $B\to K^* \bar\mu\mu$ as it can provide additional constraints on the 
+of $B\to K^* \bar\mu\mu$ as it can provide additional constraints on the
 imaginary parts of vectorial couplings.
 
 In our fit of the effective couplings $\wilson{i}(\mu_b)$, we do not neglect
@@ -703,7 +707,7 @@ contributions.
 
 We will start with the scenario of only tensorial couplings and see that they are
 well constrained by $F_H^\mu$ alone. In a second scenario we consider only scalar
-couplings in order to investigate the complementarity of $F_H^\mu$ and 
+couplings in order to investigate the complementarity of $F_H^\mu$ and
 $B_s \to \bar\mu\mu$. Here we find that for the first time all scalar couplings
 can be bounded simultaneously by the combination of both measurements. Eventually
 we will consider as a special scenario the SM
@@ -714,7 +718,7 @@ as in the SM, i.e. $v \ll \Lambda_{\rm NP}$. For each scenario, we investigate
 also interference effects with new physics in vectorial couplings. Finally, we
 conclude this section with postdictions of the allowed ranges of the yet not
 measured angular observables in $B\to K^*\bar\mu\mu$ given all other experimental
-constraints. 
+constraints.
 \todo{Perhaps give also postdictions for $A_{\Delta\Gamma}$ in $B_s\to\bar\mu\mu$}
 
 %
@@ -982,7 +986,7 @@ where $v^2$ denotes the scale of electroweak symmetry breaking and $\Lambda_{\rm
 a high energy scale at which new physics generates these operators.
 
 The couplings $\wilson{S,\, S'}$ can be bound quite reliably from (omitting
-for the sake of the argument terms of order $m_\ell^2/M_{B_s}^2$ and $m_s/m_b$) 
+for the sake of the argument terms of order $m_\ell^2/M_{B_s}^2$ and $m_s/m_b$)
 \cite{Alonso:2014csa}
 \begin{equation}
 \begin{aligned}
@@ -1057,7 +1061,7 @@ and in addition similarly among their imaginary parts.
 %
 %--------+---------+---------+---------+---------+---------+---------+---------+
 \subsection{ for $B\to K^* \bar\ell\ell$}
- 
+
 \begin{table*}
   \renewcommand{\arraystretch}{1.5}
   %\resizebox{\textwidth}{!}{
@@ -1067,7 +1071,7 @@ and in addition similarly among their imaginary parts.
   & $q^2$-bin [GeV$^2$]
   & SM
   & $9,10,T,T5$
-  & $10^{(')},S^{(')},P^{(')}$    
+  & $10^{(')},S^{(')},P^{(')}$
   & $10^{(')},S^{(')},P^{(')},T,T5$
   \\
   \hline \hline
@@ -1093,7 +1097,7 @@ and in addition similarly among their imaginary parts.
   & \eos{$(3.23_{-1.31}^{+2.36}) \cdot 10^{-21}$}
   \\
   & $[15,\, 19]$
-  & \eos{$(8.75_{-1.82}^{+2.05}) \cdot 10^{-23}$} 
+  & \eos{$(8.75_{-1.82}^{+2.05}) \cdot 10^{-23}$}
   & \eos{$(5.63_{-2.58}^{+3.29}) \cdot 10^{-21}$}
   & \eos{$(7.49_{-2.02}^{+1.01}) \cdot 10^{-23}$}
   & \eos{$(7.28_{-3.29}^{+5.17}) \cdot 10^{-21}$}
@@ -1107,7 +1111,7 @@ and in addition similarly among their imaginary parts.
   & \eos{$(2.00_{-0.97}^{+1.03}) \cdot 10^{-20}$}
   \\
   & $[15,\, 19]$
-  & \eos{$(5.99_{-1.08}^{+1.19}) \cdot 10^{-23}$} 
+  & \eos{$(5.99_{-1.08}^{+1.19}) \cdot 10^{-23}$}
   & \eos{$(6.57_{-2.72}^{+3.40}) \cdot 10^{-21}$}
   & \eos{SM}
   & \eos{$(9.29_{-4.54}^{+3.86}) \cdot 10^{-21}$}
@@ -1118,7 +1122,7 @@ and in addition similarly among their imaginary parts.
   \renewcommand{\arraystretch}{1.0}
   \caption{
      \label{tab:postdictions}
-     The 68\% probability intervals of not yet measured angular observables in 
+     The 68\% probability intervals of not yet measured angular observables in
      $B\to K^*\bar\mu\mu$ integrated over
      $q^2$ bins at low- and high-$q^2$ for several new physics scenarios respecting
      all the considered experimental constraints. The SM prediction with respective
@@ -1132,23 +1136,23 @@ and scalar couplings of the so far unmeasured angular observables $J_{6c}$,
 $(J_{1s} - 3\, J_{2s})$ and $(J_{1c} + J_{2c})$ in $B\to K^*(\to K\pi)\bar\ell\ell$
 in order to explore the potential of their future measurements in fits of the kind
 pursued in this work. \todo{Find nice place to cite method of moments paper.}
-The 68\% probability intervals are collected in \reftab{tab:postdictions} 
+The 68\% probability intervals are collected in \reftab{tab:postdictions}
 for the various general scenarios, i.e. allowing for interference with non-zero
-vectorial couplings, in \refsec{sec:tensor}, \refsec{sec:scalar} 
-and \refsec{sec:tensor:scalar} for $q^2$-integrated quantities 
-in the low- and high-$q^2$ bins $q^2\in [1.1,\, 6]$ GeV$^2$ and $q^2\in [15,\, 19]$ 
+vectorial couplings, in \refsec{sec:tensor}, \refsec{sec:scalar}
+and \refsec{sec:tensor:scalar} for $q^2$-integrated quantities
+in the low- and high-$q^2$ bins $q^2\in [1.1,\, 6]$ GeV$^2$ and $q^2\in [15,\, 19]$
 GeV$^2$, respectively. Their posterior distributions have been obtained from the
 final posterior samples as explained in~\cite{Beaujean:2012uj}.
 
 For comparison, the SM estimates are also given in \reftab{tab:postdictions}.
 At low-$q^2$ they are of order ${\cal O}(10^{-21})$ for $(J_{1s} - 3\, J_{2s})$ and
-$(J_{1c} + J_{2c})$, getting suppressed down to ${\cal O}(10^{-23})$ at high-$q^2$ 
-due to the $m_\ell/\sqrt{q^2}$ dependence. In order to compare it to the typical 
-magnitude of vectorial couplings, note that for example the decay width of 
+$(J_{1c} + J_{2c})$, getting suppressed down to ${\cal O}(10^{-23})$ at high-$q^2$
+due to the $m_\ell/\sqrt{q^2}$ dependence. In order to compare it to the typical
+magnitude of vectorial couplings, note that for example the decay width of
 $B\to K^*\bar\ell\ell$
 \begin{align}
   \frac{{\rm d}\Gamma}{{\rm d}q^2} & =
-    \frac{2}{3} (3 J_{1s} - J_{2s}) + \frac{1}{3} (3 J_{1c} -  J_{2c}) 
+    \frac{2}{3} (3 J_{1s} - J_{2s}) + \frac{1}{3} (3 J_{1c} -  J_{2c})
 \end{align}
 is numerically of the order ${\cal O}(10^{-19})$ in the SM
 \begin{equation}
@@ -1173,7 +1177,7 @@ combination with theory uncertainties, do not impose yet too stringent
 constraints on tensorial and scalar couplings.
 
 Beyond the SM, $J_{6c}$ can get of order ${\cal O}(10^{-21})$ in scenarios
-involving tensorial couplings and only ${\cal O}(10^{-23})$ in their absence. 
+involving tensorial couplings and only ${\cal O}(10^{-23})$ in their absence.
 Concerning $(J_{1c} + J_{2c})$ and $(J_{1s} - 3\, J_{2s})$, again substantial
 deviations from the SM prediction are possible only in the presence of non-zero
 tensorial couplings. In this case enhancement by two orders of magnitude are
@@ -1226,13 +1230,13 @@ We find that the experimental measurement of $F_H^\mu$
 \end{enumerate}
 
 In all cases these \eos{constraints are weakened only slightly} in the presence
-of new physics in vectorial couplings from destructive interference. 
+of new physics in vectorial couplings from destructive interference.
 
 In the future this might change once measurements start to probe the SM expectation,
 as in this case constraints on the tensorial and scalar couplings become so
-stringent that the formal suppression of vectorial couplings by $m_\ell / \sqrt{q^2}$ 
+stringent that the formal suppression of vectorial couplings by $m_\ell / \sqrt{q^2}$
 is overcome. Our study of angular observables $J_{6c}$, $(J_{1c} + J_{2c})$
-and $(J_{1s} - 3 J_{2s})$ in $B\to K^* (\to K\pi) \bar\mu\mu$ shows that 
+and $(J_{1s} - 3 J_{2s})$ in $B\to K^* (\to K\pi) \bar\mu\mu$ shows that
 
 %
 %
@@ -1242,7 +1246,7 @@ and $(J_{1s} - 3 J_{2s})$ in $B\to K^* (\to K\pi) \bar\mu\mu$ shows that
   We are grateful to Danny van Dyk for helpful discussions and his support on
   EOS \cite{EOS}. Concerning form factor results from lattice, we thank Chris
   Bouchard and Matthew Wingate for communications on their results of $B\to K$
-  \cite{Bouchard:2013eph} and $B\to K^*$ \cite{Horgan:2015vla} form factors, 
+  \cite{Bouchard:2013eph} and $B\to K^*$ \cite{Horgan:2015vla} form factors,
   respectively. We thank also David Straub for his support with LCSR results of
   $B\to K^*$ form factors \cite{Straub:2015ica}.
   C.B. received partial support from the ERC Advanced Grant project ``FLAVOUR''
@@ -1457,7 +1461,7 @@ and in addition an implementation of the variational Bayes algorithm.
 Concerning numerical input, we refer the reader to~\cite{Beaujean:2013soa} for
 the compilation of nuisance parameters and according values, whose uncertainties
 are negligible. Further, we adopt the same values for common nuisance parameters of
-$i)$ the CKM quark-mixing matrix, $ii)$ the charm and bottom quark masses in the 
+$i)$ the CKM quark-mixing matrix, $ii)$ the charm and bottom quark masses in the
 $\overline{\rm MS}$ scheme, and $iii)$ the parameterisation of subleading corrections
 in $1/m_b$ as given in \cite{Beaujean:2013soa}.
 
@@ -1516,7 +1520,7 @@ $z$-parameterization \cite{Khodjamirian:2010vf}, only five nuisance parameters
 (listed in \reftab{tab:hadronic:nuisance}) arise due to the kinematical relation
 $f_0(0) = f_+(0)$. As prior information, the LCSR results~\cite{Khodjamirian:2010vf}
 and \cite{Ball:2004ye} have been averaged (see \reftab{tab:hadronic:nuisance} and
-cf. \cite{Beaujean:2013soa}), and supplemented with lattice determinations~\cite{Bouchard:2013eph}. 
+cf. \cite{Beaujean:2013soa}), and supplemented with lattice determinations~\cite{Bouchard:2013eph}.
 Contrary to \cite{Beaujean:2013soa}, we do not adapt anymore a log-gamma prior for
 the asymmetric uncertainties but rather a continuous, but asymmetric gaussian distribution.
 The lattice results are given within a slightly different parameterisation necessitating
@@ -1580,7 +1584,7 @@ $F_i(q^2 = 0)$ and the kinematic constraint
 \begin{align}
   A_{12}(0) & = {\cal F}_{\rm kin}\, A_0(0) \,,
 \end{align}
-is used to eliminate $\alpha_0^{A_{12}}$, where the kinematic factor 
+is used to eliminate $\alpha_0^{A_{12}}$, where the kinematic factor
 ${\cal F}_{\rm kin} \equiv (M_B^2 - M_{K^*}^2)/(8 M_B M_{K^*})$ depends on the
 $B$- and $K^*$-meson masses. The residual masses $M_{R,i}$ are set to the values
 given in \cite{Straub:2015ica}.
@@ -1589,9 +1593,9 @@ This parameterization allows us to combine consistently available results
 of form factors from different non-perturbative approaches, namely LCSR's at
 large recoil and lattice at low recoil and implement simultaneously additional
 kinematic constraints. We determine the parameters $\alpha_i^k$
-in a combined fit to form factor predictions of $V, A_{0,1,12}$ from the LCSR  
+in a combined fit to form factor predictions of $V, A_{0,1,12}$ from the LCSR
 \cite{Straub:2015ica} and lattice \cite{Horgan:2013hoa, Horgan:2015vla} calculations,
-including their correlations. Further, we implement the second kinematic constraint 
+including their correlations. Further, we implement the second kinematic constraint
 \begin{align}
   \label{eq:A12-constraint-q2max}
   A_{12}(q_{\rm max}^2) & = {\cal F}_{\rm kin}\, A_1(q_{\rm max}^2)
