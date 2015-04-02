@@ -593,7 +593,7 @@ class Spring2015(object):
             m.one_dimensional(data.shape[1]-1)
             P.savefig(marg.out(s+'_Betrag_' + name))
 
-    def fig_pred(self, scen_obs, measurement, xlabel, ylabel, yrange=None, legendpos='best'):
+    def fig_pred(self, scen_obs, measurement, xlabel, ylabel, yrange=None, legendpos='upper center'):
         '''Plot predictions/postdictions with uncertainty varying one parameter over a fixed range.'''
 
         marg = MarginalContours(self.input_base, self.output_base, max_samples=self.max_samples)
@@ -617,7 +617,7 @@ class Spring2015(object):
         one_sigma_style = dict(color='grey', alpha=1)
         if not measurement.has_key('sigma_lower'):
             measurement['sigma_lower'] = measurement['sigma_upper']
-        measurement = Measurement(label=r'$\mathrm{LHCb}$',
+        measurement = Measurement(label=r'$\mathrm{LHCb \; 2014}$',
                                   central_style=central_style,
                                   one_sigma_style=one_sigma_style,
                                   central=measurement['central'],
@@ -634,41 +634,38 @@ class Spring2015(object):
         P.savefig(marg.out(scenario_names[0]))
 
     def np_label(self, value):
-        return r'$C_9^{\mathrm{NP}}=' + str(value) + '$'
+        return r'$\Delta C_9=' + str(value) + '$'
 
     def fig_1(self):
         xlabel = r'$C_{T}$'
-        ylabel=r'$\langle F_H \rangle'
-#         FH_yrange = (-0.1, 0.9)
-#         self.fig_pred(scen_obs=[dict(name='ct_K_FH1to6', unc_label=self.np_label(0)),
-#                                 dict(name='ct_c9_1dot1_K_FH1to6', unc_label=self.np_label(-1.1))],
-#                       measurement=dict(central=0.03, sigma_upper=0.036),
-#                       xlabel=xlabel,
-#                       ylabel=ylabel + r'_{[1,6]}$', yrange=FH_yrange,
-#                        legendpos='upper center')
-#
-#         self.fig_pred(scen_obs=[dict(name='ct_K_FH15to22', unc_label=self.np_label(0)),
-#                                 dict(name='ct_c9_1dot1_K_FH15to22', unc_label=self.np_label(-1.1))],
-#                       measurement=dict(central=0.035, sigma_upper=0.04031),
-#                       xlabel=xlabel,
-#                       ylabel=ylabel + r'_{[15,22]}$', yrange=FH_yrange,
-#                       legendpos='upper center')
 
-        BR_yrange = (0.5e-7, 2.5e-7)
+        ylabel=r'$\langle F_H \rangle'
+        FH_yrange = (-0.1, 0.9)
+        self.fig_pred(scen_obs=[dict(name='ct_K_FH1to6', unc_label=self.np_label(0)),
+                                dict(name='ct_c9_1dot1_K_FH1to6', unc_label=self.np_label(-1.1))],
+                      measurement=dict(central=0.03, sigma_upper=0.036),
+                      xlabel=xlabel,
+                      ylabel=ylabel + r'_{[1,6]}$', yrange=FH_yrange)
+ 
+        self.fig_pred(scen_obs=[dict(name='ct_K_FH15to22', unc_label=self.np_label(0)),
+                                dict(name='ct_c9_1dot1_K_FH15to22', unc_label=self.np_label(-1.1))],
+                      measurement=dict(central=0.035, sigma_upper=0.04031),
+                      xlabel=xlabel,
+                      ylabel=ylabel + r'_{[15,22]}$', yrange=FH_yrange)
+
+        BR_yrange = (0.5e-7, 2.75e-7)
         ylabel=r'$\langle \mathcal{B} \rangle'
         self.fig_pred(scen_obs=[dict(name='ct_K_BR1to6', unc_label=self.np_label(0)),
                                 dict(name='ct_c9_1dot1_K_BR1to6', unc_label=self.np_label(-1.1))],
                       measurement=dict(central=2.42e-8 * 4.9, sigma_upper=6.8072975548304046e-09),
                       xlabel=xlabel,
-                      ylabel=ylabel + r'_{[1,6]}$', yrange=BR_yrange,
-                       legendpos='upper left')
+                      ylabel=ylabel + r'_{[1,6]}$', yrange=BR_yrange)
 
         self.fig_pred(scen_obs=[dict(name='ct_K_BR15to22', unc_label=self.np_label(0)),
                                 dict(name='ct_c9_1dot1_K_BR15to22', unc_label=self.np_label(-1.1))],
                       measurement=dict(central=1.21e-8 * 7, sigma_upper=5.0477717856495843e-09),
                       xlabel=xlabel,
-                      ylabel=ylabel + r'_{[15,22]}$', yrange=BR_yrange,
-                      legendpos='upper center')
+                      ylabel=ylabel + r'_{[15,22]}$', yrange=BR_yrange)
 
     def all(self):
         import inspect
