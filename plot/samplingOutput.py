@@ -1121,7 +1121,7 @@ class EOS_PYPMC_IS(IS_Output):
     def read_mixture(file, directory):
         import pypmc
 
-        with h5py.File(file, 'r') as file:
+        with open_hdf5(file) as file:
             means = file[directory + '/means'][:]
             covs = file[directory + '/covariances'][:]
             weights = file[directory + '/weights'][:]
@@ -1239,7 +1239,7 @@ class EOS_PYPMC_UNC(SamplingOutput):
     '''Read samples of a single observable computed from parameter samples.'''
 
     def _read(self, *args, **kwargs):
-        with h5py.File(self.input_file_name) as input_file:
+        with open_hdf5(self.input_file_name) as input_file:
             obs_ds = input_file['/observable']
             self.samples = obs_ds[:]
             self.weights = np.ones(len(self.samples))
