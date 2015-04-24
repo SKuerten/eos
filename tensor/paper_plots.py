@@ -83,7 +83,7 @@ class Scenario(object):
         except KeyError:
             return self.__bandwidth_default
 
-    def get_bandwidth(self, par1):
+    def get_bandwidth1D(self, par1):
         try:
             return self.__bandwidth[par1]
         except KeyError:
@@ -92,7 +92,7 @@ class Scenario(object):
     def set_bandwidth(self, par1, par2, value):
         self.__bandwidth[(par1, par2)] = value
 
-    def set_bandwidth(self, par1, value):
+    def set_bandwidth1D(self, par1, value):
         self.__bandwidth[par1] = value
 
 class Measurement(object):
@@ -147,7 +147,7 @@ class MarginalContours(object):
 
     def __init__(self, input_base, output_base, ext='.pdf', max_samples=None, ignore_scenarios=None):
 
-        self.output_base = os.path.join(output_base, "contour")
+        self.output_base = os.path.join(output_base, 'paper_plots')
         if not os.path.isdir(self.output_base):
             os.mkdir(self.output_base)
         self.ext = ext
@@ -170,7 +170,11 @@ class MarginalContours(object):
         self.best_fit_points_style = [[best_fit_point_style]*4, [next_best_fit_point_style]*4]
 
         # highest to lowest contour
-        self.contour_styles = [dict(linestyle='solid'), dict(linestyle='dashed'), dict(linestyle='dashdot')]
+        self.contour_styles = [dict(linestyle='solid'),
+                               dict(linestyle='dashed'),
+                               dict(linestyle='dashdot')]
+
+        self.contour_alpha = (0.8, 0.5, 0.3)
 
         self.max_samples = max_samples
         self.read_data()
@@ -304,14 +308,11 @@ class MarginalContours(object):
             # retrieve original range used to create prob_density
             # then zoom will work correctly
             density, xrange, yrange = self.__density_cache[(i, j, s, solution)]
-            line = bool(k)
-            line=False
-            artist = self.margs[s].contours_two(xrange, yrange, density,
-                                                color=self.scen[s].c, line=line, grid=True,
-                                                desired_levels=desired_levels)
-            if line:
-                for n, l in enumerate(desired_levels):
-                    P.setp(artist.collections[n], **self.contour_styles[-n-1])
+            for line in [True, False]:
+                artist = self.margs[s].contours_two(xrange, yrange, density,
+                                                    color=self.scen[s].c, line=line, grid=True,
+                                                    desired_levels=desired_levels,
+                                                    alpha=self.contour_alpha)
 
         if SM_point:
             P.plot(self.sm_point.get(def1.name, 0.), self.sm_point.get(def2.name, 0.), **self.sm_point_style)
@@ -506,6 +507,13 @@ class Spring2015(object):
     def input(self, file):
         return os.path.join(self.input_base, file)
 
+    def overlay(self, marg, def1, def2, scenarios, desired_levels=(0.683, 0.954)):
+        marg.single_panel(def1, def2, scenarios=scenarios,
+                          desired_levels=desired_levels,
+                          local_mode=[False] * len(scenarios)) # no local mode
+        adjust_subplot()
+        P.savefig(marg.out(','.join(scenarios) + '_%d,%d' % (def1.i,def2.i)))
+
     def figSP(self):
 
         marg = MarginalContours(self.input_base, self.output_base, max_samples=self.max_samples)
@@ -514,7 +522,7 @@ class Spring2015(object):
         # scenarios
         ###
         s = 'scSP_Bsmumu'
-        marg.scen[s] = Scenario(os.path.join(marg.input_base, 'mcmc_' + s + '.hdf5'), 'OrangeRed',
+        marg.scen[s] = Scenario(os.path.join(marg.input_base, 'mcmc_' + s + '.hdf5'), '#59955C',
                                 nbins=300)
 #                                         local_mode=[[-0.348441713,   3.787226592, -4.420530192],
 #                                                     [ 0.5021320352, -4.568457245,  4.25129282]])
@@ -522,11 +530,12 @@ class Spring2015(object):
         marg.scen[s].set_bandwidth(2, 6, 0.008)
 
         s = 'scSP_FH'
-        marg.scen[s] = Scenario(os.path.join(marg.input_base, 'mcmc_' + s + '.hdf5'), 'Blue',
+        marg.scen[s] = Scenario(os.path.join(marg.input_base, 'mcmc_' + s + '.hdf5'), '#2966B8',
                                 nbins=300)
 #                                         local_mode=[[-0.348441713,   3.787226592, -4.420530192],
 #                                                     [ 0.5021320352, -4.568457245,  4.25129282]])
         marg.scen[s].set_bandwidth(0, 2, 0.025)
+        marg.scen[s].set_bandwidth(0, 4, 0.04)
         marg.scen[s].set_bandwidth(2, 6, 0.015)
 
         marg.read_data()
@@ -551,12 +560,9 @@ class Spring2015(object):
 
         square_figure(self.fig_size)
 
-        for ii in [(0,1), (1,3)]:
-            marg.single_panel(defs[ii[0]], defs[ii[1]], scenarios=scenarios,
-                              desired_levels=(0.683, 0.954), local_mode=(False, False))
-
-            adjust_subplot()
-            P.savefig(marg.out(s + str(ii)))
+        self.overlay(marg, defs[0], defs[1], scenarios)
+        self.overlay(marg, defs[1], defs[3], ['scSP_Bsmumu'])
+        self.overlay(marg, defs[0], defs[2], ['scSP_FH'])
 
     def figTT5(self):
 
@@ -646,7 +652,7 @@ class Spring2015(object):
                       measurement=dict(central=0.03, sigma_upper=0.036),
                       xlabel=xlabel,
                       ylabel=ylabel + r'_{[1,6]}$', yrange=FH_yrange)
- 
+
         self.fig_pred(scen_obs=[dict(name='ct_K_FH15to22', unc_label=self.np_label(0)),
                                 dict(name='ct_c9_1dot1_K_FH15to22', unc_label=self.np_label(-1.1))],
                       measurement=dict(central=0.035, sigma_upper=0.04031),
@@ -689,7 +695,7 @@ if __name__ == '__main__':
     matplotlib.rcParams['axes.linewidth'] = major['width']
 
     f = Spring2015()
-#     f.figSP()
+    f.figSP()
 #    f.figTT5()
-    f.fig_1()
+#     f.fig_1()
 #    f.all()
