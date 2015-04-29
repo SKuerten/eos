@@ -684,6 +684,10 @@ if __name__ == '__main__':
     matplotlib.rcParams['text.usetex'] = True
     matplotlib.rcParams['text.latex.unicode'] = True
     matplotlib.rcParams['font.size'] = 22
+    matplotlib.rcParams['text.latex.preamble'] = r'''
+    \usepackage[proportional]{libertine}
+    \usepackage[libertine]{newtxmath}
+    '''
 
     # enlarge ticks
     major = dict(size=8, width=1.4, pad=10)
@@ -696,6 +700,6 @@ if __name__ == '__main__':
 
     f = Spring2015()
     f.figSP()
-#    f.figTT5()
+#     f.figTT5()
 #     f.fig_1()
 #    f.all()
