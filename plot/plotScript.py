@@ -840,7 +840,7 @@ class MarginalDistributions:
             parameter_name = "par"+str(index)
 
         print('')
-        print("%s: x_range = [%g, %g], bins = %d" % (parameter_name, x_min, x_max, self.nBins[index]))
+        print("%d: %s in [%g, %g] with %d bins" % (index, parameter_name, x_min, x_max, self.nBins[index]))
 
         # general array, either from histogramming or from KDE
         probability_array = None
