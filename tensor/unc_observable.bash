@@ -24,3 +24,17 @@ export UNC_KIN_KSTAR_BR14to16="s_min 14.18 s_max 16.00"
 
 export UNC_OBS_KSTAR_BR16to19="B->K^*ll::BRavg@LowRecoil${GLOBAL_OPTIONS}${KSTAR_OPTIONS}"
 export UNC_KIN_KSTAR_BR16to19="s_min 16.00 s_max 19.00"
+
+
+export UNC_OBS_KSTAR_J_1c_plus_J_2c1to6="B->K^*ll::J_1c+J_2cavg@LargeRecoil${GLOBAL_OPTIONS}${KSTAR_OPTIONS}"
+export UNC_KIN_KSTAR_J_1c_plus_J_2c1to6="s_min 1.1 s_max 6"
+
+export UNC_OBS_KSTAR_J_1c_plus_J_2c15to19="B->K^*ll::J_1c+J_2cavg@LowRecoil${GLOBAL_OPTIONS}${KSTAR_OPTIONS}"
+export UNC_KIN_KSTAR_J_1c_plus_J_2c15to19="s_min 15.00 s_max 19.00"
+
+
+export UNC_OBS_KSTAR_J_1s_minus_3J_2s1to6="B->K^*ll::J_1s-3J_2savg@LargeRecoil${GLOBAL_OPTIONS}${KSTAR_OPTIONS}"
+export UNC_KIN_KSTAR_J_1s_minus_3J_2s1to6="s_min 1.1 s_max 6"
+
+export UNC_OBS_KSTAR_J_1s_minus_3J_2s15to19="B->K^*ll::J_1s-3J_2savg@LowRecoil${GLOBAL_OPTIONS}${KSTAR_OPTIONS}"
+export UNC_KIN_KSTAR_J_1s_minus_3J_2s15to19="s_min 15.00 s_max 19.00"

@@ -109,11 +109,12 @@ export CONSTRAINTS_B_TO_KSTAR_FF_LATTICE="
     --global-option form-factors BSZ2015
 
     --constraint B->K^*::V+A_0+A_1+A_12@HLMW-2015
+    --constraint B->K^*::T_1+T_2+T_23@HLMW-2015
 "
 export CONSTRAINTS_B_TO_KSTAR_FF_LCSR="
     --global-option form-factors BSZ2015
 
-    --constraint B->K^*::A_0+A_1+A_2+V@BSZ2015
+    --constraint B->K^*::A_0+A_1+A_2+V+T_1+T_2+T_3@BSZ2015
 "
 export CONSTRAINTS_B_TO_KSTAR_FF_KINEMATIC_ENDPOINT="
     --global-option form-factors BSZ2015
@@ -123,7 +124,6 @@ export CONSTRAINTS_B_TO_KSTAR_FF_KINEMATIC_ENDPOINT="
 export CONSTRAINTS_B_TO_KSTAR_FF_ALL="
     ${CONSTRAINTS_B_TO_KSTAR_FF_LATTICE}
     ${CONSTRAINTS_B_TO_KSTAR_FF_LCSR}
-    ${CONSTRAINTS_B_TO_KSTAR_FF_KINEMATIC_ENDPOINT}
 "
 #####################
 ## inclusive ##

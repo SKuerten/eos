@@ -27,20 +27,32 @@ export NUISANCE_DECAY_CONSTANTS_flag13="
 ###
 # B -> K*
 ###
+# use A_12 \propto A_0 and T_1(0) = T_2(0) to eliminate two parameters
+min0=0; max0=1;
+min1=-2; max1=2;
+min2=-3; max2=3;
 export NUISANCE_B_TO_V_FORM_FACTORS_BSZ2015="
     --global-option form-factors BSZ2015
 
-    --nuisance    B->K^*::alpha^A0_0@BSZ2015                       0.0   1.0                  --prior    flat
-    --nuisance    B->K^*::alpha^A0_1@BSZ2015                     -10.0  10.0                  --prior    flat
-    --nuisance    B->K^*::alpha^A0_2@BSZ2015                     -10.0  10.0                  --prior    flat
-    --nuisance    B->K^*::alpha^A1_0@BSZ2015                       0.0   1.0                  --prior    flat
-    --nuisance    B->K^*::alpha^A1_1@BSZ2015                     -10.0  10.0                  --prior    flat
-    --nuisance    B->K^*::alpha^A1_2@BSZ2015                     -10.0  10.0                  --prior    flat
-    --nuisance    B->K^*::alpha^A12_1@BSZ2015                    -10.0  10.0                  --prior    flat
-    --nuisance    B->K^*::alpha^A12_2@BSZ2015                    -10.0  10.0                  --prior    flat
-    --nuisance    B->K^*::alpha^V_0@BSZ2015                        0.0   1.0                  --prior    flat
-    --nuisance    B->K^*::alpha^V_1@BSZ2015                      -10.0  10.0                  --prior    flat
-    --nuisance    B->K^*::alpha^V_2@BSZ2015                      -10.0  10.0                  --prior    flat
+    --nuisance    B->K^*::alpha^A0_0@BSZ2015      $min0  $max0       --prior    flat
+    --nuisance    B->K^*::alpha^A0_1@BSZ2015      $min1  $max1       --prior    flat
+    --nuisance    B->K^*::alpha^A0_2@BSZ2015      $min2  $max2       --prior    flat
+    --nuisance    B->K^*::alpha^A1_0@BSZ2015      $min0  $max0       --prior    flat
+    --nuisance    B->K^*::alpha^A1_1@BSZ2015      $min1  $max1       --prior    flat
+    --nuisance    B->K^*::alpha^A1_2@BSZ2015      $min2  $max2       --prior    flat
+    --nuisance    B->K^*::alpha^A12_1@BSZ2015     $min1  $max1       --prior    flat
+    --nuisance    B->K^*::alpha^A12_2@BSZ2015     $min2  $max2       --prior    flat
+    --nuisance    B->K^*::alpha^V_0@BSZ2015       $min0  $max0       --prior    flat
+    --nuisance    B->K^*::alpha^V_1@BSZ2015       $min1  $max1       --prior    flat
+    --nuisance    B->K^*::alpha^V_2@BSZ2015       $min2  $max2       --prior    flat
+    --nuisance    B->K^*::alpha^T1_0@BSZ2015      $min0  $max0       --prior    flat
+    --nuisance    B->K^*::alpha^T1_1@BSZ2015      $min1  $max1       --prior    flat
+    --nuisance    B->K^*::alpha^T1_2@BSZ2015      $min2  $max2       --prior    flat
+    --nuisance    B->K^*::alpha^T2_1@BSZ2015      $min1  $max1       --prior    flat
+    --nuisance    B->K^*::alpha^T2_2@BSZ2015      $min2  $max2       --prior    flat
+    --nuisance    B->K^*::alpha^T23_0@BSZ2015     $min0  $max0       --prior    flat
+    --nuisance    B->K^*::alpha^T23_1@BSZ2015     $min1  $max1       --prior    flat
+    --nuisance    B->K^*::alpha^T23_2@BSZ2015     $min2  $max2       --prior    flat
 "
 ###
 # B -> K
