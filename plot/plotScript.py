@@ -623,20 +623,38 @@ class MarginalDistributions:
         print("Local marginalized mode(s) at:")
         print(np.array(local_modes))
 
-    def contours_two(self, x_range, y_range, densities, desired_levels=None, color='blue', grid=True, line=False):
+    def contours_two(self, x_range, y_range, densities, desired_levels=None,
+                     color='blue', grid=True, line=False,
+                     alpha=(1, 0.5, 0.3, 0.1, 0.05)):
         """
         Plot several filled 2D contours
 
-        :param x:
-             NxN array; the pixel centers in parameter values
+        :param x_range:
+             [x_min, x_max]; the range of x parameter values
+
+        :param y_range:
+             [y_min, y_max]; the range of y parameter values
 
         :param densities:
-            NxN array; probability density estimate at x
+            NxN array; probability density at pixel centers
 
-        :param levels:
+        :param desired_levels:
             The probability levels of the contours. Default to 1 and 2 sigma.
             Use `1 sigma` or `2 sigma` to select only one of the two. Any
             iterable is passed on to ``find_hist_limits``.
+
+        :param color:
+            String; color of the contour
+
+        :param grid:
+            Bool; superimpose grid a major locators.
+
+        :param line:
+            Bool; ``True`` only plots contour line, ``False`` fills the contour.
+
+        :param alpha:
+            Transparency of multiple contours. With default values,
+            the highest is opaque, lower contours are increasingly more transparent.
         """
 
         kwargs = {'credibilities':desired_levels}
@@ -667,7 +685,6 @@ class MarginalDistributions:
         artist = None
         if line:
             artist = P.contour(densities, levels[1:-1], colors=color, extent=extent)
-            P.setp(artist.collections[0], linestyle='dashed')
         else:
             # give all colors explicitly
             colors=[color]*(len(levels) - 1)
@@ -678,9 +695,6 @@ class MarginalDistributions:
             # make 'outer' contour -- the lowest part -- transparent to allow overlays
             P.setp(artist.collections[0], alpha=0.0)
 
-            # handle case of more than two contours
-            # highest is opaque, lower contours increasingly transparent
-            alpha = (1, 0.5, 0.3, 0.1, 0.05)
             for i, zc in enumerate(reversed(artist.collections[1:])):
                 P.setp(zc, alpha=alpha[i])
 
