@@ -41,7 +41,7 @@ parameter values. In the `i`-th call,
    ```
 
 2. Run 100 jobs over full range of samples
-   `BASE_NAME=$WORK/eos/2015-tensor/2015-04-01 time ./loadleveler-unc.cmd ct K_FH1to6 /gpfs/work/pr85tu/ru72xaf2/eos/2015-tensor/2015-04-01/sm_unc_K/mcmc_pre_merged.hdf5 100`
+   `BASE_NAME=$WORK/eos/2015-tensor/2015-04-01 ./loadleveler-unc.cmd ct K_FH1to6 /gpfs/work/pr85tu/ru72xaf2/eos/2015-tensor/2015-04-01/sm_unc_K/mcmc_pre_merged.hdf5 100`
 
 3. Merge outputs from parallel run
    `merge.py --unc --pypmc`

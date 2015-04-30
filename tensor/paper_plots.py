@@ -230,7 +230,7 @@ class MarginalContours(object):
         if m.marginal_modes.has_key(i):
             return
 
-        bandwidth = self.scen[scenario].get_bandwidth(i)
+        bandwidth = self.scen[scenario].get_bandwidth1D(i)
         if m.use_histogram and bandwidth is None:
                 pass
         else:
@@ -440,9 +440,10 @@ class MarginalContours(object):
         # plot measurement first and below the patches
         m = self.margs[scenarios[0]]
         x_range = m.out.fixed_values[0], m.out.fixed_values[-1]
-        P.fill_between(x_range, [measurement.lower] * 2, [measurement.upper] * 2, **measurement.one_sigma_style)
-        P.plot(x_range, [measurement.central] * 2, **measurement.central_style)
-        legend_patches.append((matplotlib.patches.Patch(**measurement.one_sigma_style), measurement.label))
+        if measurement:
+            P.fill_between(x_range, [measurement.lower] * 2, [measurement.upper] * 2, **measurement.one_sigma_style)
+            P.plot(x_range, [measurement.central] * 2, **measurement.central_style)
+            legend_patches.append((matplotlib.patches.Patch(**measurement.one_sigma_style), measurement.label))
 
         for scen in scenarios:
             s = self.scen[scen]
@@ -599,7 +600,7 @@ class Spring2015(object):
             m.one_dimensional(data.shape[1]-1)
             P.savefig(marg.out(s+'_Betrag_' + name))
 
-    def fig_pred(self, scen_obs, measurement, xlabel, ylabel, yrange=None, legendpos='upper center'):
+    def fig_pred(self, scen_obs, measurement, ylabel, xlabel=r'$C_{T}$', yrange=None, legendpos='upper center'):
         '''Plot predictions/postdictions with uncertainty varying one parameter over a fixed range.'''
 
         marg = MarginalContours(self.input_base, self.output_base, max_samples=self.max_samples)
@@ -621,14 +622,15 @@ class Spring2015(object):
         central_style = dict(color='black', linewidth=matplotlib.rcParams['axes.linewidth'],
                              linestyle='solid', alpha=1)
         one_sigma_style = dict(color='grey', alpha=1)
-        if not measurement.has_key('sigma_lower'):
-            measurement['sigma_lower'] = measurement['sigma_upper']
-        measurement = Measurement(label=r'$\mathrm{LHCb \; 2014}$',
-                                  central_style=central_style,
-                                  one_sigma_style=one_sigma_style,
-                                  central=measurement['central'],
-                                  lower=measurement['central'] - measurement['sigma_lower'],
-                                  upper=measurement['central'] + measurement['sigma_upper'])
+        if measurement:
+            if not measurement.has_key('sigma_lower'):
+                measurement['sigma_lower'] = measurement['sigma_upper']
+            measurement = Measurement(label=r'$\mathrm{LHCb}$',
+                                      central_style=central_style,
+                                      one_sigma_style=one_sigma_style,
+                                      central=measurement['central'],
+                                      lower=measurement['central'] - measurement['sigma_lower'],
+                                      upper=measurement['central'] + measurement['sigma_upper'])
 
         marg.stack_prediction(scenario_names, measurement,
                               legendpos=legendpos)
@@ -642,36 +644,83 @@ class Spring2015(object):
     def np_label(self, value):
         return r'$\Delta C_9=' + str(value) + '$'
 
+    def scenario_comparison(self, obs, s_min, s_max, scen=('ct', 'ct_c9_1dot1'), delta_c9=(0, 1.1)):
+        return [dict(name=scen[i] + '_' + obs + '%gto%g' % (s_min, s_max), unc_label=self.np_label(delta_c9[i])) for i in range(len(scen))]
+
     def fig_1(self):
-        xlabel = r'$C_{T}$'
-
+        obs = 'K_FH'
         ylabel=r'$\langle F_H \rangle'
-        FH_yrange = (-0.1, 0.9)
-        self.fig_pred(scen_obs=[dict(name='ct_K_FH1to6', unc_label=self.np_label(0)),
-                                dict(name='ct_c9_1dot1_K_FH1to6', unc_label=self.np_label(-1.1))],
+        yrange = (-0.05, 0.9)
+
+        s_min, s_max = 1, 6
+        self.fig_pred(scen_obs=self.scenario_comparison(obs, s_min, s_max),
                       measurement=dict(central=0.03, sigma_upper=0.036),
-                      xlabel=xlabel,
-                      ylabel=ylabel + r'_{[1,6]}$', yrange=FH_yrange)
+                      ylabel=ylabel + '_{[%g,%g]}$' % (s_min, s_max), yrange=yrange)
 
-        self.fig_pred(scen_obs=[dict(name='ct_K_FH15to22', unc_label=self.np_label(0)),
-                                dict(name='ct_c9_1dot1_K_FH15to22', unc_label=self.np_label(-1.1))],
+        s_min, s_max = 15, 22
+        self.fig_pred(scen_obs=self.scenario_comparison(obs, s_min, s_max),
                       measurement=dict(central=0.035, sigma_upper=0.04031),
-                      xlabel=xlabel,
-                      ylabel=ylabel + r'_{[15,22]}$', yrange=FH_yrange)
+                      ylabel=ylabel + '_{[%g,%g]}$' % (s_min, s_max), yrange=yrange)
 
-        BR_yrange = (0.5e-7, 2.75e-7)
-        ylabel=r'$\langle \mathcal{B} \rangle'
-        self.fig_pred(scen_obs=[dict(name='ct_K_BR1to6', unc_label=self.np_label(0)),
-                                dict(name='ct_c9_1dot1_K_BR1to6', unc_label=self.np_label(-1.1))],
+        obs = 'K_BR'
+        yrange = (0.5e-7, 2.75e-7)
+        ylabel=r'$\langle \mathcal{B}(K) \rangle'
+
+        s_min, s_max = 1, 6
+        self.fig_pred(scen_obs=self.scenario_comparison(obs, s_min, s_max),
                       measurement=dict(central=2.42e-8 * 4.9, sigma_upper=6.8072975548304046e-09),
-                      xlabel=xlabel,
-                      ylabel=ylabel + r'_{[1,6]}$', yrange=BR_yrange)
+                      ylabel=ylabel + '_{[%g,%g]}$' % (s_min, s_max), yrange=yrange)
 
-        self.fig_pred(scen_obs=[dict(name='ct_K_BR15to22', unc_label=self.np_label(0)),
-                                dict(name='ct_c9_1dot1_K_BR15to22', unc_label=self.np_label(-1.1))],
+        s_min, s_max = 15, 22
+        self.fig_pred(scen_obs=self.scenario_comparison(obs, s_min, s_max),
                       measurement=dict(central=1.21e-8 * 7, sigma_upper=5.0477717856495843e-09),
-                      xlabel=xlabel,
-                      ylabel=ylabel + r'_{[15,22]}$', yrange=BR_yrange)
+                      ylabel=ylabel + '_{[%g,%g]}$' % (s_min, s_max), yrange=yrange)
+
+        obs = 'Kstar_BR'
+        yrange = (0.5e-7, 7e-7)
+        ylabel=r'$\langle \mathcal{B}(K^{\ast}) \rangle'
+
+        s_min, s_max = 1, 6
+        self.fig_pred(scen_obs=self.scenario_comparison(obs, s_min, s_max),
+                      measurement=None,
+                      ylabel=ylabel + '_{[%g,%g]}$' % (s_min, s_max), yrange=yrange)
+
+        s_min, s_max = 14.18, 16
+        self.fig_pred(scen_obs=self.scenario_comparison(obs, 14, s_max),
+                      measurement=None,
+                      ylabel=ylabel + '_{[%g,%g]}$' % (s_min, s_max), yrange=yrange)
+
+        s_min, s_max = 16, 19
+        self.fig_pred(scen_obs=self.scenario_comparison(obs, s_min, s_max),
+                      measurement=None,
+                      ylabel=ylabel + '_{[%g,%g]}$' % (s_min, s_max), yrange=yrange)
+
+        obs = 'Kstar_J_1c_plus_J_2c'
+        yrange = (-0.1e-20, 6e-20)
+        ylabel=r'$\langle J_{1c} + J_{2c} \rangle'
+
+        s_min, s_max = 1.1,6
+        self.fig_pred(scen_obs=self.scenario_comparison(obs, 1, s_max),
+                      measurement=None,
+                      ylabel=ylabel + '_{[%g,%g]}$' % (s_min, s_max), yrange=yrange)
+
+        s_min, s_max = 15,19
+        self.fig_pred(scen_obs=self.scenario_comparison(obs, s_min, s_max),
+                      measurement=None,
+                      ylabel=ylabel + '_{[%g,%g]}$' % (s_min, s_max), yrange=yrange)
+
+        yrange = (-0.05e-19, 2.5e-19)
+        ylabel=r'$\langle J_{1s} - 3 J_{2s} \rangle'
+        obs = 'Kstar_J_1s_minus_3J_2s'
+        s_min, s_max = 1.1,6
+        self.fig_pred(scen_obs=self.scenario_comparison(obs, 1, s_max),
+                      measurement=None,
+                      ylabel=ylabel + '_{[%g,%g]}$' % (s_min, s_max), yrange=yrange)
+
+        s_min, s_max = 15,19
+        self.fig_pred(scen_obs=self.scenario_comparison(obs, s_min, s_max),
+                      measurement=None,
+                      ylabel=ylabel + '_{[%g,%g]}$' % (s_min, s_max), yrange=yrange)
 
     def all(self):
         import inspect
@@ -699,7 +748,7 @@ if __name__ == '__main__':
     matplotlib.rcParams['axes.linewidth'] = major['width']
 
     f = Spring2015()
-    f.figSP()
+    # f.figSP()
 #     f.figTT5()
-#     f.fig_1()
+    f.fig_1()
 #    f.all()
