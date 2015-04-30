@@ -751,7 +751,7 @@ class MarginalDistributions:
             intervals95.append([x[run[0]] - 0.5 * bin_width, x[run[1] - 1] + 0.5 * bin_width ])
             intervals95[-1].append(intervals95[-1][1] - intervals95[-1][0])
             mode_index = run[0] + np.argmax(prob_density[run[0]:run[1]])
-            local_modes.append((x[mode_index] + x[mode_index + 1]) / 2.0)
+            local_modes.append(x[mode_index] + bin_width / 2.0)
         intervals95 = np.array(intervals95)
         local_modes = np.array(local_modes)
         print("Minimal 2 sigma intervals:")
