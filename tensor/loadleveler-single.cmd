@@ -24,7 +24,7 @@ file=${name}.job
 # beware of shell escaping: loadlever variables
 # must not be expanded by this shell
 echo "#! /bin/bash
-#@ job_name = ${name}_${action}_${low}_${high}
+#@ job_name = ${name}
 #@ group = pr85tu
 #@ job_type = serial
 #@ class = serial
