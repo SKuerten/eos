@@ -116,13 +116,14 @@ def merge_pypmc(output_file_name, search='mcmc_*.hdf5', input_files=None,
 
     # count chains copied
     nchains_valid = 0
-    valid_files = []
+    valid_file_chains = []
 
     with h5py.File(output_file_name, "w") as output_file:
         for file_name in input_files:
             print("merging %s" % file_name)
             with h5py.File(file_name, 'r') as input_file:
                 nchains_in_file = len(input_file['/'].keys())
+                valid_chains = []
 
                 for i in range(nchains_in_file):
                     # check agreement
@@ -132,13 +133,16 @@ def merge_pypmc(output_file_name, search='mcmc_*.hdf5', input_files=None,
 
                     if invalid_chain(input_file, i, cut_off, format='pypmc'):
                         continue
+                    else:
+                        valid_chains.append(i)
 
                     # copy data
                     for g in groups:
                         if not single_chain:
                             input_file.copy('/chain #%d' % i + g, output_file, name='/chain #%d' % nchains_valid + g)
                     nchains_valid += 1
-                valid_files.append(file_name)
+                if valid_chains:
+                    valid_file_chains.append((file_name, valid_chains))
 
         # compress into one big chain
         if single_chain:
@@ -155,17 +159,17 @@ def merge_pypmc(output_file_name, search='mcmc_*.hdf5', input_files=None,
 
             # loop over valid input files
             nchain = 0
-            for j, file_name in enumerate(valid_files):
+            for j, (file_name, chains) in enumerate(valid_file_chains):
                 with h5py.File(file_name, 'r') as input_file:
                     # copy descriptions only once
                     if j == 0:
                         s = first + '/descriptions'
                         input_file.copy(s, output_file, name=s)
                     # loop over chains
-                    for i, c in enumerate(input_file['/'].iterkeys()):
+                    for c in chains:
                         for g, ds in zip(data_groups, data_sets):
                             old_length = nchain * new_samples
-                            data = input_file[c + g[0]][first_index::thin]
+                            data = input_file['chain #%d/' % c + g[0]][first_index::thin]
 
                             # 1D versus 2D assignment
                             if g[0] == '/log_posterior':
