@@ -837,7 +837,7 @@ class MarginalDistributions:
         # extract parameter name
         parameter_name = self.tr.to_tex(self.out.par_defs[index].name)
         if parameter_name == '':
-            parameter_name = "par"+str(index)
+            parameter_name = "par" + str(index)
 
         print('')
         print("%d: %s in [%g, %g] with %d bins" % (index, parameter_name, x_min, x_max, self.nBins[index]))
