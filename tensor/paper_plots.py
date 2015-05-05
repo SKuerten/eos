@@ -213,8 +213,9 @@ class MarginalContours(object):
         if not scenario.histogram:
             cmd_template += ' --use-KDE'
 
-        for p in scenario.defs:
-            cmd_template += ' --cut %d %s %s' % (p.i, p.min, p.max)
+        if not scenario.file_type == 'unc':
+            for p in scenario.defs:
+                cmd_template += ' --cut %d %s %s' % (p.i, p.min, p.max)
 
         return cmd_template.split()
 
@@ -238,8 +239,8 @@ class MarginalContours(object):
             if bandwidth:
                 m.kde_bandwidth = bandwidth
 
-        if def1.min != def1.max:
-            m.cuts[i] = def1.range
+        # if def1.min != def1.max:
+        #     m.cuts[i] = def1.range
         m.one_dimensional(i)
         assert len(m.credibilities[0][0]) == 1, "Found disconnected 1sigma interval\n" + str(m.credibilities[0][0])
 
@@ -600,7 +601,8 @@ class Spring2015(object):
             m.one_dimensional(data.shape[1]-1)
             P.savefig(marg.out(s+'_Betrag_' + name))
 
-    def fig_pred(self, scen_obs, measurement, ylabel, xlabel=r'$C_{T}$', yrange=None, legendpos='upper center'):
+    def fig_pred(self, scen_obs, measurement, ylabel, xlabel=r'$C_{T}$', yrange=None,
+                 legendpos='upper center', rescale=None):
         '''Plot predictions/postdictions with uncertainty varying one parameter over a fixed range.'''
 
         marg = MarginalContours(self.input_base, self.output_base, max_samples=self.max_samples)
@@ -616,6 +618,15 @@ class Spring2015(object):
             marg.scen[name] = Scenario(self.input('unc_' + name + '.hdf5'), **kw)
             scenario_names.append(name)
         marg.read_data()
+
+        # rescale every sample by a constant
+        # this requires updating cached min/max values, too.
+        if rescale:
+            for k,v in marg.margs.iteritems():
+                v.out.samples *= rescale
+                v.min *= rescale
+                v.max *= rescale
+
         marg.compute_marginal1D_all(scenario_names)
         wide_figure(x_size=8, ratio=4/3.0, left=0.165, right=0.95, top=0.94, bottom=0.145)
 
@@ -642,9 +653,9 @@ class Spring2015(object):
         P.savefig(marg.out(scenario_names[0]))
 
     def np_label(self, value):
-        return r'$\Delta C_9=' + str(value) + '$'
+        return r'$\mathcal{C}_9^{\rm NP} = ' + str(value) + '$'
 
-    def scenario_comparison(self, obs, s_min, s_max, scen=('ct', 'ct_c9_1dot1'), delta_c9=(0, 1.1)):
+    def scenario_comparison(self, obs, s_min, s_max, scen=('ct', 'ct_c9_1dot1'), delta_c9=(0, -1.1)):
         return [dict(name=scen[i] + '_' + obs + '%gto%g' % (s_min, s_max), unc_label=self.np_label(delta_c9[i])) for i in range(len(scen))]
 
     def fig_1(self):
@@ -695,31 +706,34 @@ class Spring2015(object):
                       measurement=None,
                       ylabel=ylabel + '_{[%g,%g]}$' % (s_min, s_max), yrange=yrange)
 
+        # B_d lifetime
+        inv_tau_B = 1.0 / 1.519e-12
+
         obs = 'Kstar_J_1c_plus_J_2c'
-        yrange = (-0.1e-20, 6e-20)
-        ylabel=r'$\langle J_{1c} + J_{2c} \rangle'
+        yrange = (-0.1e-8, 4e-8) #tuple(np.array((-0.1e-20, 6e-20)) * inv_tau_B)
+        ylabel=r'$1/\tau_B \, \langle J_{1c} + J_{2c} \rangle'
 
         s_min, s_max = 1.1,6
         self.fig_pred(scen_obs=self.scenario_comparison(obs, 1, s_max),
-                      measurement=None,
+                      measurement=None, rescale=inv_tau_B,
                       ylabel=ylabel + '_{[%g,%g]}$' % (s_min, s_max), yrange=yrange)
 
         s_min, s_max = 15,19
         self.fig_pred(scen_obs=self.scenario_comparison(obs, s_min, s_max),
-                      measurement=None,
+                      measurement=None, rescale=inv_tau_B,
                       ylabel=ylabel + '_{[%g,%g]}$' % (s_min, s_max), yrange=yrange)
 
-        yrange = (-0.05e-19, 2.5e-19)
-        ylabel=r'$\langle J_{1s} - 3 J_{2s} \rangle'
+        yrange = (-0.05e-7, 1.5e-7) #tuple(np.array((-0.05e-19, 2.5e-19)) * inv_tau_B)
+        ylabel=r'$1/\tau_B \, \langle J_{1s} - 3 J_{2s} \rangle'
         obs = 'Kstar_J_1s_minus_3J_2s'
         s_min, s_max = 1.1,6
         self.fig_pred(scen_obs=self.scenario_comparison(obs, 1, s_max),
-                      measurement=None,
+                      measurement=None, rescale=inv_tau_B,
                       ylabel=ylabel + '_{[%g,%g]}$' % (s_min, s_max), yrange=yrange)
 
         s_min, s_max = 15,19
         self.fig_pred(scen_obs=self.scenario_comparison(obs, s_min, s_max),
-                      measurement=None,
+                      measurement=None, rescale=inv_tau_B,
                       ylabel=ylabel + '_{[%g,%g]}$' % (s_min, s_max), yrange=yrange)
 
     def all(self):
@@ -732,7 +746,7 @@ class Spring2015(object):
 if __name__ == '__main__':
     matplotlib.rcParams['text.usetex'] = True
     matplotlib.rcParams['text.latex.unicode'] = True
-    matplotlib.rcParams['font.size'] = 22
+    matplotlib.rcParams['font.size'] = 28
     matplotlib.rcParams['text.latex.preamble'] = r'''
     \usepackage[proportional]{libertine}
     \usepackage[libertine]{newtxmath}
