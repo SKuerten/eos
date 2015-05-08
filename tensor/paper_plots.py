@@ -693,17 +693,17 @@ class Spring2015(object):
 
         s_min, s_max = 1, 6
         self.fig_pred(scen_obs=self.scenario_comparison(obs, s_min, s_max),
-                      measurement=None,
+                      measurement=dict(central=1.7e-7, sigma_upper=0.27e-7, sigma_lower=0.31e-7),
                       ylabel=ylabel + '_{[%g,%g]}$' % (s_min, s_max), yrange=yrange)
 
         s_min, s_max = 14.18, 16
         self.fig_pred(scen_obs=self.scenario_comparison(obs, 14, s_max),
-                      measurement=None,
+                      measurement=dict(central=1.02e-7, sigma_upper=0.15e-7, sigma_lower=0.18e-7),
                       ylabel=ylabel + '_{[%g,%g]}$' % (s_min, s_max), yrange=yrange)
 
         s_min, s_max = 16, 19
         self.fig_pred(scen_obs=self.scenario_comparison(obs, s_min, s_max),
-                      measurement=None,
+                      measurement=dict(central=1.23e-7, sigma_upper=0.19e-7, sigma_lower=0.21e-7),
                       ylabel=ylabel + '_{[%g,%g]}$' % (s_min, s_max), yrange=yrange)
 
         # B_d lifetime
