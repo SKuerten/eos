@@ -1,6 +1,7 @@
+# python3 parse.py > out.log
 from __future__ import print_function
 import numpy as np
-np.set_printoptions(precision=10, linewidth=100, threshold=50**2)
+np.set_printoptions(precision=8, linewidth=120, threshold=50**2)
 
 from matplotlib import pyplot as plt
 
@@ -42,22 +43,13 @@ def parse_form_factors(file_name, systematic=0.05):
         # correlation matrix
         corr = covariance / np.outer(std_dev, std_dev)
 
-        print('mean')
-        print(repr(mean))
-        print("std_dev with systematic uncertainty")
-        print(repr(std_dev))
-        print('relative uncertainty [%]')
-        print(std_dev / mean * 100)
-        print('correlation matrix')
-        print(repr(corr))
-
         try:
             np.linalg.cholesky(covariance)
             print('Cholesky works')
         except np.LinalgError:
             raise
 
-        return mean, std_dev, corr, indices
+        return mean, covariance, corr, indices
 
 def parse_qsquared(file_name):
     '''Parse (physical) q^2 values for each configuration'''
@@ -73,16 +65,26 @@ def match_qsquared(indices, qsquared):
     '''Match q^2 for each FF value given configuration name.
     Return array with order of ``indices`` that contains the right q^2 value.'''
     res = np.zeros(len(indices))
-    for k,v in indices.iteritems():
+    for k,v in indices.items():
         pos1 = k.find('_sl_l')
         res[v] = qsquared[k[pos1 + 4:]]
     return res
+
+def eosify(arr):
+    '''Return string representation easier for pasting into eos'''
+    s = repr(arr)
+    s = s.replace('array([', '{{')
+    s = s.replace(')', '')
+    s = s.replace('[ ', '{{')
+    s = s.replace(']', '}}')
+    return s
 
 def plot_ff(tensor=False):
     tag = 't' if tensor else 'av'
 
     # parse data
-    mean, std_dev, corr, indices = parse_form_factors('ff_phys_mass_' + tag + '_sl.d')
+    mean, cov, corr, indices = parse_form_factors('ff_phys_mass_' + tag + '_sl.d')
+    std_dev = np.sqrt(cov.diagonal())
     qsquared_dict = parse_qsquared('qsqr_phys_mass_' + tag + '_sl.d')
     qsquared = match_qsquared(indices, qsquared_dict)
 
@@ -93,8 +95,11 @@ def plot_ff(tensor=False):
     plt.clf()
     for i, l in enumerate(labels):
         slice = np.s_[i*npoints:(i+1)*npoints]
+        # transform data with Blaschke factor
         blaschke =  1 / (1 - qsquared[slice] / (5.27958 + delta_mF[i])**2)
-        plt.errorbar(qsquared[slice], blaschke * mean[slice], yerr=blaschke * std_dev[slice], fmt='o', label=l)
+        mean[slice] *= blaschke
+        std_dev[slice] *= blaschke
+        plt.errorbar(qsquared[slice], mean[slice], yerr=std_dev[slice], fmt='o', label=l)
 
     plt.legend()
     plt.xlim(11, 19.21)
@@ -104,5 +109,20 @@ def plot_ff(tensor=False):
     # plt.show()
     plt.savefig(tag + '.pdf')
 
-plot_ff(tensor=True)
+    # output data
+    print('q^2')
+    print(repr(qsquared))
+    print('mean')
+    print(eosify(mean))
+    print("std_dev with systematic uncertainty")
+    print(repr(std_dev))
+    print('relative uncertainty [%]')
+    print(std_dev / mean * 100)
+
+    # update covariance with Blaschke factor
+    cov = np.outer(std_dev, std_dev) * corr
+    print('covariance')
+    print(eosify(cov))
+
 plot_ff(tensor=False)
+plot_ff(tensor=True)
