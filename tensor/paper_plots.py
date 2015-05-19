@@ -628,7 +628,7 @@ class Spring2015(object):
                 v.max *= rescale
 
         marg.compute_marginal1D_all(scenario_names)
-        wide_figure(x_size=8, ratio=4/3.0, left=0.165, right=0.95, top=0.94, bottom=0.145)
+        wide_figure(x_size=8, ratio=4/3.0, left=0.165, right=0.95, top=0.93, bottom=0.145)
 
         central_style = dict(color='black', linewidth=matplotlib.rcParams['axes.linewidth'],
                              linestyle='solid', alpha=1)
@@ -659,6 +659,7 @@ class Spring2015(object):
         return [dict(name=scen[i] + '_' + obs + '%gto%g' % (s_min, s_max), unc_label=self.np_label(delta_c9[i])) for i in range(len(scen))]
 
     def fig_1(self):
+
         obs = 'K_FH'
         ylabel=r'$\langle F_H \rangle'
         yrange = (-0.05, 0.9)
@@ -706,34 +707,34 @@ class Spring2015(object):
                       measurement=dict(central=1.23e-7, sigma_upper=0.19e-7, sigma_lower=0.21e-7),
                       ylabel=ylabel + '_{[%g,%g]}$' % (s_min, s_max), yrange=yrange)
 
-        # B_d lifetime
-        inv_tau_B = 1.0 / 1.519e-12
+        # B_d lifetime in GeV^-1
+        tau_B = 1.519e-12 / 6.58212e-25
 
         obs = 'Kstar_J_1c_plus_J_2c'
-        yrange = (-0.1e-8, 4e-8) #tuple(np.array((-0.1e-20, 6e-20)) * inv_tau_B)
-        ylabel=r'$1/\tau_B \, \langle J_{1c} + J_{2c} \rangle'
+        yrange = (-0.1e-8, 12e-8) #tuple(np.array((-0.1e-20, 6e-20)) * inv_tau_B)
+        ylabel=r'$\tau_B \, \times \, \langle J_{1c} + J_{2c} \rangle'
 
         s_min, s_max = 1.1,6
         self.fig_pred(scen_obs=self.scenario_comparison(obs, 1, s_max),
-                      measurement=None, rescale=inv_tau_B,
+                      measurement=None, rescale=tau_B,
                       ylabel=ylabel + '_{[%g,%g]}$' % (s_min, s_max), yrange=yrange)
 
         s_min, s_max = 15,19
         self.fig_pred(scen_obs=self.scenario_comparison(obs, s_min, s_max),
-                      measurement=None, rescale=inv_tau_B,
+                      measurement=None, rescale=tau_B,
                       ylabel=ylabel + '_{[%g,%g]}$' % (s_min, s_max), yrange=yrange)
 
-        yrange = (-0.05e-7, 1.5e-7) #tuple(np.array((-0.05e-19, 2.5e-19)) * inv_tau_B)
-        ylabel=r'$1/\tau_B \, \langle J_{1s} - 3 J_{2s} \rangle'
+        yrange = (-0.05e-7, 5e-7) #tuple(np.array((-0.05e-19, 2.5e-19)) * inv_tau_B)
+        ylabel=r'$\tau_B \, \times \, \langle J_{1s} - 3 J_{2s} \rangle'
         obs = 'Kstar_J_1s_minus_3J_2s'
         s_min, s_max = 1.1,6
         self.fig_pred(scen_obs=self.scenario_comparison(obs, 1, s_max),
-                      measurement=None, rescale=inv_tau_B,
+                      measurement=None, rescale=tau_B,
                       ylabel=ylabel + '_{[%g,%g]}$' % (s_min, s_max), yrange=yrange)
 
         s_min, s_max = 15,19
         self.fig_pred(scen_obs=self.scenario_comparison(obs, s_min, s_max),
-                      measurement=None, rescale=inv_tau_B,
+                      measurement=None, rescale=tau_B,
                       ylabel=ylabel + '_{[%g,%g]}$' % (s_min, s_max), yrange=yrange)
 
     def all(self):
