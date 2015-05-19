@@ -509,19 +509,19 @@ the interference of tensorial and scalar couplings.
   \\
   \includegraphics[width=\relwidth]{plots/pdf/ct_Kstar_J_1s_minus_3J_2s1to6}
   \includegraphics[width=\relwidth]{plots/pdf/ct_Kstar_J_1s_minus_3J_2s15to19}
-  \caption{ \eos{The sensitivity to the tensorial coupling
-      $\wilson{T}$ of $F_H$ [first row], ${\cal B}$ [second row] for
+  \caption{ The sensitivity to the tensorial coupling
+      $\wilson{T}$ of $F_H$ [first row] and ${\cal B}$ [second row] in
       $B^+ \to K^+ \bar\mu\mu$ and ${\cal B}$ [third row], $J_{1c} +
-      J_{2c}$ [fourth row], and $J_{1s}-3 J_{2s}$ for $B^0 \to K^{*0}
+      J_{2c}$ [fourth row], and $J_{1s}-3 J_{2s}$ [fifth row] in $B^0 \to K^{*0}
       \bar\mu\mu$ integrated over low- and high-$q^2$ bins. In the
       last two rows, the observables are normalized by the lifetime of
       the $B$ meson for easier comparison with the branching
-      rations. The bands represent the theory uncertainties at 68\%
+      ratios. The bands represent the theory uncertainties at 68\%
       and 95\% probability.  For comparison, two sets of bands are
       shown for the SM, $\wilson[NP]{9} = 0$ (blue), and
       $\wilson[NP]{9} = -1.1$ (red), and an additional band of the
       latest 68\% uncertainty reported by LHCb (grey) if a measurement
-      is available.}  }
+      is available. }
   \label{fig:FHvsCT}
 \end{figure*}
 
@@ -621,7 +621,7 @@ $B_s\to \bar\mu\mu$
     &
     &  $\,\,\,\,\, q^2 \in [1.1,\, 6.0],\, [15.0,\, 22.0]$ GeV$^2$  & \cite{Aaij:2014pli} \\
     & $A_{\rm FB}^\mu$
-    &  $\,\,\,\,\, q^2 \in [1.1,\, 6.0],\, [15.0,\, 22.0]$ GeV$^2$  & \cite{Aaij:2014tfa, CDF} \\
+    &  $\,\,\,\,\, q^2 \in [1.1,\, 6.0],\, [15.0,\, 22.0]$ GeV$^2$  & \cite{Aaij:2014tfa, CDF:2012:BKstarll} \\
     & $F_{H}^\mu$
     &  $\,\,\,\,\, q^2 \in [1.1,\, 6.0],\, [15.0,\, 22.0]$ GeV$^2$  & \cite{Aaij:2014tfa} \\
     & $A_{\rm CP}^\mu$
@@ -638,22 +638,19 @@ $B_s\to \bar\mu\mu$
 ${B\to K}$ form factors
     & $f_{0,+,T}$   &  $q^2 = 17,\, 20,\, 23$ GeV$^2$  & \cite{Bouchard:2013eph} \\
 \hline
-\multirow{3}{*}{${B\to K^*}$ {form factors}}
-    & $V/A_1$ &  $q^2 = 0$ GeV$^2$  & \cite{Hambrock:2013zya} \\
-    & $A_0$   &  $q^2 = 0$ GeV$^2$  & \cite{Khodjamirian:2010vf} \\
-    & $V$, $A_1$, $A_{12}$
-              &  $q^2 = 15,\, 19.21$ GeV$^2$     & \cite{Horgan:2013hoa}  \\
+\multirow{2}{*}{${B\to K^*}$ {form factors}}
+    & $V,\,A_{0,1,2},\, T_{1,2,3}$ &  $q^2 = 0.1,\, 4.1,\, 8.1,\, 12.1$ GeV$^2$  & \cite{Straub:2015ica} \\
+    & $V,\,A_{0,1,2},\, T_{1,2,3}$
+    & $q^2 \in [11.9,\, 17.8]$ GeV$^2$  & \cite{Horgan:2013hoa, Horgan:2015vla}  \\
 \hline
 \end{tabular}
 \renewcommand{\arraystretch}{1.0}
-\caption{\label{tab:observables} List of all observables in the various
-  exclusive $b\to s \bar\mu\mu$ decays that enter the fits with their
-  respective kinematics and experiments that provide the measurements.
-  Lattice results of $B\to K$ form factors are used to constrain parameters
-  of their $q^2$-dependence,
-  and theoretical constraints on $B\to K^*$ form factors are included. For
-  more details see the text and \refapp{app:theory:inputs}.
-  \todo{update $B\to K^*$ form factors}
+\caption{\label{tab:observables} List of all observables of the various
+  $b\to s \bar\mu\mu$ decays that enter the fits with respective kinematics
+  and experiments that provide the measurements. LCSR and lattice results of
+  $B\to K^{(*)}$ form factors are used to constrain parameters of their
+  $q^2$-dependence.
+  For more details see the text and \refapp{app:theory:inputs}.
 }
 \end{center}
 \end{table*}
@@ -685,9 +682,9 @@ and $|\wilson{P} - \wilson{P'}|$ that are complementary to \refeq{eq:FH-dependen
 in $B\to K \bar\ell\ell$ and depends only on the further combination
 $(\wilson{10} - \wilson{10'})$.
 
-Eventually we also explore the behaviour of derived constraints with respect
-to destructive interference with vectorial couplings $\wilson{9,\,10}$. For
-this purpose we include also the branching ratio \fred{and the rate CP asymmetry}
+Eventually we also explore the behaviour of derived constraints with respect to
+destructive interference with vectorial couplings $\wilson{9,\,9',\,10,\,10'}$.
+For this purpose we include also the branching ratio and the rate CP asymmetry
 of $B\to K^* \bar\mu\mu$ as it can provide additional constraints on the
 imaginary parts of vectorial couplings.
 
@@ -1127,6 +1124,13 @@ and in addition similarly among their imaginary parts.
   & \eos{SM}
   & \eos{$(9.29_{-4.54}^{+3.86}) \cdot 10^{-21}$}
   \\
+  \hline \hline
+  \multicolumn{2}{c|}{$A_{\Delta \Gamma}$}
+  & 1
+  &
+  & SM
+  &
+  \\
   \hline
   \end{tabular}
 %}
@@ -1134,9 +1138,9 @@ and in addition similarly among their imaginary parts.
   \caption{
      \label{tab:postdictions}
      The 68\% probability intervals of not yet measured angular observables in
-     $B\to K^*\bar\mu\mu$ integrated over
-     $q^2$ bins at low- and high-$q^2$ for several new physics scenarios respecting
-     all the considered experimental constraints. The SM prediction with respective
+     $B^0\to K^{*0}\bar\mu\mu$ integrated over $q^2$ bins at low- and high-$q^2$ 
+     for several new physics scenarios respecting all the considered experimental
+     constraints. The SM prediction with respective
      uncertainties are given too, where ``$\simeq 0$'' indicates zero in the considered
      approximation, see text for more explanations.
   }
@@ -1496,12 +1500,12 @@ $B\to K$ and $B\to K^*$ form factors.
 \begin{tabular}{cccc}
 \hline
   Quantity & Prior & Unit & Reference\\
-\hline
+\hline \hline
   \multicolumn{4}{c}{$B_s$ decay constant}
 \\
 \hline
   $f_{B_s}$   &  $227.7 \pm 4.5$         &  MeV &  \cite{Aoki:2013ldr}\\
-\hline
+\hline \hline
   \multicolumn{4}{c}{$B\to K$ form factors}\\
 \hline
   $f_+(0)$    &  $0.34 \pm 0.05$         &  --    &  \cite{Khodjamirian:2010vf, Ball:2004ye}\\
@@ -1509,7 +1513,7 @@ $B\to K$ and $B\to K^*$ form factors.
   $b_1^0$     &  $-4.3^{+0.8}_{-0.9}$    &  --    &  \cite{Khodjamirian:2010vf}\\
   $b_1^+$     &  $-2.1^{+0.9}_{-1.6}$    &  --    &  \cite{Khodjamirian:2010vf}\\
   $b_1^T$     &  $-2.2^{+1.0}_{-2.0}$    &  --    &  \cite{Khodjamirian:2010vf}\\
-\hline
+\hline \hline
   \multicolumn{4}{c}{$B\to K^*$ form factors}\\
 \hline
 \end{tabular}
@@ -1571,7 +1575,7 @@ by means of a multivariate Gaussian in addition to experimental measurements.
         \hline
     \end{tabular}
     \renewcommand{\arraystretch}{1.0}
-    \caption{Reproduction of mean values, uncertainties (top) and correlation
+    \caption{Mean values, uncertainties (top) and correlation
         information (bottom) of lattice points \cite{Bouchard:2013eph} for the
         $B\to K$ form factors $f_{0,+,T}(q^2)$.
         \label{tab:btok-lattice}
@@ -1586,23 +1590,25 @@ work \cite{Beaujean:2013soa} slightly and use now the simplified series expansio
   F_i(q^2) & =
   \frac{1}{1 - q^2/M_{R,i}^2} \sum_k \alpha_k^i \left[z(q^2) - z(0)\right]^k \,,
 \end{align}
-with three parameters $\alpha_k^i$ ($k=0,1,2$) per form factor $i = V,\, A_{0,1}$
-and two ($k=1,2$) for $i= A_{12}$. The parameters $\alpha_0^i$ correspond to
-$F_i(q^2 = 0)$ and the kinematic constraint
+with three parameters $\alpha_k^i$ ($k=0,1,2$) per form factor $i = V,\, A_{0,1}, 
+T_{1,23}$ and two ($k=1,2$) for $i= A_{12}, T_2$. The parameters $\alpha_0^i$
+correspond to $F_i(q^2 = 0)$ and the kinematic constraints
 \begin{align}
-  A_{12}(0) & = {\cal F}_{\rm kin}\, A_0(0) \,,
+  A_{12}(0) & = {\cal F}_{\rm kin}\, A_0(0) \,, &
+  T_1(0) & = T_2(0)
 \end{align}
-is used to eliminate $\alpha_0^{A_{12}}$, where the kinematic factor
+are used to eliminate $\alpha_0^{A_{12}, T_2}$, where the kinematic factor
 ${\cal F}_{\rm kin} \equiv (M_B^2 - M_{K^*}^2)/(8 M_B M_{K^*})$ depends on the
 $B$- and $K^*$-meson masses. The residual masses $M_{R,i}$ are set to the values
 given in \cite{Straub:2015ica}.
 
 This parameterization allows us to combine consistently available results
 of form factors from different non-perturbative approaches, namely LCSR's at
-large recoil and lattice at low recoil and implement simultaneously additional
+large recoil and lattice at low recoil and implement simultaneously the
 kinematic constraints. We determine the parameters $\alpha_i^k$
-in a combined fit to form factor predictions of $V, A_{0,1,12}$ from the LCSR
-\cite{Straub:2015ica} and lattice \cite{Horgan:2013hoa, Horgan:2015vla} calculations,
+in a combined fit to form factor predictions of $V, A_{0,1,2},T_{1,2,3}$ from the
+LCSR \cite{Straub:2015ica} and of $V, A_{0,1,12},T_{1,2,23}$ from the lattice
+\cite{Horgan:2013hoa, Horgan:2015vla} calculations,
 including their correlations. Further, we implement the second kinematic constraint
 \begin{align}
   \label{eq:A12-constraint-q2max}
@@ -1612,61 +1618,23 @@ at maximal $q_{\rm max}^2 \equiv (M_B - M_{K^*})^2$. Uninformative flat priors
 are chosen for all $\alpha_k^i$
 \begin{align}
   \alpha_0^i & \in [0,\, 1] \,, &
-  \alpha_{1,2}^i & \in [-10,\, 10].
+  \alpha_{1}^i & \in [-2,\, 2]  \,, &
+  \alpha_{2}^i & \in [-3,\, 3] \,.
 \end{align}
 The results of the LCSR predictions of the form factors have been provided to us
 directly by the authors of \cite{Straub:2015ica} at $q^2 = (0.1,\, 4.1,\, 8.1,\,
-12.1)\, \mbox{GeV}^2$ for $V,\, A_{0,1,12}$, including their $16\times16$
-correlation matrix. In the case of lattice predictions, we proceed as in our
+12.1)\, \mbox{GeV}^2$ for $V,\, A_{0,1,12},\, T_{1,2,3}$, including their $28\times 28$
+covariance matrix. \todo{In the case of lattice predictions, we proceed as in our
 previous work \cite{Beaujean:2013soa} by generating form factor values of
-$V,\, A_{0,1,12}$ at $q^2 = (15,\, 19.21)\,\mbox{GeV}^2$ from updated results
+$V,\, A_{0,1,12},\, T_{1,2,3}$ at $q^2 = (15,\, 19.21)\,\mbox{GeV}^2$ from updated results
 \cite{Horgan:2015vla} (arXiv~v2), including their $8\times8$ correlation matrix
-see \reftab{tab:btokstar-lattice}.
+see \reftab{tab:btokstar-lattice}.}
 
-We have compared our choice of three parameters in the SSE \refeq{eq:SSE-FF-parameterization}
+\todo{We have compared our choice of three parameters in the SSE \refeq{eq:SSE-FF-parameterization}
 versus two parameters only and found that in the latter case lattice form factor
 results influence the fit such that form factors tend to be higher than LCSR
 predictions at low $q^2$ leading to a worse fit. Hence we prefer the three-parameter
-setup as it accommodates better LCSR and lattice results.
-
-\begin{table}
-    \renewcommand{\arraystretch}{1.3}
-    \begin{tabular}{c|cc}
-        \hline
-        $q^2$ [\GeV$^2$] & $15$            & $19.21$ \\
-        \hline
-        $V(q^2)$         & $1.02 \pm 0.06$ & $1.47 \pm 0.08$\\
-        $A_0(q^2)$       & $0.62 \pm 0.03$ & $0.72 \pm 0.03$\\
-        $A_1(q^2)$       & $1.13 \pm 0.05$ & $1.63 \pm 0.07$\\
-        $A_{12}(q^2)$    & $1.02 \pm 0.06$ & $1.47 \pm 0.08$\\
-        \hline
-    \end{tabular}\\
-    \renewcommand{\arraystretch}{1.0}
-    \vspace{2\smallskipamount}
-    \renewcommand{\arraystretch}{1.3}
-    \begin{tabular}{c|ccccccccc}
-        \hline
-        $q^2$ [\GeV$^2$]
-                & $15$  & $19$ & $15$ & $19$ & $15$ & $19$ & $15$  & $19$ \\
-        \hline
-   $V(15)$      & 1.00  & 0.93 & 0.73 & 0.58 & 0.48 & 0.23 & 0.13  & 0.010\\
-   $V(19)$      & --    & 1.00 & 0.87 & 0.41 & 0.45 & 0.24 & 0.059 & 0.093\\
-   $A_0(15)$    & --    & --   & 1.00 & 0.28 & 0.34 & 0.32 & 0.010 & 0.046\\
-   $A_0(19)$    & --    & --   & --   & 1.00 & 0.78 & 0.30 & 0.36  & 0.21 \\
-   $A_1(15)$    & --    & --   & --   & --   & 1.00 & 0.71 & 0.22  & 0.26 \\
-   $A_1(19)$    & --    & --   & --   & --   & --   & 1.00 &-0.025 & 0.14 \\
-   $A_{12}(15)$ & --    & --   & --   & --   & --   & --   & 1.00  & 0.79 \\
-   $A_{12}(19)$ & --    & --   & --   & --   & --   & --   & --    & 1.00 \\
-        \hline
-    \end{tabular}
-    \renewcommand{\arraystretch}{1.0}
-    \caption{Reproduction of mean values, uncertainties (top) and correlation
-        information (bottom) of lattice points \cite{Horgan:2015vla} for the
-        $B\to K^*$ form factors $V(q^2)$ and $A_{0,1,12}(q^2)$.
-        \todo{Enter correct numbers from constraint.cc}
-        \label{tab:btokstar-lattice}
-      }
-\end{table}
+setup as it accommodates better LCSR and lattice results.}
 
 %
 %
