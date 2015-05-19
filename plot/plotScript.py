@@ -15,9 +15,6 @@ import matplotlib.pyplot as P
 import numpy as np
 import priors as priorDistributions
 
-matplotlib.rcParams['text.usetex'] = False #not bool(commands.getstatusoutput('which latex')[0]) #requires LaTex installation
-matplotlib.rcParams['text.latex.unicode'] = True
-
 #get the figtree module, assume its directory is in the python path
 try:
     import figtree
@@ -1325,7 +1322,7 @@ class MarginalDistributions:
         ###
         # perplexity. Avoid NaN due to log(0) by log(1)=0
         ###
-        entr = - np.sum( w * np.log(w.filled(1.0)))
+        entr = -np.sum( w * np.log(w.filled(1.0)))
         perp = np.exp(entr) / n
 
         ###
@@ -1346,7 +1343,8 @@ class MarginalDistributions:
         P.xlabel('weight')
         self.pdf_file.savefig()
 
-    def plot(self):
+    def plot(self, index_list=None):
+        '''index_list: If given, choose which parameters to plot'''
 
         # output file name
         ext = ''
@@ -1387,6 +1385,7 @@ class MarginalDistributions:
                 for x in self.single_1D:
                     P.figure()
                     one_dim(x)
+                    P.tight_layout()
                     if n_single_plots > 1:
                         pdf_file.savefig()
                         P.close()
@@ -1413,7 +1412,8 @@ class MarginalDistributions:
         nCols = len(self.out.par_defs)
 
         #take indices only from this list
-        index_list = np.arange(nCols, dtype='int')
+        if index_list is None:
+            index_list = np.arange(nCols, dtype='int')
 
         #filter out nuisance parameters
         if not self.use_nuisance:
@@ -1427,7 +1427,8 @@ class MarginalDistributions:
         print("Plotting %d 1D marginal distributions" % len(index_list))
         for column in index_list:
                 P.figure()
-                if one_dim(column):
+                if one_dim(column) is not False:
+                    P.tight_layout()
                     self.pdf_file.savefig()
                 P.close()
         if self.one_dimensional_only:
@@ -1442,9 +1443,8 @@ class MarginalDistributions:
 
                 #aspect ratio 1/1
                 P.figure(figsize=(6,6))
-                plotted = two_dim(par1, par2)
-                P.tight_layout()
-                if plotted is not False:
+                if two_dim(par1, par2) is not False:
+                    P.tight_layout()
                     print("plot #%d" % counter)
                     self.pdf_file.savefig()
                 P.close()
@@ -1480,6 +1480,7 @@ def factory(cmd_line=None):
     parser.add_argument('--hc-initial', help="Plot initial guess of hierarchical clustering, computed from long Markov chain patches", action='store_true')
     parser.add_argument('--hc-patches', help="Plot components from short Markov chain patches for hierarchical clustering", action='store_true')
     parser.add_argument('--integrate', help="Compute integral over hyperrectangle, use with --cut",action='store_true')
+    parser.add_argument('--par-indices', help="Indices of parameters to plot", nargs='*')
     parser.add_argument('--mcmc', help="Treat input as file from mcmc", action='store_true')
     parser.add_argument('--min-prob', help="Whiten all bins with prob less than this value",action='store', default=1e-5)
     parser.add_argument('--mode', help='Give a point, usually a local mode, to evaluate goodness of fit. This overrides the similar --gof, except here all parameters are specified together as a string. Ex: --mode "1.2 -0.393 412.1"', action='store', nargs=1)
@@ -1665,7 +1666,7 @@ def factory(cmd_line=None):
         marg.convergence()
         done = True
     if not done:
-        marg.plot()
+        marg.plot([int(x) for x in args.par_indices] if args.par_indices is not None else None)
 
 def test_ellipse():
     from matplotlib.patches import Ellipse
@@ -1710,5 +1711,4 @@ def main():
 
 if __name__ == '__main__':
     np.set_printoptions(precision=6)
-    matplotlib.rcParams['text.latex.unicode'] = True
     main()
