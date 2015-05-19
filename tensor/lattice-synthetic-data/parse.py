@@ -70,6 +70,15 @@ def match_qsquared(indices, qsquared):
         res[v] = qsquared[k[pos1 + 4:]]
     return res
 
+def kinematics(qsquared):
+    s = '{{ '
+    for i, qsq in enumerate(qsquared):
+        if i > 0 and ((i % 3) == 0):
+            s += '\n'
+        s += 'Kinematics{{ "s", ' + str(qsq) + ' }}, '
+    s += ' }},'
+    return s
+
 def eosify(arr):
     '''Return string representation easier for pasting into eos'''
     s = repr(arr)
@@ -111,7 +120,7 @@ def plot_ff(tensor=False):
 
     # output data
     print('q^2')
-    print(repr(qsquared))
+    print(kinematics(qsquared))
     print('mean')
     print(eosify(mean))
     print("std_dev with systematic uncertainty")
