@@ -2,7 +2,7 @@
 
 source ${EOS_SCRIPT_PATH}/job.bash
 
-export EOS_ANALYSIS_INFO=0
+export EOS_ANALYSIS_INFO=1
 
 export EOS_IS_INTEGRATION_POINTS=16
 export EOS_IS_SAMPLES=51200

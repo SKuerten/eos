@@ -43,8 +43,44 @@ parameter values. In the `i`-th call,
 2. Run 100 jobs over full range of samples
    `BASE_NAME=$WORK/eos/2015-tensor/2015-04-01 ./loadleveler-unc.cmd ct K_FH1to6 /gpfs/work/pr85tu/ru72xaf2/eos/2015-tensor/2015-04-01/sm_unc_K/mcmc_pre_merged.hdf5 100`
 
+   Run 50 jobs for all observables
+   ```bash
+   export BASE_NAME=$WORK/eos/2015-tensor/2015-05-19
+   input_file=/gpfs/work/pr85tu/ru72xaf2/eos/2015-tensor/2015-05-19/sm_unc_Kstar/mcmc_pre_merged.hdf5
+   observables="BR1to6 BR14to16 BR16to19 J_1c_plus_J_2c1to6 J_1c_plus_J_2c15to19 J_1s_minus_3J_2s1to6 J_1s_minus_3J_2s15to19"
+   for obs in $observables; do ./loadleveler-unc.cmd ct K_star_${obs} ${input_file} 50; done
+   ```
+
 3. Merge outputs from parallel run
    `merge.py --unc --pypmc`
 
+    `for obs in $observables; do cd ct_Kstar_${obs} && merge.py --pypmc --unc && cd ..; done`
+
 4. Check if all is well
    `plotScript.py unc_merged.hdf5 --pypmc --1D-bins 30`
+
+5. copy over
+    ```
+    for obs in $observables; do rsync -avR c2pap:/gpfs/work/pr85tu/ru72xaf2/eos/2015-tensor/2015-05-19/ct_c9_1dot1_Kstar_${obs}/unc_merged.hdf5 ./; done
+    # on desktop machine
+    Kobs=$(ls 2015-04-01/)
+    for obs in $Kobs; do ln -s 2015-04-01/${obs}/unc_merged.hdf5 unc_${obs}.hdf5; done
+    ```
+
+MCMC
+====
+
+compute
+-------
+
+`export BASE_NAME=$WORK/eos/2015-tensor/2015-05-19`
+
+1. Single test run
+
+    ```bash
+    export EOS_ANALYSIS_INFO=1 # output constraints, parameters etc. to log file
+    ./scTT5-K_KstarBR.bash mcmc 0139
+    ```
+
+2. 20 chains with random seed offset 1..20
+   `./loadleveler-single.cmd ./scTT5-K_KstarBR.bash mcmc 1 20`

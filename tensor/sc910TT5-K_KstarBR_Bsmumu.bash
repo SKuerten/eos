@@ -2,6 +2,7 @@
 
 source ${EOS_SCRIPT_PATH}/job.bash
 
+export EOS_SEED=89316886
 export EOS_ANALYSIS_INFO=0
 
 export EOS_IS_SEED=13466416
@@ -20,7 +21,5 @@ export EOS_VB_R_VALUE=5
 export EOS_VB_REL_TOL=0.00000001
 export EOS_VB_SKIP_INITIAL=0.05
 export EOS_VB_THIN=40
-
-export EOS_SEED=893168
 
 main $@
