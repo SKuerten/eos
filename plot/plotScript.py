@@ -1,7 +1,7 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 
-from __future__ import print_function
+from __future__ import print_function, division
 
 import commands
 import matplotlib
@@ -15,7 +15,7 @@ import matplotlib.pyplot as P
 import numpy as np
 import priors as priorDistributions
 
-#get the figtree module, assume its directory is in the python path
+# get the figtree module, assume its directory is in the python path
 try:
     import figtree
 except:
@@ -39,14 +39,14 @@ def histOutline(dataIn, *args, **kwargs):
     (histIn, binsIn) = np.histogram(dataIn, *args, **kwargs)
     stepSize = binsIn[1] - binsIn[0]
 
-    bins = np.zeros(len(binsIn)*2 + 2, dtype=np.float)
-    data = np.zeros(len(binsIn)*2 + 2, dtype=np.float)
+    bins = np.zeros(len(binsIn) * 2 + 2, dtype=np.float)
+    data = np.zeros(len(binsIn) * 2 + 2, dtype=np.float)
     for bb in range(len(binsIn)):
-        bins[2*bb + 1] = binsIn[bb]
-        bins[2*bb + 2] = binsIn[bb] + stepSize
+        bins[2 * bb + 1] = binsIn[bb]
+        bins[2 * bb + 2] = binsIn[bb] + stepSize
         if bb < len(histIn):
-            data[2*bb + 1] = histIn[bb]
-            data[2*bb + 2] = histIn[bb]
+            data[2 * bb + 1] = histIn[bb]
+            data[2 * bb + 2] = histIn[bb]
 
     bins[0] = bins[1]
     bins[-1] = bins[-2]
@@ -54,6 +54,7 @@ def histOutline(dataIn, *args, **kwargs):
     data[-1] = 0
 
     return ((bins, data), (binsIn, histIn))
+
 
 def find_hist_level(histo):
     """
@@ -85,6 +86,7 @@ def find_hist_level(histo):
     level_95 = bin_counts[index]
 
     return (level_68, level_95)
+
 
 def find_credibility_region_indices(histo, alpha):
     """
@@ -134,16 +136,9 @@ def find_credibility_region_indices(histo, alpha):
 
     return indices
 
-#    print(max_count, max_index)
-#    print(h)
-#    print(h[indices])
-#    print(sum(h[indices]))
 
 def test_find_hist_region():
     histo = (1, 2, 3, 4, 5, 4, 2, 2, 1)
-#    histo = (1, 2, 3, 4, 5, 4, 2, 2, 10)
-#    histo = (12, 2, 3, 4, 5, 4, 2, 2, 10)
-#    histo = (12, 1)
     print(find_credibility_region_indices(histo, alpha=0.68268))
 
 
@@ -170,7 +165,6 @@ def find_credibility_region(bin_edges, counts, alpha=0.68268):
     #at bin center
     ind_max = indices[0]
     maximum = (bin_edges[ind_max] + bin_edges[ind_max + 1]) / 2.0
-#    print("Edges of maximum bin = %s" % str(np.array([bin_edges[ind_max], bin_edges[ind_max + 1]])))
 
     #maximum at left edge
     if ind_sorted[-1] == 0:
@@ -178,7 +172,7 @@ def find_credibility_region(bin_edges, counts, alpha=0.68268):
         sigma_lower = 0.0
     else:
         ind_lower = ind_sorted[0]
-        sigma_lower = maximum -(bin_edges[ind_lower] + bin_edges[ind_lower + 1]) / 2.0
+        sigma_lower = maximum - (bin_edges[ind_lower] + bin_edges[ind_lower + 1]) / 2.0
     #maximum at right edge or no bins to right of maximum
     ind_upper = ind_sorted[-1]
     if ind_upper == len(bin_edges) - 1:
@@ -188,9 +182,10 @@ def find_credibility_region(bin_edges, counts, alpha=0.68268):
 
     return ((maximum, sigma_lower, sigma_upper), (ind_max, ind_lower, ind_upper))
 
+
 def test_find_credibility_region():
-    counts = (1, 2,2, 3,3, 4,4, 5, 4,3, 2, 1)
-    bin_edges = np.linspace(1.1, 13, len(counts)+1 )
+    counts = (1, 2, 2, 3, 3, 4, 4, 5, 4, 3, 2, 1)
+    bin_edges = np.linspace(1.1, 13, len(counts) + 1)
 
     print(counts)
     print(bin_edges)
@@ -208,7 +203,7 @@ def filter_duplicates(array_in):
     #add column for multiplicity
     one_dimensional = False
     try:
-        array_out = np.empty((array_in.shape[0], array_in.shape[1]+1))
+        array_out = np.empty((array_in.shape[0], array_in.shape[1] + 1))
     except IndexError:
         array_out = np.empty((array_in.shape[0], 2))
         one_dimensional = True
@@ -218,36 +213,36 @@ def filter_duplicates(array_in):
     #keep track of how often same event is seen
     counter = zeros((1,))
 
-    for  row in range(array_in.shape[0]-1):
+    for row in range(array_in.shape[0] - 1):
         counter += 1
 
         #unique entry
-        if (array_in[ row+1] != array_in[ row]).any():
-            array_out[index] = hstack( (array_in[row], counter) )
+        if (array_in[row + 1] != array_in[row]).any():
+            array_out[index] = hstack((array_in[row], counter))
             index += 1
             counter = 0
 
     #add last element
     counter += 1
-    array_out[index] = hstack( (array_in[-1], counter) )
+    array_out[index] = hstack((array_in[-1], counter))
     index += 1
 
     #crop result array
     if one_dimensional:
-        array_out.resize((index, 2) )
+        array_out.resize((index, 2))
     else:
-        array_out.resize((index, array_in.shape[1]+1) )
+        array_out.resize((index, array_in.shape[1] + 1))
     return array_out
 
 
 def filter_duplicates_test():
-
-    data = array( [[0,1], [0,1], [0,1], [0.3, 0.8], [0.3, 0.8], [3,1], [3,2], [3,2]] )
+    data = array([[0, 1], [0, 1], [0, 1], [0.3, 0.8], [0.3, 0.8], [3, 1], [3, 2], [3, 2]])
 
     filtered = filter_duplicates(data)
     print(filtered)
 
     assert sum(filtered.T[-1]) == len(data)
+
 
 def find_runs(x, element):
     """
@@ -268,7 +263,7 @@ def find_runs(x, element):
     run = [0, None] if in_run else [None, None]
 
     for i in range(1, len(x)):
-        if x[i-1] != x[i]:
+        if x[i - 1] != x[i]:
             if in_run:
                 run[1] = i
                 in_run = False
@@ -284,16 +279,18 @@ def find_runs(x, element):
 
     return runs
 
+
 def test_runs():
     x = (0, 1, 1, 1, 0, 0, 0, 1, 1)
     print(find_runs(x, 1))
-    assert find_runs(x, 1) == [[1,4], [7,9]]
+    assert find_runs(x, 1) == [[1, 4], [7, 9]]
 
     y = (1, 1, 0, 0)
-    assert find_runs(y, 1) == [[0,2]]
+    assert find_runs(y, 1) == [[0, 2]]
 
-    z = (1,1)
-    assert find_runs(z, 1) == [[0,2]]
+    z = (1, 1)
+    assert find_runs(z, 1) == [[0, 2]]
+
 
 class PMC_Component(object):
     def __init__(self, weight, mean, variance, dof=None):
@@ -302,12 +299,14 @@ class PMC_Component(object):
         self.variance = variance
         self.dof = dof
 
+
 class DefaultTranslator(object):
     "Translator that keeps names unaltered."
 
     @staticmethod
     def to_tex(name):
         return name
+
 
 class MarginalDistributions:
     """
@@ -336,7 +335,8 @@ class MarginalDistributions:
         if output_dir is None:
             self.__output_base_name = os.path.splitext(self.out.input_file_name)[0]
         else:
-            self.__output_base_name = os.path.join(output_dir, os.path.split(os.path.splitext(self.out.input_file_name)[0])[1])
+            self.__output_base_name = os.path.join(output_dir,
+                                                   os.path.split(os.path.splitext(self.out.input_file_name)[0])[1])
 
         #open a pdf file to hold the plots only when needed
         self.pdf_file = None
@@ -358,10 +358,10 @@ class MarginalDistributions:
 
         #evaluate KDE at fewer points than for histogram
         self.kde_reduction = 1
-        self.kde_interpolation = 'nearest' #'gaussian'
+        self.kde_interpolation = 'nearest'  #'gaussian'
         # choose a value between 0 and 1, as a relative bandwidth
         self.kde_bandwidth = None
-#        self.kde_boundary_pixel = 0.10 # 10 % of range
+        #        self.kde_boundary_pixel = 0.10 # 10 % of range
 
         self.kde_transform = False
 
@@ -371,6 +371,7 @@ class MarginalDistributions:
         #convert eos parameter names into nice latex names
         try:
             import translator
+
             self.tr = translator.EOS_Translator()
         except:
             print("plotScript: Could not find translator. Default to preserving names.")
@@ -462,7 +463,7 @@ class MarginalDistributions:
         in 1D for the parameter identified by *index*
         """
 
-        if method=='ECDF':
+        if method == 'ECDF':
             #ascending order
 
             #find multiplicity of multiple events
@@ -477,10 +478,12 @@ class MarginalDistributions:
             #binary search for index next to CDF value,
             #then extract physical parameter
             #subtract/add one from index to overcover
-            limit_one_sigma = [order_statistics[max(0,np.searchsorted(ecdf, 0.15865525393145705)-1),0],
-                               order_statistics[min(ecdf.shape[0]-1,np.searchsorted(ecdf, 0.84134474606854293)+1),0]]
-            limit_two_sigma = [order_statistics[max(0,np.searchsorted(ecdf, 0.02275013194817919)-1),0],
-                               order_statistics[min(ecdf.shape[0]-1,np.searchsorted(ecdf, 0.97724986805182079)+1),0]]
+            limit_one_sigma = [order_statistics[max(0, np.searchsorted(ecdf, 0.15865525393145705) - 1), 0],
+                               order_statistics[
+                                   min(ecdf.shape[0] - 1, np.searchsorted(ecdf, 0.84134474606854293) + 1), 0]]
+            limit_two_sigma = [order_statistics[max(0, np.searchsorted(ecdf, 0.02275013194817919) - 1), 0],
+                               order_statistics[
+                                   min(ecdf.shape[0] - 1, np.searchsorted(ecdf, 0.97724986805182079) + 1), 0]]
             return (limit_one_sigma, limit_two_sigma)
 
         if method == 'histogram':
@@ -494,11 +497,11 @@ class MarginalDistributions:
             #binary search for index next to CDF value,
             #then extract physical parameter
             #subtract/add one from index to overcover
-            limit_one_sigma = [edges[max(0,np.searchsorted(cdf, 0.15865525393145705)-1)],
-                               edges[min(cdf.shape[0]-1, np.searchsorted(cdf, 0.84134474606854293)+2)]]
+            limit_one_sigma = [edges[max(0, np.searchsorted(cdf, 0.15865525393145705) - 1)],
+                               edges[min(cdf.shape[0] - 1, np.searchsorted(cdf, 0.84134474606854293) + 2)]]
 
-            limit_two_sigma = [edges[max(0,np.searchsorted(cdf, 0.02275013194817919)-1)],
-                               edges[min(cdf.shape[0]-1, np.searchsorted(cdf, 0.97724986805182079)+2)]]
+            limit_two_sigma = [edges[max(0, np.searchsorted(cdf, 0.02275013194817919) - 1)],
+                               edges[min(cdf.shape[0] - 1, np.searchsorted(cdf, 0.97724986805182079) + 2)]]
             return (limit_one_sigma, limit_two_sigma)
 
     @staticmethod
@@ -540,11 +543,11 @@ class MarginalDistributions:
             index = max(0, np.searchsorted(bin_counts, density) - 1)
             # how much is still above? In/exclude the bin with the point
             credibility_level_overcover = (cdf[-1] - cdf[index]) / cdf[-1]
-            credibility_level_undercover =  (cdf[-1] - cdf[min(len(bin_counts) - 1, index + 1)]) / cdf[-1]
+            credibility_level_undercover = (cdf[-1] - cdf[min(len(bin_counts) - 1, index + 1)]) / cdf[-1]
             return (credibility_level_overcover, credibility_level_undercover)
 
         levels = np.array(credibilities)
-        for i,p in enumerate(credibilities):
+        for i, p in enumerate(credibilities):
             #now start at back, the highest value, the full number of samples
             #minus -1 to overcover
             index = max(0, np.searchsorted(cdf, (1 - p) * cdf[-1]) - 1)
@@ -556,11 +559,12 @@ class MarginalDistributions:
         from scipy.stats.distributions import norm as Gaussian
 
         (prob_overcover, prob_undercover) = self.find_hist_limits(probability_array, density=posterior_level)
-        sigmas_overcover = Gaussian.ppf((prob_overcover + 1) / 2.0)#, location=0, scale=1)
-        sigmas_undercover = Gaussian.ppf((prob_undercover + 1) / 2.0)#, location=0, scale=1)
+        sigmas_overcover = Gaussian.ppf((prob_overcover + 1) / 2.0)  #, location=0, scale=1)
+        sigmas_undercover = Gaussian.ppf((prob_undercover + 1) / 2.0)  #, location=0, scale=1)
         print(value, prob_overcover * 100, prob_undercover * 100, sigmas_overcover, sigmas_undercover)
-        print("GoF: point (%s) at most at the %g%% level (at least at the %g%% level). On the Gaussian scale, that's at %g [%g] sigmas" %
-              (value, prob_overcover * 100, prob_undercover * 100, sigmas_overcover, sigmas_undercover))
+        print(
+            "GoF: point (%s) at most at the %g%% level (at least at the %g%% level). On the Gaussian scale, that's at %g [%g] sigmas" %
+            (value, prob_overcover * 100, prob_undercover * 100, sigmas_overcover, sigmas_undercover))
 
     def __bandwidth(self, samples, index):
         """
@@ -571,8 +575,8 @@ class MarginalDistributions:
         at <http://citeseerx.ist.psu.edu/viewdoc/summary?doi=10.1.1.85.7837>
         """
         self.sigma[index] = np.sqrt(np.var(samples, ddof=1))
-        bandwidth = 5 * self.sigma[index] * np.power( samples.shape[0], -1/3.)
-        self.nBins[index] = int(( self.max[index] - self.min[index])/bandwidth)
+        bandwidth = 5 * self.sigma[index] * np.power(samples.shape[0], -1 / 3.)
+        self.nBins[index] = int(( self.max[index] - self.min[index]) / bandwidth)
         return bandwidth
 
     def contours_one(self, x, densities, level, specifier, hist=True, **kwargs):
@@ -587,9 +591,9 @@ class MarginalDistributions:
         **kwargs are passed to the plotting routine of pylab.fill_between
         """
         if hist:
-            for i in range(len(x)-1):
+            for i in range(len(x) - 1):
                 if densities[i] > level:
-                    P.fill_between( (x[i], x[i+1]), 0, densities[i], **kwargs)
+                    P.fill_between((x[i], x[i + 1]), 0, densities[i], **kwargs)
                     continue
 
             return
@@ -654,7 +658,7 @@ class MarginalDistributions:
             the highest is opaque, lower contours are increasingly more transparent.
         """
 
-        kwargs = {'credibilities':desired_levels}
+        kwargs = {'credibilities': desired_levels}
         if not np.iterable(desired_levels):
             kwargs.pop('credibilities')
 
@@ -684,7 +688,7 @@ class MarginalDistributions:
             artist = P.contour(densities, levels[1:-1], colors=color, extent=extent)
         else:
             # give all colors explicitly
-            colors=[color]*(len(levels) - 1)
+            colors = [color] * (len(levels) - 1)
             colors.append('white')
             # reverse list with ::-1
             artist = P.contourf(densities, levels, colors=colors[::-1], extent=extent)
@@ -745,7 +749,7 @@ class MarginalDistributions:
         intervals95 = []
         local_modes = []
         for run in runs:
-            intervals95.append([x[run[0]] - 0.5 * bin_width, x[run[1] - 1] + 0.5 * bin_width ])
+            intervals95.append([x[run[0]] - 0.5 * bin_width, x[run[1] - 1] + 0.5 * bin_width])
             intervals95[-1].append(intervals95[-1][1] - intervals95[-1][0])
             mode_index = run[0] + np.argmax(prob_density[run[0]:run[1]])
             local_modes.append(x[mode_index] + bin_width / 2.0)
@@ -777,7 +781,8 @@ class MarginalDistributions:
 
         if len(local_modes) == 1 and len(intervals68) == 1:
             print('x +a -b:')
-            print('%g +%g -%g' % (local_modes[0], intervals68[0][1] - local_modes[0], local_modes[0] - intervals68[0][0]))
+            print(
+                '%g +%g -%g' % (local_modes[0], intervals68[0][1] - local_modes[0], local_modes[0] - intervals68[0][0]))
 
         if index is not None:
             self.credibilities[index] = intervals68, intervals95
@@ -806,11 +811,11 @@ class MarginalDistributions:
         #A, D.W.S. & B, S.R.S. Multi-dimensional Density Estimation, p. 9 .
         #at <http://citeseerx.ist.psu.edu/viewdoc/summary?doi=10.1.1.85.7837>
 
-        if  not self.use_histogram:
+        if not self.use_histogram:
             bandwidth = self.__bandwidth(samples, index)
-#            self.sigma[index] = np.sqrt(np.var(samples, ddof=1))
-#            bandwidth = 5 * self.sigma[index] * np.power( samples.shape[0], -1/3.)
-#            self.nBins[index] = int(( self.max[index] - self.min[index])/bandwidth)
+        #            self.sigma[index] = np.sqrt(np.var(samples, ddof=1))
+        #            bandwidth = 5 * self.sigma[index] * np.power( samples.shape[0], -1/3.)
+        #            self.nBins[index] = int(( self.max[index] - self.min[index])/bandwidth)
         if self.fixed_1D_binning:
             self.nBins[index] = self.one_dim_n_bins
         if self.kde_bandwidth is not None:
@@ -843,26 +848,27 @@ class MarginalDistributions:
         probability_array = None
 
         if self.use_histogram:
-             (hist_outline, hist_normal) = histOutline(samples, bins=self.nBins[index], weights=self.out.weights,
-                                                       normed=True, range=(x_min, x_max))
-             P.plot(hist_outline[0], hist_outline[1], label=legend_label, **marginal_style)
+            (hist_outline, hist_normal) = histOutline(samples, bins=self.nBins[index], weights=self.out.weights,
+                                                      normed=True, range=(x_min, x_max))
+            P.plot(hist_outline[0], hist_outline[1], label=legend_label, **marginal_style)
 
-             # data for contours
-             x_values, y_values = hist_normal
+            # data for contours
+            x_values, y_values = hist_normal
 
-        else: #use KDE
-            mesh_points = np.linspace(x_min, x_max, self.nBins[index] )
+        else:  #use KDE
+            mesh_points = np.linspace(x_min, x_max, self.nBins[index])
 
             #setup for figtree
             start_time = time.time()
-            densities = figtree.figtree(np.ascontiguousarray(samples), mesh_points, weights=self.out.weights, bandwidth=bandwidth, eval="auto")
+            densities = figtree.figtree(np.ascontiguousarray(samples), mesh_points, weights=self.out.weights,
+                                        bandwidth=bandwidth, eval="auto")
             end_time = time.time()
-            print("figtree with bandwidth %g took %f s" % (bandwidth, end_time-start_time))
+            print("figtree with bandwidth %g took %f s" % (bandwidth, end_time - start_time))
 
             from scipy import interpolate
             #do a spline interpolation on a finer grid
             tck = interpolate.splrep(mesh_points, densities, s=0)
-            finer_mesh = np.linspace(x_min, x_max, 5*self.nBins[index] )
+            finer_mesh = np.linspace(x_min, x_max, 5 * self.nBins[index])
             densities_interp = interpolate.splev(finer_mesh, tck, der=0)
 
             # normalize to unity
@@ -917,11 +923,12 @@ class MarginalDistributions:
         if self.plot_prior and self.out.priors[index] is not None:
             prior = self.out.priors[index]
             integral = 1
-            mesh_points = np.linspace(x_min, x_max, self.nBins[index] )
+            mesh_points = np.linspace(x_min, x_max, self.nBins[index])
             prior_values = prior.evaluate(mesh_points)
 
             if prior_style.pop('filled', False):
-                function = P.fill_between(mesh_points, np.zeros_like(mesh_points), prior_values, label=prior_label, **prior_style)
+                function = P.fill_between(mesh_points, np.zeros_like(mesh_points), prior_values, label=prior_label,
+                                          **prior_style)
 
             P.plot(mesh_points, prior_values, label=prior_label, **prior_style)
 
@@ -941,7 +948,7 @@ class MarginalDistributions:
     def two_dimensional(self, par1, par2):
         #do nothing if one of the parameters is a nuisance parameter
         if not (self.use_nuisance or self.nuisance_2D) \
-           and (self.out.par_defs[par1].nuisance or self.out.par_defs[par2].nuisance):
+                and (self.out.par_defs[par1].nuisance or self.out.par_defs[par2].nuisance):
             return False
 
         #don't plot one nuisance vs another nuisance parameter
@@ -989,7 +996,8 @@ class MarginalDistributions:
         if self.fixed_2D_binning:
             twoD_bins = np.array((self.two_dim_n_bins, self.two_dim_n_bins), dtype=int)
 
-        print("Grid shape %s for parameters %s" % (twoD_bins, [self.out.par_defs[par1].name, self.out.par_defs[par2].name]))
+        print("Grid shape %s for parameters %s" % (
+            twoD_bins, [self.out.par_defs[par1].name, self.out.par_defs[par2].name]))
 
         # general 2D array of probablity (density) in pixels
         probability_array = None
@@ -1000,9 +1008,10 @@ class MarginalDistributions:
             cmap.set_under('white')
 
         if self.use_histogram:
-            orig_probability_array, xedges, yedges = np.histogram2d(samples1, samples2 ,
-                                            bins= (np.linspace(x_min, x_max , twoD_bins[0] + 1), np.linspace(y_min, y_max , twoD_bins[1] + 1) ),
-                                            weights=self.out.weights)
+            orig_probability_array, xedges, yedges = np.histogram2d(samples1, samples2,
+                                                                    bins=(np.linspace(x_min, x_max, twoD_bins[0] + 1),
+                                                                          np.linspace(y_min, y_max, twoD_bins[1] + 1) ),
+                                                                    weights=self.out.weights)
 
             #convert to standard display order
             probability_array = np.fliplr(np.rot90(orig_probability_array, k=3))
@@ -1032,35 +1041,35 @@ class MarginalDistributions:
             samples = np.c_[samples1, samples2].T
 
             #use less points on each axis
-            twoD_bins = twoD_bins/ self.kde_reduction
+            twoD_bins = twoD_bins / self.kde_reduction
 
             #boundary pixel width in true coordinates
-            dx = (x_max - x_min)/float(twoD_bins[0])
-            dy = (y_max - y_min)/float(twoD_bins[0])
+            dx = (x_max - x_min) / float(twoD_bins[0])
+            dy = (y_max - y_min) / float(twoD_bins[0])
 
             # create grid of points at which density is estimated
-            X, Y = np.mgrid[x_min + dx/2.:x_max - dx/2.:complex(0, twoD_bins[0] ), \
-                         y_min + dy/2.:y_max - dy/2.:complex(0, twoD_bins[1])]
+            X, Y = np.mgrid[x_min + dx / 2.:x_max - dx / 2.:complex(0, twoD_bins[0]), \
+                   y_min + dy / 2.:y_max - dy / 2.:complex(0, twoD_bins[1])]
 
             mesh_points = np.c_[X.ravel(), Y.ravel()].T
 
-            mesh_points[0,:] = (mesh_points[0,:] - x_min)/(x_max - x_min)
-            mesh_points[1,:] = (mesh_points[1,:] - y_min)/(y_max - y_min)
+            mesh_points[0, :] = (mesh_points[0, :] - x_min) / (x_max - x_min)
+            mesh_points[1, :] = (mesh_points[1, :] - y_min) / (y_max - y_min)
 
             #setup for figtree
             start_time = time.time()
 
             #use rule of thumb from Scott, Sain (1992) after Eq. 19
             if self.kde_bandwidth is None:
-                 estimated_bandwidth = 1/4.0 * np.power(samples.shape[0], -1 / (2 + 4.0))
+                estimated_bandwidth = 1 / 4.0 * np.power(samples.shape[0], -1 / (2 + 4.0))
             else:
                 estimated_bandwidth = self.kde_bandwidth
 
             #rescale coordinates to unit hypercube (fast)
             if not self.kde_transform:
-                transformed_samples = np.empty( (len(samples1),2))
-                transformed_samples[:,0] = (samples1 - x_min)/(x_max - x_min)
-                transformed_samples[:,1] = (samples2 - y_min)/(y_max - y_min)
+                transformed_samples = np.empty((len(samples1), 2))
+                transformed_samples[:, 0] = (samples1 - x_min) / (x_max - x_min)
+                transformed_samples[:, 1] = (samples2 - y_min) / (y_max - y_min)
 
             #transform into "almost principal components"
             #following Scott, Sain (1992) 3.3
@@ -1070,38 +1079,39 @@ class MarginalDistributions:
 
                 # A^{-1/2} in Scott, Sain
                 import scipy.linalg
+
                 B = scipy.linalg.matfuncs.sqrtm(scipy.linalg.inv(A))
                 #convert to real from complex
                 B = np.matrix(B, dtype=float)
 
                 #transform the input data
-                transformed_samples = np.array([np.ravel(B * np.matrix(sample).transpose()) for sample in samples] )
+                transformed_samples = np.array([np.ravel(B * np.matrix(sample).transpose()) for sample in samples])
                 print(transformed_samples[0])
 
                 #transform the mesh point corners and create new mesh
-                ac = B * np.matrix( [X[0,0], Y[0,0]]).transpose()
-                bd = B * np.matrix( [X[-1,-1], Y[-1,-1]]).transpose()
+                ac = B * np.matrix([X[0, 0], Y[0, 0]]).transpose()
+                bd = B * np.matrix([X[-1, -1], Y[-1, -1]]).transpose()
 
-                X, Y = np.mgrid[ac[0,0]:bd[0,0]:complex(0, twoD_bins[0] ), \
-                     ac[1,0]:bd[1,0]:complex(0, twoD_bins[1])]
+                X, Y = np.mgrid[ac[0, 0]:bd[0, 0]:complex(0, twoD_bins[0]), \
+                       ac[1, 0]:bd[1, 0]:complex(0, twoD_bins[1])]
                 mesh_points = np.c_[X.ravel(), Y.ravel()].T
 
-            verbosity=False
+            verbosity = False
 
             #do the work from the ctypes wrapper to the C-code
             orig_probability_array = figtree.figtree(transformed_samples,
-                                            np.ascontiguousarray(mesh_points.T[:]),
-                                            self.out.weights,
-                                            bandwidth= estimated_bandwidth,
-                                            verbose=verbosity)
+                                                     np.ascontiguousarray(mesh_points.T[:]),
+                                                     self.out.weights,
+                                                     bandwidth=estimated_bandwidth,
+                                                     verbose=verbosity)
             end_time = time.time()
-            print("figtree used %f s" % (end_time-start_time) )
+            print("figtree used %f s" % (end_time - start_time))
 
             #turn density from vector into matrix again
             orig_probability_array = np.reshape(orig_probability_array.T, X.shape)
 
             # transform such that plot has usual orientation
-            probability_array = np.fliplr(np.rot90(orig_probability_array ,k=3))
+            probability_array = np.fliplr(np.rot90(orig_probability_array, k=3))
 
             # everything below will be whitened
             vmin = self.minimum_probability * np.max(probability_array) if self.minimum_probability is not None else 0.0
@@ -1111,11 +1121,11 @@ class MarginalDistributions:
             else:
                 #imshow has opposite orientation
                 P.imshow(probability_array,
-                        cmap=cmap,
-                        vmin=vmin,
-                        extent=[x_min, x_max, y_min, y_max],
-                        origin='lower',
-                        interpolation = self.kde_interpolation)
+                         cmap=cmap,
+                         vmin=vmin,
+                         extent=[x_min, x_max, y_min, y_max],
+                         origin='lower',
+                         interpolation=self.kde_interpolation)
 
         # determine goodness-of-fit
         if self.gof_point is not None:
@@ -1141,10 +1151,10 @@ class MarginalDistributions:
         x_label = self.tr.to_tex(self.out.par_defs[par1].name)
         y_label = self.tr.to_tex(self.out.par_defs[par2].name)
 
-        if x_label =="":
-            x_label = "par"+str(par1)
+        if x_label == "":
+            x_label = "par" + str(par1)
         if y_label == "":
-            y_label = "par"+str(par2)
+            y_label = "par" + str(par2)
 
         P.xlabel(x_label)
         P.ylabel(y_label)
@@ -1157,55 +1167,78 @@ class MarginalDistributions:
 
         return probability_array
 
-    def evolution(self, scale='log'):
+    def trace(self, chains=None, index_list=None, scale='linear'):
         """
-        Plot evolution of single chains in 1D
+        Trace plot of individual chains in 1D + log posterior
         """
+        self.pdf_file = PdfPages(self.__output_base_name + "_trace.pdf")
 
-        title = 'All chains'
-        if self.single_chain is not None:
-            title = 'chain ' + str(self.single_chain)
+        if index_list is None:
+            index_list = np.arange(self.out.npar)
 
-        self.pdf_file = PdfPages(self.__output_base_name + "_evol.pdf")
+        x_min = 0
+        x_max = self.out.select[1] - self.out.select[0]
+        assert x_max > 0
+
+        n_chains = len(self.out.samples) / x_max
+        assert len(self.out.samples) % n_chains == 0
+        n_chains = int(n_chains)
+
+        fig = P.figure(figsize=(12, 7))
+        ax = fig.add_subplot(111)
+
+        # use a "qualitative colormap" from http://matplotlib.org/users/colormaps.html
+        cmap = P.get_cmap('spectral')
+        color_cycle = [cmap(i) for i in np.linspace(0, 1, n_chains)]
+        ax.set_color_cycle(color_cycle)
+
+        def save():
+            ax.set_xscale(scale)
+            ax.set_xlim(x_min, x_max)
+            ax.set_xlabel("iteration")
+            P.legend(bbox_to_anchor=(1.05, 1), loc=2, borderaxespad=0.1, fontsize='small')
+            P.tight_layout()
+            fig.subplots_adjust(right=0.8)
+            self.pdf_file.savefig()
 
         #print out mode info
-        for par in xrange(self.out.npar):
+        for par in index_list:
+            ax.clear()
 
             #set labels, avoid empty parameter names
             y_label = self.tr.to_tex(self.out.par_defs[par].name)
+            print('Plotting %s' % y_label)
 
             if y_label == "":
-                y_label = "par"+str(par)
+                y_label = "par" + str(par)
 
-            fig = P.figure(figsize=(16,9))
-            ax1 = fig.add_subplot(111)
+            for c in range(n_chains):
+                ax.plot(np.arange(x_min, x_max), self.out.samples[c * x_max: (c+1) * x_max, par], label='chain %d' % c)
 
-            x_min = 0
-            x_max = len(self.out.samples)
-            print('Plotting %s' % y_label)
-            l1 = ax1.plot(np.arange(x_min, x_max), self.out.samples.T[par])
-
-            ax1.set_xscale(scale)
-            ax1.set_xlim(x_min, x_max)
-
-            ax1.set_xlabel("Iterations")
-            ax1.set_ylabel(y_label)
+            ax.set_ylabel(y_label)
 
             ###
             #plotting range
             ###
             if self.use_data_range:
-                range = self.max[par] - self.min[par]
-                y_min = self.min[par] - self.scale_data_range * range / 2.0
-                y_max = self.max[par] + self.scale_data_range * range / 2.0
+                yrange = self.max[par] - self.min[par]
+                y_min = self.min[par] - self.scale_data_range * yrange / 2.0
+                y_max = self.max[par] + self.scale_data_range * yrange / 2.0
             else:
                 y_min = self.out.par_defs[par].min
                 y_max = self.out.par_defs[par].max
 
-            ax1.set_ylim(y_min, y_max)
+            ax.set_ylim(y_min, y_max)
 
-            P.title(title)
-            self.pdf_file.savefig()
+            save()
+        # posterior
+        ax.clear()
+        ax.set_ylabel('log posterior')
+
+        for c in range(n_chains):
+            ax.plot(np.arange(x_min, x_max), self.out.log_posterior[c * x_max: (c+1) * x_max], label='chain %d' % c)
+
+        save()
         self.pdf_file.close()
 
     def convergence(self):
@@ -1218,11 +1251,10 @@ class MarginalDistributions:
 
         self.pdf_file = PdfPages(self.__output_base_name + "_stats.pdf")
 
-
-        P.figure(figsize=(6,6))
+        P.figure(figsize=(6, 6))
         P.plot(self.out.stats.T[0], label='perplexity')
-        P.plot(self.out.stats.T[1], label='eff. sample size',ls='dashed')
-        P.ylim((0,1))
+        P.plot(self.out.stats.T[1], label='eff. sample size', ls='dashed')
+        P.ylim((0, 1))
         P.legend(loc='upper left')
         P.title("convergence diagnostics")
         P.xlabel("steps")
@@ -1290,10 +1322,10 @@ class MarginalDistributions:
         x_label = self.tr.to_tex(self.out.par_defs[par1].name)
         y_label = self.tr.to_tex(self.out.par_defs[par2].name)
 
-        if x_label =="":
-            x_label = "par"+str(par1)
+        if x_label == "":
+            x_label = "par" + str(par1)
         if y_label == "":
-            y_label = "par"+str(par2)
+            y_label = "par" + str(par2)
 
         P.xlabel(x_label)
         P.ylabel(y_label)
@@ -1322,13 +1354,13 @@ class MarginalDistributions:
         ###
         # perplexity. Avoid NaN due to log(0) by log(1)=0
         ###
-        entr = -np.sum( w * np.log(w.filled(1.0)))
+        entr = -np.sum(w * np.log(w.filled(1.0)))
         perp = np.exp(entr) / n
 
         ###
         # ess
         ###
-        coeff_var = np.sum((n * w - 1)**2) / n
+        coeff_var = np.sum((n * w - 1) ** 2) / n
         ess = 1.0 / (1.0 + coeff_var)
 
         print("Perplexity: %g, ESS: %g" % (perp, ess))
@@ -1338,12 +1370,12 @@ class MarginalDistributions:
         """
         Plot histogram of sample weights
         """
-        P.figure(figsize=(6,6))
+        P.figure(figsize=(6, 6))
         P.hist(self.out.weights, self.one_dim_n_bins)
         P.xlabel('weight')
         self.pdf_file.savefig()
 
-    def plot(self, index_list=None):
+    def plot(self, index_list=None, twoD_with_others=False):
         '''index_list: If given, choose which parameters to plot'''
 
         # output file name
@@ -1359,11 +1391,11 @@ class MarginalDistributions:
         # default mode: plot marginals
         one_dim = self.one_dimensional
         two_dim = self.two_dimensional
-        epilog = lambda : 0 #self.weight_distribution
+        epilog = lambda: 0  #self.weight_distribution
 
         # optionally draw pmc proposal instead
         if self.proposal:
-            one_dim = lambda par : False
+            one_dim = lambda par: False
             two_dim = self.proposal_2D
             # epilog = self.proposal_weights
             ext = '_prop'
@@ -1392,7 +1424,7 @@ class MarginalDistributions:
 
             if self.single_2D is not None:
                 for x, y in self.single_2D:
-                    P.figure(figsize=(6,6))
+                    P.figure(figsize=(6, 6))
                     two_dim(x, y)
                     P.tight_layout()
                     if n_single_plots > 1:
@@ -1426,23 +1458,32 @@ class MarginalDistributions:
         #1D marginals
         print("Plotting %d 1D marginal distributions" % len(index_list))
         for column in index_list:
-                P.figure()
-                if one_dim(column) is not False:
-                    P.tight_layout()
-                    self.pdf_file.savefig()
-                P.close()
+            P.figure()
+            if one_dim(column) is not False:
+                P.tight_layout()
+                self.pdf_file.savefig()
+            P.close()
         if self.one_dimensional_only:
             self.pdf_file.close()
             return
 
         #2D marginals
-        print("Creating %d 2D marginal distributions, please stand by..." % int(len(index_list)*(len(index_list)-1)/2 ) )
+        print("Creating 2D marginal distributions, please stand by...")
         counter = 1
         for i, par1 in enumerate(index_list):
-            for par2 in index_list[i + 1:]:
+            others = range(i+1, nCols) if twoD_with_others else index_list[i + 1:]
+            for par2 in range(nCols):
+                if twoD_with_others:
+                    if par2 in index_list and par1 >= par2:
+                        continue
+                else:
+                    if par1 >= par2:
+                        continue
+                    if par2 not in index_list:
+                        continue
 
                 #aspect ratio 1/1
-                P.figure(figsize=(6,6))
+                P.figure(figsize=(6, 6))
                 if two_dim(par1, par2) is not False:
                     P.tight_layout()
                     print("plot #%d" % counter)
@@ -1461,51 +1502,89 @@ def factory(cmd_line=None):
     """
     import argparse
 
-    parser  = argparse.ArgumentParser(description='Plot marginal distributions of MCMC')
-    parser.add_argument('i', metavar='input file',  help='HDF5 input file name')
-    parser.add_argument('--1D-bins', help="Use fixed number of bins for 1D marginal distributions (default: 100)",action='store')
-    parser.add_argument('--2D-bins', help="Use fixed number of bins for 2D marginal distributions (default: 100)",action='store')
-    parser.add_argument('--1D-only', help="Plot only 1D marginal distributions",action='store_true')
-    parser.add_argument('--bandwidth', help="Number in [0,1] used as bandwidth for KDE interpolation after rescaling to unit coordinate cube", action='store')
-    parser.add_argument('--chains', help="Use only the specified chains for plotting, instead of all available chains. Example: --chains 0 2 5", type=int, nargs='+', metavar=('chain0', 'chain1'))
-    parser.add_argument('--comp-integrate', help="Compute evidence from individual components",action='store_true')
-    parser.add_argument('--contours', help="Add one and two sigma contours",action='store_true')
-    parser.add_argument('--compute-stats', help="Compute perplexity and effective sample size (PMC only)", action='store_true')
-    parser.add_argument('--cut', help="Add a cut for computing the integral: PAR MIN MAX",nargs=3, action='append')
-    parser.add_argument('--deterministic-mixture', action='store_true', default=False, help=\
-                        "With importance sampling, use the deterministic-mixture weights instead of regular importance weights.")
+    parser = argparse.ArgumentParser(description='Plot marginal distributions of MCMC')
+    parser.add_argument('i', metavar='input file', help='HDF5 input file name')
+    parser.add_argument('--1D-bins', help="Use fixed number of bins for 1D marginal distributions (default: 100)",
+                        action='store')
+    parser.add_argument('--2D-bins', help="Use fixed number of bins for 2D marginal distributions (default: 100)",
+                        action='store')
+    parser.add_argument('--2D-with-others', action='store_true',
+                        help="Plot 2D marginals for parameters given through `--par-indices` with all other parameters")
+    parser.add_argument('--1D-only', help="Plot only 1D marginal distributions", action='store_true')
+    parser.add_argument('--bandwidth',
+                        help="Number in [0,1] used as bandwidth for KDE interpolation after rescaling to unit coordinate cube",
+                        action='store')
+    parser.add_argument('--chains',
+                        help="Use only the specified chains for plotting, instead of all available chains. Example: --chains 0 2 5",
+                        type=int, nargs='+', metavar=('chain0', 'chain1'))
+    parser.add_argument('--comp-integrate', help="Compute evidence from individual components", action='store_true')
+    parser.add_argument('--contours', help="Add one and two sigma contours", action='store_true')
+    parser.add_argument('--compute-stats', help="Compute perplexity and effective sample size (PMC only)",
+                        action='store_true')
+    parser.add_argument('--cut', help="Add a cut for computing the integral: PAR MIN MAX", nargs=3, action='append')
+    parser.add_argument('--deterministic-mixture', action='store_true', default=False, help= \
+        "With importance sampling, use the deterministic-mixture weights instead of regular importance weights.")
     parser.add_argument('--emcee', help="Read emcee input file", action='store_true', default=False)
-    parser.add_argument('--evolution', help="Plot the evolution  of individual chains, either on the 'log' or 'linear' scale", action='store', default='harr')
-    parser.add_argument('--gof', help="Determine GoF for a particular point. Specify each coordinate independently as --gof i value, e.g. --gof 0 0.4 --gof 1 0.8 i<j, i,j=0...N-1", action='append', nargs=2)
-    parser.add_argument('--hc-initial', help="Plot initial guess of hierarchical clustering, computed from long Markov chain patches", action='store_true')
-    parser.add_argument('--hc-patches', help="Plot components from short Markov chain patches for hierarchical clustering", action='store_true')
-    parser.add_argument('--integrate', help="Compute integral over hyperrectangle, use with --cut",action='store_true')
+    parser.add_argument('--gof',
+                        help="Determine GoF for a particular point. Specify each coordinate independently as --gof i value, e.g. --gof 0 0.4 --gof 1 0.8 i<j, i,j=0...N-1",
+                        action='append', nargs=2)
+    parser.add_argument('--hc-initial',
+                        help="Plot initial guess of hierarchical clustering, computed from long Markov chain patches",
+                        action='store_true')
+    parser.add_argument('--hc-patches',
+                        help="Plot components from short Markov chain patches for hierarchical clustering",
+                        action='store_true')
+    parser.add_argument('--integrate', help="Compute integral over hyperrectangle, use with --cut", action='store_true')
     parser.add_argument('--par-indices', help="Indices of parameters to plot", nargs='*')
     parser.add_argument('--mcmc', help="Treat input as file from mcmc", action='store_true')
-    parser.add_argument('--min-prob', help="Whiten all bins with prob less than this value",action='store', default=1e-5)
-    parser.add_argument('--mode', help='Give a point, usually a local mode, to evaluate goodness of fit. This overrides the similar --gof, except here all parameters are specified together as a string. Ex: --mode "1.2 -0.393 412.1"', action='store', nargs=1)
+    parser.add_argument('--min-prob', help="Whiten all bins with prob less than this value", action='store',
+                        default=1e-5)
+    parser.add_argument('--mode',
+                        help='Give a point, usually a local mode, to evaluate goodness of fit. This overrides the similar --gof, except here all parameters are specified together as a string. Ex: --mode "1.2 -0.393 412.1"',
+                        action='store', nargs=1)
     parser.add_argument('--nest', help="Treat input as file from multinest", action='store_true')
     parser.add_argument('--nuisance', help="Plot nuisance parameters.", action='store_true', default=False)
-    parser.add_argument('--no-nuisance-vs-nuisance', help="Don't produce 2D plots if both are nuisance parameters",action='store_true', default=False)
+    parser.add_argument('--no-nuisance-vs-nuisance', help="Don't produce 2D plots if both are nuisance parameters",
+                        action='store_true', default=False)
     parser.add_argument('--output-dir', help="Store plots in different directory than input file", action='store')
-    parser.add_argument('--pmc-components', help="Select samples only from particular components. Examples: --pmc-components 43; --pmc-components 0 8", action='store', type=int, nargs='+', metavar=('comp0', 'comp1'))
-    parser.add_argument('--pmc-crop-outliers', help="Remove N points with the highest weight", action='store', default=0)
-    parser.add_argument('--pmc-equal-weights', help="Plot PMC proposal function by giving each drawn samples the same weight", action='store_true')
-    parser.add_argument('--pmc-proposal', help="Plot PMC proposal function. Each component is displayed as a colored ellipse whose size matches the (Gaussian) covariance matrix.", action='store_true')
-    parser.add_argument('--pmc-stats', help="Plot evolution of convergence diagnostics and evidence", action='store_true')
+    parser.add_argument('--pmc-components',
+                        help="Select samples only from particular components. Examples: --pmc-components 43; --pmc-components 0 8",
+                        action='store', type=int, nargs='+', metavar=('comp0', 'comp1'))
+    parser.add_argument('--pmc-crop-outliers', help="Remove N points with the highest weight", action='store',
+                        default=0)
+    parser.add_argument('--pmc-equal-weights',
+                        help="Plot PMC proposal function by giving each drawn samples the same weight",
+                        action='store_true')
+    parser.add_argument('--pmc-proposal',
+                        help="Plot PMC proposal function. Each component is displayed as a colored ellipse whose size matches the (Gaussian) covariance matrix.",
+                        action='store_true')
+    parser.add_argument('--pmc-stats', help="Plot evolution of convergence diagnostics and evidence",
+                        action='store_true')
     parser.add_argument('--pmc-step', help="Use a specified step, default: final step", action='store')
-    parser.add_argument('--pmc-queue-output', help="Treat input as file from PMC queue manager", action='store_true', default=None)
+    parser.add_argument('--pmc-queue-output', help="Treat input as file from PMC queue manager", action='store_true',
+                        default=None)
     parser.add_argument('--prerun', help="Use prerun instead of main", action='store_true')
-    parser.add_argument('--prior', help="Plot the prior in 1D distributions.",action='store_true')
-    parser.add_argument('--pypmc', help="Output file format from eos->pypmc interface.",action='store_true')
-    parser.add_argument('--single-1D', help="Plot only the 1D marginal distribution of the ith parameter, i=0...N-1", type=int, nargs='+')
-    parser.add_argument('--single-2D', help="Plot only the 2D marginal distribution of parameters i,j, i<j, i,j=0...N-1", nargs=2, type=int, action='append')
-    parser.add_argument('--single-ext', help="File extension for single plots, e.g 'pdf'[default] or 'png'", action='store')
-    parser.add_argument('--select', help="Select a range of samples from each chain", action='store',nargs=2, default=(None, None))
-    parser.add_argument('--skip-initial', help="Allows to skip the first fraction of iterations. Ignored if --seelect MIN MAX given.", action='store', default=0)
+    parser.add_argument('--prior', help="Plot the prior in 1D distributions.", action='store_true')
+    parser.add_argument('--pypmc', help="Output file format from eos->pypmc interface.", action='store_true')
+    parser.add_argument('--single-1D', help="Plot only the 1D marginal distribution of the ith parameter, i=0...N-1",
+                        type=int, nargs='+')
+    parser.add_argument('--single-2D',
+                        help="Plot only the 2D marginal distribution of parameters i vs j with i<j and i,j=0...N-1",
+                        nargs=2, type=int, action='append')
+    parser.add_argument('--single-ext', help="File extension for single plots, e.g 'pdf'[default] or 'png'",
+                        action='store')
+    parser.add_argument('--select', help="Select a range of samples from each chain", action='store', nargs=2,
+                        default=(None, None))
+    parser.add_argument('--skip-initial',
+                        help="Allows to skip the first fraction of iterations. Ignored if --seelect MIN MAX given.",
+                        action='store', default=0)
+    parser.add_argument('--trace', help="Trace plot of individual chains, either on the 'log' or 'linear' scale",
+                        action='store_true')
     parser.add_argument('--uncertainty-propagation', help="Parse uncertainty-propagation data", action='store_true')
-    parser.add_argument('--use-data-range', help="Determine the parameter ranges from data, instead of from definition in HDF5. ", action='store', default=0.0)
-    parser.add_argument('--use-KDE',  help='Use kernel density estimation instead of histograms', action='store_true')
+    parser.add_argument('--use-data-range',
+                        help="Determine the parameter ranges from data, instead of from definition in HDF5. ",
+                        action='store', default=0.0)
+    parser.add_argument('--use-KDE', help='Use kernel density estimation instead of histograms', action='store_true')
 
     # defaults to sys.argv if None is passed in
     args = parser.parse_args(cmd_line)
@@ -1523,16 +1602,16 @@ def factory(cmd_line=None):
 
     # determine input
     kwargs = dict(
-                  # general
-                  select=[int(x) if x is not None else x for x in args.select],
-                  # mcmc
-                  chains=args.chains, prerun=args.prerun, skip_initial=float(args.skip_initial),
-                  # pmc
-                  queue_output=args.pmc_queue_output, crop_outliers=int(args.pmc_crop_outliers),
-                  equal_weights=args.pmc_equal_weights or args.pmc_proposal,
-                  components=args.pmc_components,
-                  step=args.pmc_step, hc_comp=hc_comp,
-                  deterministic_mixture=args.deterministic_mixture)
+        # general
+        select=[int(x) if x is not None else x for x in args.select],
+        # mcmc
+        chains=args.chains, prerun=args.prerun, skip_initial=float(args.skip_initial),
+        # pmc
+        queue_output=args.pmc_queue_output, crop_outliers=int(args.pmc_crop_outliers),
+        equal_weights=args.pmc_equal_weights or args.pmc_proposal,
+        components=args.pmc_components,
+        step=args.pmc_step, hc_comp=hc_comp,
+        deterministic_mixture=args.deterministic_mixture)
 
     OutputClass = None
 
@@ -1583,19 +1662,19 @@ def factory(cmd_line=None):
     if args.mcmc:
         input_source = 'mcmc'
     if args.nest:
-       assert(input_source == input_source_default)
-       input_source = 'multinest'
+        assert input_source == input_source_default
+        input_source = 'multinest'
 
     #had some trouble getting the second argument out-of the namepace, so use the dictionary directly
     marg = MarginalDistributions(output, args.__dict__['use_KDE'], output_dir=args.__dict__['output_dir'],
                                  chains=args.chains or args.__dict__['pmc_step'], nuisance=args.nuisance)
 
-    if  args.__dict__['use_KDE']:
+    if args.__dict__['use_KDE']:
         marg.kde_reduction = 1
-    if  args.__dict__['use_data_range'] > 0:
+    if args.__dict__['use_data_range'] > 0:
         marg.use_data_range = True
         marg.scale_data_range = float(args.__dict__['use_data_range'])
-    if  args.__dict__['bandwidth'] is not None:
+    if args.__dict__['bandwidth'] is not None:
         marg.kde_bandwidth = float(args.__dict__['bandwidth'])
     if args.__dict__['1D_bins'] is not None:
         marg.fixed_1D_binning = True
@@ -1634,14 +1713,15 @@ def factory(cmd_line=None):
     if args.__dict__['single_ext']:
         marg.single_ext = "." + args.__dict__['single_ext']
     if args.__dict__['output_dir'] is not None:
-        marg.output_dir =  args.__dict__['output_dir']
+        marg.output_dir = args.__dict__['output_dir']
     if args.__dict__['gof'] is not None:
         for pair in args.__dict__['gof']:
             marg.gof_point[int(pair[0])] = float(pair[1])
     if args.mode is not None:
         mode = args.mode[0][1:-2].split()
         assert len(mode) == marg.out.npar, \
-        "Mode length (%d) does not match the number of parameters (%d) in %s" % (len(mode), marg.out.npar, marg.out.input_file_name)
+            "Mode length (%d) does not match the number of parameters (%d) in %s" % (
+                len(mode), marg.out.npar, marg.out.input_file_name)
         for i, val in enumerate(mode):
             marg.gof_point[i] = float(val)
 
@@ -1649,63 +1729,27 @@ def factory(cmd_line=None):
         return marg
 
     ### do the mutually exclusive work
+    index_list = [int(x) for x in args.par_indices] if args.par_indices is not None else None
     done = False
-    if args.__dict__['evolution'] is not 'harr':
-        marg.evolution(args.__dict__['evolution'])
+    if args.trace:
+        marg.trace(chains=args.chains, index_list=index_list)
         done = True
-    if args.__dict__['integrate']:
+    if args.integrate:
         marg.integrate()
         done = True
-    if args.__dict__['comp_integrate']:
+    if args.comp_integrate:
         marg.comp_integrate()
         done = True
-    if args.__dict__['compute_stats']:
+    if args.compute_stats:
         marg.compute_stats()
         done = True
-    if args.__dict__['pmc_stats']:
+    if args.pmc_stats:
         marg.convergence()
         done = True
     if not done:
-        marg.plot([int(x) for x in args.par_indices] if args.par_indices is not None else None)
-
-def test_ellipse():
-    from matplotlib.patches import Ellipse
-
-    P.figure(figsize=(6,6))
-    ax = P.gca()
-
-    submatrix = np.array([[0.3**2   , -0.1], \
-                          [-0.1   , 0.4**2]])
-
-    P.xlim((4.5, 5.5))
-    P.ylim((0, 1))
-
-    ew, ev = linalg.eigh(submatrix)
-
-    aspect_ratio = 1
-    theta = 0.5 * np.arctan( 2 * submatrix[0,1] / (submatrix[1,1] - submatrix[0,0]))
-
-    # put larger EW on y'-axis
-    height = np.sqrt(ew.max())
-    width = np.sqrt(ew.min())
-
-    if submatrix[0,0] > submatrix[1,1]:
-        height = np.sqrt(ew.min())
-        width = np.sqrt(ew.max())
-
-    print(ew)
-
-    # change sign to rotate in right direction
-    angle = - theta * 180 / np.pi
-
-    # need full width/height
-    e = Ellipse(xy=(5, 0.5), width=2*width, height=2*height, angle=angle)
-    ax.add_artist(e)
-    P.show()
-    P.savefig('ellipse.pdf')
+        marg.plot(index_list, args.__dict__['2D_with_others'])
 
 def main():
-
     # do all the plotting
     factory()
 
