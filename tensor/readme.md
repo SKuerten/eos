@@ -84,3 +84,18 @@ compute
 
 2. 20 chains with random seed offset 1..20
    `./loadleveler-single.cmd ./scTT5-K_KstarBR.bash mcmc 1 20`
+
+analyze
+-------
+
+1. check for test runs in output directory
+   ```
+   cd scTT5_K_KstarBR
+   ls
+   rm mcmc_01* # test after 13:00
+   ```
+2. merge, check output for chains with very low mode compared to best chains
+   ```
+   merge.py --pypmc
+   plotScript.py mcmc_pre_merged.hdf5 --mcmc --pypmc --skip-init 0.2
+   ```
