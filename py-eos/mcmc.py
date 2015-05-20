@@ -116,7 +116,7 @@ class MCMC_Sampler(object):
 
             # history has rank 2 but 2nd rank can be ignored
             file[self.target_dset].resize(new_length, axis=0)
-            file[self.target_dset][iterations:new_length] = self.chain.target_values[:][0,:]
+            file[self.target_dset][iterations:new_length] = self.chain.target_values[:][:,0]
 
             file[self.sample_dset].resize(new_length, axis=0)
             file[self.sample_dset][iterations:new_length] = self.chain.history[:]
