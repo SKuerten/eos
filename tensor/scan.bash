@@ -1,6 +1,7 @@
 # deviation around SM value
-sm_min=-4
-sm_max=+4
+sm_min=-3
+sm_max=+3
+# scalar and tensor
 non_sm_min=-1
 non_sm_max=+1
 
