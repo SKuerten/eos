@@ -916,12 +916,12 @@ class MarginalDistributions:
                 self.print_gof(value, y_values, posterior_level)
 
                 # indicate GOF point
-                P.scatter(value, 0, marker='*', s=200, color='salmon')
+                P.scatter(value, 0, marker='*', s=200, color='blue')
 
         # plot global mode for single chains
         global_mode_index = self.out.get('global_mode_index')
         if global_mode_index is not None:
-            P.scatter(self.out._modes[global_mode_index][index], 0, marker='^', s=200)
+            P.scatter(self.out._modes[global_mode_index][index], 0, marker='^', s=200, color='salmon')
 
         # plot the prior in the same plot
         if self.plot_prior and self.out.priors[index] is not None:
@@ -1149,7 +1149,7 @@ class MarginalDistributions:
                 posterior_level = orig_probability_array[bin_index]
                 self.print_gof(value, probability_array, posterior_level)
 
-                P.plot(value[0], value[1], marker='+', color='salmon', markersize=15, markeredgewidth=3)
+                P.plot(value[0], value[1], marker='+', color='blue', markersize=15, markeredgewidth=4)
 
         #set labels, avoid empty parameter names
         x_label = self.tr.to_tex(self.out.par_defs[par1].name)
@@ -1194,7 +1194,6 @@ class MarginalDistributions:
         # use a "qualitative colormap" from http://matplotlib.org/users/colormaps.html
         cmap = P.get_cmap('spectral')
         color_cycle = [cmap(i) for i in np.linspace(0, 1, n_chains)]
-        ax.set_color_cycle(color_cycle)
 
         def save():
             ax.set_xscale(scale)
@@ -1208,6 +1207,7 @@ class MarginalDistributions:
         #print out mode info
         for par in index_list:
             ax.clear()
+            ax.set_color_cycle(color_cycle)
 
             #set labels, avoid empty parameter names
             y_label = self.tr.to_tex(self.out.par_defs[par].name)
@@ -1234,9 +1234,20 @@ class MarginalDistributions:
 
             ax.set_ylim(y_min, y_max)
 
+            if self.gof_point is not None:
+
+                try:
+                    # read out value in this this dimension
+                    value = self.gof_point[par]
+                except KeyError:
+                    pass
+                else:
+                    P.axhline(value, linestyle='--', color='black', label='gof')
+
             save()
         # posterior
         ax.clear()
+        ax.set_color_cycle(color_cycle)
         ax.set_ylabel('log posterior')
 
         for c in range(n_chains):
