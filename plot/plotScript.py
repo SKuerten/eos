@@ -561,10 +561,8 @@ class MarginalDistributions:
         (prob_overcover, prob_undercover) = self.find_hist_limits(probability_array, density=posterior_level)
         sigmas_overcover = Gaussian.ppf((prob_overcover + 1) / 2.0)  #, location=0, scale=1)
         sigmas_undercover = Gaussian.ppf((prob_undercover + 1) / 2.0)  #, location=0, scale=1)
-        print(value, prob_overcover * 100, prob_undercover * 100, sigmas_overcover, sigmas_undercover)
-        print(
-            "GoF: point (%s) at most at the %g%% level (at least at the %g%% level). On the Gaussian scale, that's at %g [%g] sigmas" %
-            (value, prob_overcover * 100, prob_undercover * 100, sigmas_overcover, sigmas_undercover))
+        print("GoF: point (%s) at most at the %g%% level [at least: %g%%]. " % (value, prob_overcover * 100, prob_undercover * 100, ) +
+              "On the Gaussian scale, that's at %g [%g] sigmas." % (sigmas_overcover, sigmas_undercover))
 
     def __bandwidth(self, samples, index):
         """
@@ -852,9 +850,16 @@ class MarginalDistributions:
                                                       normed=True, range=(x_min, x_max))
             P.plot(hist_outline[0], hist_outline[1], label=legend_label, **marginal_style)
 
+            # this would be the code to replace the workaround
+            # `histOutline` but I don't know how to turn off filling
+            # of the histogram with old versions of matplotlib
+            # y_values, x_values, _ = P.hist(samples, bins=self.nBins[index], weights=self.out.weights,
+            #                                normed=True, range=(x_min, x_max), label=legend_label, **marginal_style)
+            # x_values, y_values = np.asanyarray(x_values), np.asanyarray(y_values)
+
             # data for contours
             x_values, y_values = hist_normal
-
+            assert len(x_values) == len(y_values) + 1, "x values (%d) and y values (%d) should differ in length by one" % (len(x_values), len(y_values))
         else:  #use KDE
             mesh_points = np.linspace(x_min, x_max, self.nBins[index])
 
@@ -902,12 +907,11 @@ class MarginalDistributions:
             except KeyError:
                 pass
             else:
-                # calculate index of bin containing the point
-                bin_index = np.floor((value - x_min) / (x_max - x_min) * len(x_values))
-                # special case: value at right edge
-                bin_index = min(bin_index, len(x_values) - 1)
-
-                posterior_level = y_values[bin_index]
+                assert x_min < value and value < x_max, 'gof value %g for par %d outside of range (%g, %g)' % (value, index, x_min, x_max)
+                # calculate index of bin containing the point divide
+                # by `len(y_values)` because `x_values has bin edges
+                # including the right edge of the last bin and thus it is too long by one element
+                posterior_level = y_values[int(np.floor((value - x_min) / (x_max - x_min) * len(y_values)))]
 
                 self.print_gof(value, y_values, posterior_level)
 
