@@ -1211,7 +1211,7 @@ class MarginalDistributions:
 
             #set labels, avoid empty parameter names
             y_label = self.tr.to_tex(self.out.par_defs[par].name)
-            print('Plotting %s' % y_label)
+            print('%d: %s' % (par, y_label))
 
             if y_label == "":
                 y_label = "par" + str(par)

@@ -194,7 +194,10 @@ def merge_unc_pypmc(output_file_name, search='unc_*.hdf5', input_files=None):
             sample_input_file = par_ds.attrs['input file']
 
             fixed_par_ds = f['/descriptions/fixed parameter']
-            fixed_par = fixed_par_ds[:]
+            try:
+                fixed_par = fixed_par_ds[:]
+            except ValueError:
+                fixed_par = fixed_par_ds[()]
             fixed_par_name = fixed_par_ds.attrs['name']
 
             obs_ds = f['observable']
@@ -219,7 +222,10 @@ def merge_unc_pypmc(output_file_name, search='unc_*.hdf5', input_files=None):
                 assert par_ds.attrs['input file'] == sample_input_file
 
                 fixed_par_ds = input_file['/descriptions/fixed parameter']
-                np.testing.assert_equal(fixed_par_ds[:], fixed_par)
+                try:
+                    np.testing.assert_equal(fixed_par_ds[:], fixed_par)
+                except ValueError:
+                    np.testing.assert_equal(fixed_par_ds[()], fixed_par)
                 assert fixed_par_ds.attrs['name'] == fixed_par_name
 
                 in_obs_ds = input_file['/observable']

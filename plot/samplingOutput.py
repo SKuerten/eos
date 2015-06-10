@@ -1245,7 +1245,10 @@ class EOS_PYPMC_UNC(SamplingOutput):
             self.weights = np.ones(len(self.samples))
             fixed_ds = input_file['/descriptions/fixed parameter']
             fixed_name = fixed_ds.attrs['name']
-            fixed_values = fixed_ds[:]
+            try:
+                fixed_values = fixed_ds[:]
+            except ValueError:
+                fixed_values = np.ones(1) * fixed_ds[()]
             self.par_defs = []
             for i in range(len(fixed_values)):
                 # get everything up to '@' to remove lengthy options
