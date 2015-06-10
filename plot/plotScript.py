@@ -1090,7 +1090,6 @@ class MarginalDistributions:
 
                 #transform the input data
                 transformed_samples = np.array([np.ravel(B * np.matrix(sample).transpose()) for sample in samples])
-                print(transformed_samples[0])
 
                 #transform the mesh point corners and create new mesh
                 ac = B * np.matrix([X[0, 0], Y[0, 0]]).transpose()
@@ -1109,7 +1108,7 @@ class MarginalDistributions:
                                                      bandwidth=estimated_bandwidth,
                                                      verbose=verbosity)
             end_time = time.time()
-            print("figtree used %f s" % (end_time - start_time))
+            print("figtree used %f s with bandwidth %g" % (end_time - start_time, estimated_bandwidth))
 
             #turn density from vector into matrix again
             orig_probability_array = np.reshape(orig_probability_array.T, X.shape)
