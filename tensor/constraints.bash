@@ -105,6 +105,19 @@ export CONSTRAINTS_B_TO_KSTARMUMU_A_CP="
     --constraint B^0->K^*0mu^+mu^-::A_CP[1.10,6.00]@LHCb-2014
     --constraint B^0->K^*0mu^+mu^-::A_CP[15.00,19.00]@LHCb-2014
 "
+export CONSTRAINTS_B_TO_KSTARMUMU_A_FB="
+    --constraint B^0->K^*0mu^+mu^-::A_FB[1.00,6.00]@CDF-2012
+    --constraint B^0->K^*0mu^+mu^-::A_FB[1.00,6.00]@LHCb-2013
+    --constraint B^0->K^*0mu^+mu^-::A_FB[1.00,6.00]@CMS-2013A
+
+    --constraint B^0->K^*0mu^+mu^-::A_FB[14.18,16.00]@CDF-2012
+    --constraint B^0->K^*0mu^+mu^-::A_FB[14.18,16.00]@LHCb-2013
+    --constraint B^0->K^*0mu^+mu^-::A_FB[14.18,16.00]@CMS-2013A
+
+    --constraint B^0->K^*0mu^+mu^-::A_FB[16.00,19.21]@CDF-2012
+    --constraint B^0->K^*0mu^+mu^-::A_FB[16.00,19.00]@LHCb-2013
+    --constraint B^0->K^*0mu^+mu^-::A_FB[16.00,19.00]@CMS-2013A
+"
 export CONSTRAINTS_B_TO_KSTAR_FF_LATTICE="
     --global-option form-factors BSZ2015
 
@@ -171,6 +184,7 @@ $CONSTRAINTS_Bsmumu
 export CONSTRAINTS_K_KstarBR_Bsmumu="
 $CONSTRAINTS_K_KstarBR
 $CONSTRAINTS_Bsmumu
+$CONSTRAINTS_B_TO_KSTARMUMU_A_FB
 "
 export CONSTRAINTS_test1="
 $CONSTRAINTS_B_TO_K_FF_ALL
