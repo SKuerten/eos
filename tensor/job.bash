@@ -35,8 +35,8 @@ gof() {
         ${!scan} \
         ${!nuisance} \
         ${!constraints} \
-        --output $output_dir/gof_${idx}.hdf5 \
-        > $output_dir/gof_${idx}.log 2>&1
+        --output $output_dir/gof_${gof_index}.hdf5 \
+        > $output_dir/gof_${gof_index}.log 2>&1
 }
 
 is() {
@@ -111,7 +111,7 @@ opt() {
     ../py-eos/optimize.py --algorithm $nlopt_algorithm --local-algorithm $local_alg \
         --initial-guess ${!EOS_MODE} \
         --max-evaluations "${EOS_OPT_MAXEVAL}" --tolerance "${EOS_OPT_TOL}" \
-        --max-evaluations-local "${EOS_OPT_MAXEVAL_LOCAL}" --tolerance-local "${EOS_OPT_TOL_LOCAL}"
+        --max-evaluations-local "${EOS_OPT_MAXEVAL_LOCAL}" --tolerance-local "${EOS_OPT_TOL_LOCAL}" \
         > $output_dir/opt_${nlopt_algorithm}_${local_alg}_${gof_index}.log 2>&1
 }
 
