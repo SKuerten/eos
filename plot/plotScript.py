@@ -1182,6 +1182,7 @@ class MarginalDistributions:
         x_min = 0
         x_max = self.out.select[1] - self.out.select[0]
         assert x_max > 0
+        x_range = np.arange(x_min, x_max)
 
         n_chains = len(self.out.samples) / x_max
         assert len(self.out.samples) % n_chains == 0
@@ -1194,13 +1195,15 @@ class MarginalDistributions:
         cmap = P.get_cmap('spectral')
         color_cycle = [cmap(i) for i in np.linspace(0, 1, n_chains)]
 
-        def save():
+        def decorate():
             ax.set_xscale(scale)
             ax.set_xlim(x_min, x_max)
             ax.set_xlabel("iteration")
+
+        def save():
             P.legend(bbox_to_anchor=(1.05, 1), loc=2, borderaxespad=0.1, fontsize='small')
             P.tight_layout()
-            fig.subplots_adjust(right=0.8)
+            fig.subplots_adjust(right=0.86)
             self.pdf_file.savefig()
 
         #print out mode info
@@ -1216,7 +1219,7 @@ class MarginalDistributions:
                 y_label = "par" + str(par)
 
             for c in range(n_chains):
-                ax.plot(np.arange(x_min, x_max), self.out.samples[c * x_max: (c+1) * x_max, par], label='chain %d' % c)
+                ax.plot(x_range, self.out.samples[c * x_max: (c+1) * x_max, par], label='chain %d' % c)
 
             ax.set_ylabel(y_label)
 
@@ -1242,7 +1245,7 @@ class MarginalDistributions:
                     pass
                 else:
                     P.axhline(value, linestyle='--', color='black', label='gof')
-
+            decorate()
             save()
         # posterior
         ax.clear()
@@ -1250,9 +1253,22 @@ class MarginalDistributions:
         ax.set_ylabel('log posterior')
 
         for c in range(n_chains):
-            ax.plot(np.arange(x_min, x_max), self.out.log_posterior[c * x_max: (c+1) * x_max], label='chain %d' % c)
-
+            ax.plot(x_range, self.out.log_posterior[c * x_max: (c+1) * x_max], label='chain %d' % c)
+        decorate()
         save()
+
+        # autocorrelation times
+        ax.clear()
+        ax.set_color_cycle(color_cycle)
+        # ax.set_xlabel('parameter index')
+        xticklabels = [self.tr.to_tex(d.name) for d in self.out.par_defs]
+        x_range = np.arange(0, len(xticklabels))
+        P.xticks(x_range, xticklabels, rotation='vertical')
+        ax.set_ylabel('autocorrelation time')
+        for c in range(n_chains):
+            ax.plot(x_range, self.out.autocorrelation_times[c], label='chain %d' % c, marker='o')
+        save()
+
         self.pdf_file.close()
 
     def convergence(self):

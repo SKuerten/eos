@@ -357,19 +357,17 @@ def autocorrelation(samples):
     except ImportError:
         print("Install `acor` to compute autocorrelation")
     else:
-        print("computing integrated autocorrelation time, mean, standard deviation:")
         try:
             npar = samples.shape[1]
             tau = np.zeros(npar)
             for i in xrange(npar):
                 results = acor.acor(samples[:, i])
                 tau[i] = results[0]
-                print("par %d: %g, %g, %g" %
-                      (i, tau[i], results[1], np.sqrt(np.var(samples.T[i], ddof=1))))
-            print('min max autocorrelation time: %g, %g' % (np.min(tau), np.max(tau)))
+            return tau
         except RuntimeError:
             print("Skipping, probably because acor reports that " +
-                  "The autocorrelation time is too long relative to the variance in dimension 1.")
+                  "The autocorrelation time is too long relative to the variance.")
+
 
 def crop(weights, n):
     '''Set the `n` highest elements in `weights` to zero. Modify in place.'''
@@ -1178,7 +1176,6 @@ class EOS_PYPMC_MCMC(SamplingOutput):
             self.chain_length = len(samples)
             assert self.chain_length > 0, "No samples found in " + ds
 
-            print(self.select, samples.shape)
             #adjust which range is drawn, default: full range
             if self.select[0] is None:
                 if self.skip_initial > 0:
@@ -1197,10 +1194,8 @@ class EOS_PYPMC_MCMC(SamplingOutput):
 
             merged_chains = np.empty((self.n_chains * self.reduced_length, samples.shape[1]), dtype='float64')
             group['samples'].read_direct(merged_chains, source_slice, destination_slice)
-            print()
-            print("Analyze first chain")
-            autocorrelation(merged_chains[:self.reduced_length])
-            print()
+            tau = np.empty((len(chains), samples.shape[1]))
+            tau[0,:] = autocorrelation(merged_chains[:self.reduced_length])
 
             merged_posteriors = np.empty((self.n_chains * self.reduced_length), dtype='float64')
             group['log_posterior'].read_direct(merged_posteriors, source_slice, destination_slice)
@@ -1217,6 +1212,7 @@ class EOS_PYPMC_MCMC(SamplingOutput):
                 assert len(c) == self.chain_length, 'Length of chain %d (%d) differs from length of chain %s (%d)' % (chain, len(c), first_chain, self.chain_length)
                 destination_slice = np.s_[destination_slice.start + self.reduced_length:destination_slice.stop + self.reduced_length]
                 c.read_direct(merged_chains, source_slice, destination_slice)
+                tau[chain, :] = autocorrelation(merged_chains[destination_slice])
                 hdf5_file['/chain #%d' % chain + "/log_posterior"].read_direct(merged_posteriors, source_slice, destination_slice)
                 n_chains_parsed += 1
 
@@ -1226,6 +1222,7 @@ class EOS_PYPMC_MCMC(SamplingOutput):
         self.weights = np.ones(len(merged_chains))
         self.samples = merged_chains
         self.log_posterior = merged_posteriors
+        self.autocorrelation_times = tau
         self.par_defs = par_defs
         self.priors = priors
 
