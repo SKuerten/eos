@@ -1522,8 +1522,6 @@ def factory(cmd_line=None):
                         action='store')
     parser.add_argument('--2D-bins', help="Use fixed number of bins for 2D marginal distributions (default: 100)",
                         action='store')
-    parser.add_argument('--2D-with-others', action='store_true',
-                        help="Plot 2D marginals for parameters given through `--par-indices` with all other parameters")
     parser.add_argument('--1D-only', help="Plot only 1D marginal distributions", action='store_true')
     parser.add_argument('--bandwidth',
                         help="Number in [0,1] used as bandwidth for KDE interpolation after rescaling to unit coordinate cube",
@@ -1761,7 +1759,7 @@ def factory(cmd_line=None):
         marg.convergence()
         done = True
     if not done:
-        marg.plot(index_list, args.__dict__['2D_with_others'])
+        marg.plot(index_list, not args.__dict__['1D_only'])
 
 def main():
     # do all the plotting
