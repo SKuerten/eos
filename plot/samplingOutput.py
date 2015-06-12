@@ -351,7 +351,7 @@ def extract_chain_modes(output):
         if output.single_chain is None:
             print("Global mode found in chain %d" % output.global_mode_index)
 
-def autocorrelation(samples):
+def autocorrelation(samples, par_defs=None):
     try:
         import acor
     except ImportError:
@@ -363,6 +363,10 @@ def autocorrelation(samples):
             for i in xrange(npar):
                 results = acor.acor(samples[:, i])
                 tau[i] = results[0]
+                if par_defs:
+                    print("%s: %g, %g, %g" % (par_defs[i].name, tau[i], results[1], np.sqrt(np.var(samples.T[i], ddof=1))))
+            if par_defs:
+                print('min max autocorrelation time: %g, %g' % (np.min(tau), np.max(tau)))
             return tau
         except RuntimeError:
             print("Skipping, probably because acor reports that " +
@@ -1194,17 +1198,22 @@ class EOS_PYPMC_MCMC(SamplingOutput):
 
             merged_chains = np.empty((self.n_chains * self.reduced_length, samples.shape[1]), dtype='float64')
             group['samples'].read_direct(merged_chains, source_slice, destination_slice)
-            tau = np.empty((len(chains), samples.shape[1]))
-            tau[0,:] = autocorrelation(merged_chains[:self.reduced_length])
-
-            merged_posteriors = np.empty((self.n_chains * self.reduced_length), dtype='float64')
-            group['log_posterior'].read_direct(merged_posteriors, source_slice, destination_slice)
-            n_chains_parsed = 1
 
             par_defs, priors = read_descriptions(hdf5_file,
                                                  data_set='/chain #' + first_chain + "/descriptions/parameters",
                                                  npar=merged_chains.shape[1],
                                                  samples=merged_chains)
+
+            tau = np.empty((len(chains), samples.shape[1]))
+            print()
+            print("Analyze first chain")
+            tau[0,:] = autocorrelation(merged_chains[:self.reduced_length], par_defs)
+            print()
+
+            merged_posteriors = np.empty((self.n_chains * self.reduced_length), dtype='float64')
+            group['log_posterior'].read_direct(merged_posteriors, source_slice, destination_slice)
+            n_chains_parsed = 1
+
 
             # read all remaining chains
             for chain in chains[1:]:
@@ -1227,6 +1236,10 @@ class EOS_PYPMC_MCMC(SamplingOutput):
         self.priors = priors
 
         extract_chain_modes(self)
+
+        # compute covariance matrix
+        # S = np.cov(self.samples, rowvar=0)
+        # np.savetxt('Kstar-FF-cov.txt', S, header=par_defs[0].name + ' ' + par_defs[-1].name)
 
     def individual_chains(self):
         '''Return list of individual chains.'''

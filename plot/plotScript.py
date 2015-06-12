@@ -1267,6 +1267,7 @@ class MarginalDistributions:
         ax.set_ylabel('autocorrelation time')
         for c in range(n_chains):
             ax.plot(x_range, self.out.autocorrelation_times[c], label='chain %d' % c, marker='o')
+        ax.set_ylim(0)
         save()
 
         self.pdf_file.close()
