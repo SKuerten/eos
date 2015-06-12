@@ -14,9 +14,6 @@ non_empty() {
     fi
 }
 
-export EOS_IS_INPUT=  # default: $output_dir/vb.hdf5
-export EOS_IS_INTEGRATION_POINTS=32
-
 gof() {
     scenario=$1; shift
     data=$1;shift
@@ -39,6 +36,8 @@ gof() {
         > $output_dir/gof_${gof_index}.log 2>&1
 }
 
+export EOS_IS_INPUT=  # default: $output_dir/vb.hdf5
+export EOS_IS_INTEGRATION_POINTS=32
 is() {
     step=${1}
     shift
@@ -66,11 +65,15 @@ is() {
         > $output_dir/is_$step.log 2>&1
 }
 
+export EOS_MCMC_ACCEPTANCE_MIN=
+export EOS_MCMC_ACCEPTANCE_MAX=
 export EOS_MCMC_BURN_IN=
+export EOS_MCMC_COVARIANCE=
+export EOS_MCMC_INITIAL_VALUES="uniform"
 export EOS_MCMC_INTEGRATION_POINTS=16
 export EOS_MCMC_SAMPLES=40000
 export EOS_MCMC_UPDATE_SIZE=1000
-export EOS_MCMC_SCALE_NUISANCE=1
+export EOS_MCMC_SCALE_NUISANCE=0
 export EOS_MCMC_SCALE_REDUCTION=1
 export EOS_MCMC_PROPOSAL='gauss'
 mcmc() {
@@ -79,9 +82,13 @@ mcmc() {
     seed=$(expr $EOS_SEED "+" ${prerun_index} "*" 1000)
 
     ../py-eos/mcmc.py \
+        --acceptance-min $EOS_MCMC_ACCEPTANCE_MIN \
+        --acceptance-max $EOS_MCMC_ACCEPTANCE_MAX \
         --analysis-info $EOS_ANALYSIS_INFO \
         --burn-in $EOS_MCMC_BURN_IN \
+        --covariance $EOS_MCMC_COVARIANCE \
         --eos-integration-points $EOS_MCMC_INTEGRATION_POINTS \
+        --initial-values $EOS_MCMC_INITIAL_VALUES \
         --output $output_dir/mcmc_${prerun_index}.hdf5 \
         --proposal $EOS_MCMC_PROPOSAL \
         --samples $EOS_MCMC_SAMPLES \
