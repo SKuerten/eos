@@ -110,15 +110,14 @@ class MCMC_Sampler(object):
         # initial values of chain
         valid_args = ['uniform', 'fixed']
         msg = '--initial-values must begin with one of ' + str(valid_args) + ': ' + str(args.initial_values)
-        if isinstance(args.initial_values, basestring):
-            assert args.initial_values in valid_args, msg
-
-            if args.initial_values == 'uniform':
+        if  len(args.initial_values) == 1: #isinstance(args.initial_values, basestring):
+            assert args.initial_values[0] in valid_args, msg
+            if args.initial_values[0] == 'uniform':
                 start = self.draw_uniform_in_support()
                 # log_target(start) must not be -inf!
                 while self.analysis(start) == -np.inf:
                     start[:] = self.draw_uniform_in_support()
-            elif args.initial_values == 'fixed':
+            elif args.initial_values[0] == 'fixed':
                 start = self.fixed_initial_values(args)
         else:
             # expect list
