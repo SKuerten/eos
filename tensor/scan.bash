@@ -57,3 +57,8 @@ $SCAN_sm
 --scan      Re{cP'}     $non_sm_min     $non_sm_max      --prior flat
 --scan      Im{cP'}     $non_sm_min     $non_sm_max      --prior flat
 "
+
+export SCAN_sc910SPTT5="
+$SCAN_sc910SP
+$SCAN_scTT5
+"

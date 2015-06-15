@@ -1,0 +1,25 @@
+#!/bin/bash
+
+source ${EOS_SCRIPT_PATH}/job.bash
+
+export EOS_SEED=88793216
+export EOS_ANALYSIS_INFO=0
+
+export EOS_IS_SEED=13466416
+export EOS_IS_SAMPLES=100000
+
+export EOS_MCMC_BURN_IN=
+export EOS_MCMC_COVARIANCE="Kstar-FF-cov.txt"
+export EOS_MCMC_INITIAL_VALUES="fixed"
+export EOS_MCMC_PROPOSAL='gauss'
+export EOS_MCMC_SAMPLES=500000
+export EOS_MCMC_SCALE_REDUCTION=1
+export EOS_MCMC_UPDATE_SIZE=500
+
+export EOS_VB_COMPONENTS_PER_GROUP=12
+export EOS_VB_PRUNE=100
+export EOS_VB_REL_TOL=0.0001
+export EOS_VB_SKIP_INITIAL=0
+export EOS_VB_THIN=1
+
+main $@
