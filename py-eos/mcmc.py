@@ -56,7 +56,9 @@ class Target(object):
             y = x.copy()
             y[self.slice] = self.chol.dot(y[self.slice])
             # check if transformed values are valid, others are checked inside of `analysis`
-            for yi, p in zip(y[self.slice], self.analysis.priors[self.slice]):
+            # for yi, p in zip(y[self.slice], self.analysis.priors[self.slice]):
+            # check all parameters to be safe
+            for yi, p in zip(y, self.analysis.priors):
                 if yi < p.range_min or yi > p.range_max:
                     return -np.inf
             return self.analysis(y)
@@ -109,9 +111,10 @@ class MCMC_Sampler(object):
 
         # initial values of chain
         valid_args = ['uniform', 'fixed']
-        msg = '--initial-values must begin with one of ' + str(valid_args) + ': ' + str(args.initial_values)
-        if  len(args.initial_values) == 1: #isinstance(args.initial_values, basestring):
-            assert args.initial_values[0] in valid_args, msg
+        assert args.initial_values[0] in valid_args, \
+        '--initial-values must begin with one of ' + str(valid_args) + ': ' + str(args.initial_values)
+        err = ValueError('Invalid argument for choosing initial values: ' + str(args.initial_values))
+        if len(args.initial_values) == 1:
             if args.initial_values[0] == 'uniform':
                 start = self.draw_uniform_in_support()
                 # log_target(start) must not be -inf!
@@ -119,17 +122,22 @@ class MCMC_Sampler(object):
                     start[:] = self.draw_uniform_in_support()
             elif args.initial_values[0] == 'fixed':
                 start = self.fixed_initial_values(args)
+            else:
+                raise err
         else:
             # expect list
             assert isinstance(args.initial_values, list)
-            assert args.initial_values[0] in valid_args, msg
 
             if args.initial_values[0] == 'fixed':
                 start = self.fixed_initial_values(args)
+            else:
+                raise err
 
-        print('initial values')
-        for d in range(self.dim):
-            print(d,":", self.analysis.priors[d].name, start[d])
+        print('initial values (' + args.initial_values[0] + '):')
+        for i, (prior, v) in enumerate(zip(self.analysis.priors, start)):
+            print(i,":", prior.name, v)
+            assert (v >= prior.range_min) and (v <= prior.range_max),\
+                '%s out of bounds [%g, %g]' % (prior.name, prior.range_min, prior.range_max)
 
         # uncorrelate initial values
         if hasattr(self.target, 'inv'):
@@ -253,8 +261,8 @@ if __name__ == '__main__':
                         "Either specify a python module (for example `module.analysis`) or `env` " \
                         "[default] for reading off the environement variables.",
                         type=str, default='env')
-    parser.add_argument("--analysis-info", type=bool, help='Print constraints, parameters, and observables',
-                        default=True)
+    parser.add_argument("--analysis-info", type=int, help='Print constraints, parameters, and observables',
+                        default=1, const=1, nargs='?')
     parser.add_argument("--burn-in", type=int, const=0, default=0, nargs='?')
     parser.add_argument("--covariance", nargs='?', const=None,
                         help='''File name of covariance matrix to uncorrelate parameters for easier sampling.
@@ -283,6 +291,7 @@ if __name__ == '__main__':
     ###
     # validate and use arguments
     ###
+    print(args)
     ana = make_analysis(args.analysis_from)
     if args.analysis_info:
         print(ana)
