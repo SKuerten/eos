@@ -32,7 +32,7 @@ echo "#! /bin/bash
 #@ resources = ConsumableCpus(1)
 #
 ###                    hh:mm:ss
-#@ wall_clock_limit = 48:00:00
+#@ wall_clock_limit = 47:59:55
 #@ initialdir = \$(home)/workspace/eos-scripts/tensor
 #@ output = /gpfs/work/pr85tu/ru72xaf2/log/\$(jobid).out
 #@ error  = /gpfs/work/pr85tu/ru72xaf2/log/\$(jobid).err
