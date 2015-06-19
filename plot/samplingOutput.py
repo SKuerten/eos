@@ -312,16 +312,16 @@ def extract_chain_modes(output):
         """
         Find the mode of each Markov chain and display it
 
-        Assume that each chain of same length. Designed for use with EOS_PYPMC_MCMC
+        Designed for use with EOS_PYPMC_MCMC
         """
         output._modes = []
 
         global_max = -np.inf
         global_max_index = None
 
-        for i in range(output.n_chains):
-            base_index = i * output.reduced_length
-            index = np.argmax(output.log_posterior[base_index:base_index + output.reduced_length])
+        base_index = 0
+        for i, c in enumerate(output.individual_chains()):
+            index = np.argmax(output.log_posterior[base_index:base_index + len(c)])
             mode = output.samples[base_index + index]
             max = output.log_posterior[base_index + index]
 
@@ -345,6 +345,9 @@ def extract_chain_modes(output):
             sys.stdout.flush()
 
             output._modes.append(mode)
+
+            # shift offset to next chain
+            base_index += len(c)
 
         # global mode
         output.global_mode_index = global_max_index
@@ -1157,13 +1160,11 @@ class EOS_PYPMC_MCMC(SamplingOutput):
         if hasattr(self.chains, '__len__') and len(self.chains) == 1:
             self.single_chain = str(self.chains[0])
 
-
         with open_hdf5(self.input_file_name) as hdf5_file:
-
-            # select all chains
+            # specific chain(s)
             if self.chains:
                 chains = self.chains
-            else:
+            else: # or all chains
                 n_chains = 0
                 for g in hdf5_file['/'].iterkeys():
                     if g.startswith('chain #'):
@@ -1171,33 +1172,29 @@ class EOS_PYPMC_MCMC(SamplingOutput):
                 # search for 'chain #%d'
                 chains = range(n_chains)
             self.n_chains = len(chains)
-
             first_chain = str(chains[0])
+
+            # determine lengths of chains
+            self.reduced_lengths = []
+            slices = []
+            for chain in chains:
+                try:
+                    c = hdf5_file['/chain #%d' % chain + '/samples']
+                except KeyError:
+                    raise KeyError('"chain #%d' % chain + '/samples" not found')
+                slices.append(self.source_slice(c))
+                self.reduced_lengths.append(slices[-1].stop - slices[-1].start)
+                assert self.reduced_lengths[-1] > 0, "Empty chain %d" % chain
 
             #read data
             ds = '/chain #' + first_chain + '/samples'
             samples = hdf5_file[ds]
-            self.chain_length = len(samples)
-            assert self.chain_length > 0, "No samples found in " + ds
 
-            #adjust which range is drawn, default: full range
-            if self.select[0] is None:
-                if self.skip_initial > 0:
-                    self.select[0] = int(self.skip_initial * self.chain_length)
-                else:
-                    self.select[0] = 0
-            if self.select[1] is None:
-                self.select[1] = self.chain_length
-
-            self.reduced_length = self.select[1] - self.select[0]
-            assert self.reduced_length > 0, "Invalid selection: " + str(self.select)
-
-            source_slice = np.s_[self.select[0]:self.select[1]]
-            destination_slice = np.s_[0:self.reduced_length]
             group = hdf5_file['/chain #' + first_chain]
 
-            merged_chains = np.empty((self.n_chains * self.reduced_length, samples.shape[1]), dtype='float64')
-            group['samples'].read_direct(merged_chains, source_slice, destination_slice)
+            merged_chains = np.empty((sum(self.reduced_lengths), samples.shape[1]), dtype='float64')
+            destination_slice = slice(0, self.reduced_lengths[0])
+            group['samples'].read_direct(merged_chains, slices[0], destination_slice)
 
             par_defs, priors = read_descriptions(hdf5_file,
                                                  data_set='/chain #' + first_chain + "/descriptions/parameters",
@@ -1207,22 +1204,20 @@ class EOS_PYPMC_MCMC(SamplingOutput):
             tau = np.empty((len(chains), samples.shape[1]))
             print()
             print("Analyze first chain")
-            tau[0,:] = autocorrelation(merged_chains[:self.reduced_length], par_defs)
+            tau[0,:] = autocorrelation(merged_chains[:self.reduced_lengths[0]], par_defs)
             print()
 
-            merged_posteriors = np.empty((self.n_chains * self.reduced_length), dtype='float64')
-            group['log_posterior'].read_direct(merged_posteriors, source_slice, destination_slice)
+            merged_posteriors = np.empty((len(merged_chains),), dtype='float64')
+            group['log_posterior'].read_direct(merged_posteriors, slices[0], destination_slice)
             n_chains_parsed = 1
-
 
             # read all remaining chains
             for chain in chains[1:]:
                 c = hdf5_file['/chain #%d' % chain + '/samples']
-                assert len(c) == self.chain_length, 'Length of chain %d (%d) differs from length of chain %s (%d)' % (chain, len(c), first_chain, self.chain_length)
-                destination_slice = np.s_[destination_slice.start + self.reduced_length:destination_slice.stop + self.reduced_length]
-                c.read_direct(merged_chains, source_slice, destination_slice)
+                destination_slice = np.s_[destination_slice.stop:destination_slice.stop + self.reduced_lengths[chain]]
+                c.read_direct(merged_chains, slices[chain], destination_slice)
                 tau[chain, :] = autocorrelation(merged_chains[destination_slice])
-                hdf5_file['/chain #%d' % chain + "/log_posterior"].read_direct(merged_posteriors, source_slice, destination_slice)
+                hdf5_file['/chain #%d' % chain + "/log_posterior"].read_direct(merged_posteriors, slices[chain], destination_slice)
                 n_chains_parsed += 1
 
         print('Merged %d chains, total number of samples: %d' % (n_chains_parsed, len(merged_chains)))
@@ -1241,9 +1236,31 @@ class EOS_PYPMC_MCMC(SamplingOutput):
         # S = np.cov(self.samples, rowvar=0)
         # np.savetxt('Kstar-FF-cov.txt', S, header=par_defs[0].name + ' ' + par_defs[-1].name)
 
+    def source_slice(self, chain):
+        #adjust which range is drawn, default: full range
+        first, last = None, None
+        if self.select[0] is None:
+            if self.skip_initial > 0:
+                first = int(self.skip_initial * len(chain))
+            else:
+                first = 0
+        else:
+            first = max(0, self.select[0])
+        if self.select[1] is None:
+            last = len(chain)
+        else:
+            last = min(self.select[1], len(chain))
+
+        return slice(first, last)
+
     def individual_chains(self):
         '''Return list of individual chains.'''
-        return [self.samples[i * self.reduced_length:(i+1) * self.reduced_length] for i in range(len(self.samples) // self.reduced_length)]
+        res = []
+        offset = 0
+        for rl in self.reduced_lengths:
+            res.append(self.samples[offset:offset + rl])
+            offset += rl
+        return res
 
 class EOS_PYPMC_UNC(SamplingOutput):
     '''Read samples of a single observable computed from parameter samples.'''

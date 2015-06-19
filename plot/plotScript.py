@@ -1180,20 +1180,19 @@ class MarginalDistributions:
             index_list = np.arange(self.out.npar)
 
         x_min = 0
-        x_max = self.out.select[1] - self.out.select[0]
+        x_max = max(self.out.reduced_lengths)
         assert x_max > 0
         x_range = np.arange(x_min, x_max)
-
-        n_chains = len(self.out.samples) / x_max
-        assert len(self.out.samples) % n_chains == 0
-        n_chains = int(n_chains)
 
         fig = P.figure(figsize=(12, 7))
         ax = fig.add_subplot(111)
 
+        # list of arrays
+        chains = self.out.individual_chains()
+
         # use a "qualitative colormap" from http://matplotlib.org/users/colormaps.html
         cmap = P.get_cmap('spectral')
-        color_cycle = [cmap(i) for i in np.linspace(0, 1, n_chains)]
+        color_cycle = [cmap(i) for i in np.linspace(0, 1, len(chains))]
 
         def decorate():
             ax.set_xscale(scale)
@@ -1203,7 +1202,7 @@ class MarginalDistributions:
         def save():
             P.legend(bbox_to_anchor=(1.05, 1), loc=2, borderaxespad=0.1, fontsize='small')
             P.tight_layout()
-            fig.subplots_adjust(right=0.86)
+            fig.subplots_adjust(right=0.82)
             self.pdf_file.savefig()
 
         #print out mode info
@@ -1218,8 +1217,8 @@ class MarginalDistributions:
             if y_label == "":
                 y_label = "par" + str(par)
 
-            for c in range(n_chains):
-                ax.plot(x_range, self.out.samples[c * x_max: (c+1) * x_max, par], label='chain %d' % c)
+            for i, c in enumerate(chains):
+                ax.plot(x_range[0:len(c)], c[:, par], label='chain %d' % i)
 
             ax.set_ylabel(y_label)
 
@@ -1252,8 +1251,10 @@ class MarginalDistributions:
         ax.set_color_cycle(color_cycle)
         ax.set_ylabel('log posterior')
 
-        for c in range(n_chains):
-            ax.plot(x_range, self.out.log_posterior[c * x_max: (c+1) * x_max], label='chain %d' % c)
+        offset = 0
+        for i, c in enumerate(chains):
+            ax.plot(x_range[0:len(c)], self.out.log_posterior[offset:offset + len(c)], label='chain %d' % i)
+            offset += len(c)
         decorate()
         save()
 
@@ -1265,8 +1266,8 @@ class MarginalDistributions:
         x_range = np.arange(0, len(xticklabels))
         P.xticks(x_range, xticklabels, rotation='vertical')
         ax.set_ylabel('autocorrelation time')
-        for c in range(n_chains):
-            ax.plot(x_range, self.out.autocorrelation_times[c], label='chain %d' % c, marker='o')
+        for i, _ in enumerate(chains):
+            ax.plot(x_range, self.out.autocorrelation_times[i], label='chain %d' % i, marker='o')
         ax.set_ylim(0)
         save()
 
