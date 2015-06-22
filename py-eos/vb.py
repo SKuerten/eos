@@ -86,7 +86,8 @@ class VB(object):
     def _init_mcmc(self):
         output = samplingOutput.EOS_PYPMC_MCMC(self.args.mcmc_input,
                                                chains=self.args.chains,
-                                               skip_initial=self.args.skip_initial)
+                                               skip_initial=self.args.skip_initial,
+                                               thin=int(self.args.thin) if self.args.thin else 1)
         K_g = self.args.components_per_group
         print("K_g:", K_g)
 
@@ -102,12 +103,7 @@ class VB(object):
         else:
             raise ArgumentError('Invalid initialization method: "%s"' % self.args.init_method)
 
-        if self.args.thin:
-            samples = output.samples[::self.args.thin]
-        else:
-            samples = output.samples
-
-        self.vb = GaussianInference(samples, initial_guess=initial_guess, components=K_g,
+        self.vb = GaussianInference(output.samples, initial_guess=initial_guess, components=K_g,
                                     W0=np.diag([1e20] * len(self.analysis.priors)))
 
     def _indices(self):
