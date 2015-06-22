@@ -1155,6 +1155,7 @@ class EOS_PYPMC_MCMC(SamplingOutput):
         self.chains = kwargs.get('chains', None)
         self.prerun = kwargs.get('prerun', True)
         self.skip_initial = kwargs.get('skip_initial', 0.2)
+        self.thin = kwargs.get('thin', 1)
 
         self.single_chain = None
         if hasattr(self.chains, '__len__') and len(self.chains) == 1:
@@ -1182,8 +1183,8 @@ class EOS_PYPMC_MCMC(SamplingOutput):
                     c = hdf5_file['/chain #%d' % chain + '/samples']
                 except KeyError:
                     raise KeyError('"chain #%d' % chain + '/samples" not found')
-                slices.append(self.source_slice(c))
-                self.reduced_lengths.append(slices[-1].stop - slices[-1].start)
+                slices.append(self.source_slice(c, self.thin))
+                self.reduced_lengths.append((slices[-1].stop - slices[-1].start) // slices[-1].step)
                 assert self.reduced_lengths[-1] > 0, "Empty chain %d" % chain
 
             #read data
@@ -1236,7 +1237,7 @@ class EOS_PYPMC_MCMC(SamplingOutput):
         # S = np.cov(self.samples, rowvar=0)
         # np.savetxt('Kstar-FF-cov.txt', S, header=par_defs[0].name + ' ' + par_defs[-1].name)
 
-    def source_slice(self, chain):
+    def source_slice(self, chain, thin):
         #adjust which range is drawn, default: full range
         first, last = None, None
         if self.select[0] is None:
@@ -1251,7 +1252,7 @@ class EOS_PYPMC_MCMC(SamplingOutput):
         else:
             last = min(self.select[1], len(chain))
 
-        return slice(first, last)
+        return np.s_[first:last:thin]
 
     def individual_chains(self):
         '''Return list of individual chains.'''

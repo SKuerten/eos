@@ -1608,6 +1608,8 @@ def factory(cmd_line=None):
     parser.add_argument('--skip-initial',
                         help="Allows to skip the first fraction of iterations. Ignored if --seelect MIN MAX given.",
                         action='store', default=0)
+    parser.add_argument('--thin',
+                        help="Thin every chain by selecting only every Nth sample", default=1)
     parser.add_argument('--trace', help="Trace plot of individual chains, either on the 'log' or 'linear' scale",
                         action='store_true')
     parser.add_argument('--uncertainty-propagation', help="Parse uncertainty-propagation data", action='store_true')
@@ -1636,6 +1638,7 @@ def factory(cmd_line=None):
         select=[int(x) if x is not None else x for x in args.select],
         # mcmc
         chains=args.chains, prerun=args.prerun, skip_initial=float(args.skip_initial),
+        thin=int(args.thin),
         # pmc
         queue_output=args.pmc_queue_output, crop_outliers=int(args.pmc_crop_outliers),
         equal_weights=args.pmc_equal_weights or args.pmc_proposal,
