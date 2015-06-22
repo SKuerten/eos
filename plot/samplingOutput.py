@@ -1212,12 +1212,12 @@ class EOS_PYPMC_MCMC(SamplingOutput):
             n_chains_parsed = 1
 
             # read all remaining chains
-            for chain in chains[1:]:
+            for i, chain in enumerate(chains[1:]):
                 c = hdf5_file['/chain #%d' % chain + '/samples']
-                destination_slice = np.s_[destination_slice.stop:destination_slice.stop + self.reduced_lengths[chain]]
-                c.read_direct(merged_chains, slices[chain], destination_slice)
-                tau[chain, :] = autocorrelation(merged_chains[destination_slice])
-                hdf5_file['/chain #%d' % chain + "/log_posterior"].read_direct(merged_posteriors, slices[chain], destination_slice)
+                destination_slice = np.s_[destination_slice.stop:destination_slice.stop + self.reduced_lengths[i + 1]]
+                c.read_direct(merged_chains, slices[i + 1], destination_slice)
+                tau[i + 1, :] = autocorrelation(merged_chains[destination_slice])
+                hdf5_file['/chain #%d' % chain + "/log_posterior"].read_direct(merged_posteriors, slices[i + 1], destination_slice)
                 n_chains_parsed += 1
 
         print('Merged %d chains, total number of samples: %d' % (n_chains_parsed, len(merged_chains)))
