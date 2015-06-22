@@ -2,7 +2,7 @@
 Provide consistent interface to parsing sampling output from various algorithms, and in various formats.
 
 """
-from __future__ import print_function
+from __future__ import division, print_function
 
 import priors as priorDistributions
 
@@ -1184,7 +1184,8 @@ class EOS_PYPMC_MCMC(SamplingOutput):
                 except KeyError:
                     raise KeyError('"chain #%d' % chain + '/samples" not found')
                 slices.append(self.source_slice(c, self.thin))
-                self.reduced_lengths.append((slices[-1].stop - slices[-1].start) // slices[-1].step)
+                # for 250 samples and thin = 100, take 3 samples at indices 0, 100, 200 => ceil(2.5) = 3
+                self.reduced_lengths.append(int(np.ceil((slices[-1].stop - slices[-1].start) / (slices[-1].step))))
                 assert self.reduced_lengths[-1] > 0, "Empty chain %d" % chain
 
             #read data
