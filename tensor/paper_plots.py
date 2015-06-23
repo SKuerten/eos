@@ -19,6 +19,7 @@ sys.path.append(os.path.realpath('../plot'))
 import plotScript
 from plotScript import ParameterDefinition
 
+
 def run_command(com):
     import commands
 
@@ -28,10 +29,12 @@ def run_command(com):
 
     return output
 
+
 def square_figure(size=6):
     return P.figure(figsize=(size, size))
 
-def wide_figure(x_size=8, ratio=4/3.0, left=0.165, right=0.95, top=0.95, bottom=0.145):
+
+def wide_figure(x_size=8, ratio=4 / 3.0, left=0.165, right=0.95, top=0.95, bottom=0.145):
     """
     Create a figure with aspect ratio 4:3 and sufficient room for margins
     """
@@ -45,6 +48,7 @@ def wide_figure(x_size=8, ratio=4/3.0, left=0.165, right=0.95, top=0.95, bottom=
 
     return ax
 
+
 def adjust_subplot(fig=None, equal=True):
     # 1:1 aspect ratio, but only if called before adjusting edges
     if equal:
@@ -53,6 +57,7 @@ def adjust_subplot(fig=None, equal=True):
     if fig is None:
         fig = P.gcf()
     fig.subplots_adjust(left=0.2, right=0.95, bottom=0.15)
+
 
 class Scenario(object):
     def __init__(self, file, color, nbins=200, alpha=0.4, sigma='2 sigma',
@@ -79,7 +84,7 @@ class Scenario(object):
 
     def get_bandwidth(self, par1, par2):
         try:
-            return self.__bandwidth[(par1,par2)]
+            return self.__bandwidth[(par1, par2)]
         except KeyError:
             return self.__bandwidth_default
 
@@ -95,8 +100,10 @@ class Scenario(object):
     def set_bandwidth1D(self, par1, value):
         self.__bandwidth[par1] = value
 
+
 class Measurement(object):
     '''Store info to plot x +a -b for a measurement.'''
+
     def __init__(self, lower, central, upper, central_style=dict(), one_sigma_style=None, label=''):
         self.central = central
         self.lower = lower
@@ -106,6 +113,7 @@ class Measurement(object):
         if one_sigma_style is None:
             self.one_sigma_style = self.central_style
         self.label = label
+
 
 class ScenarioComparison(object):
     """Store parameter definitions and bandwidths to compare
@@ -118,6 +126,7 @@ class ScenarioComparison(object):
     Could be a sequence of (pairs of) ParameterDefinition. Pairs would be
     used for a comparison of individual modes
     """
+
     def __init__(self, defs, bandwidths):
         self.defs = defs
         self.bandwidths = bandwidths
@@ -143,8 +152,8 @@ class ScenarioComparison(object):
                                  ParameterDefinition(name='Re{c10}', min=-6.5, max=-1.5, index=self.pars.index('Re{c10}')))
         """
 
-class MarginalContours(object):
 
+class MarginalContours(object):
     def __init__(self, input_base, output_base, ext='.pdf', max_samples=None, ignore_scenarios=None):
 
         self.output_base = os.path.join(output_base, 'paper_plots')
@@ -156,8 +165,8 @@ class MarginalContours(object):
 
         self.scen = OrderedDict()
         # SM prediction for C7, C9, C10
-        self.sm_point = {'Re{c7}':-0.33726473, 'Re{c9}':+4.27342842, 'Re{c10}':-4.16611761}
-        self.sm_point_style = dict(marker = 'D', markersize = 8, color = 'black')
+        self.sm_point = {'Re{c7}': -0.33726473, 'Re{c9}': +4.27342842, 'Re{c10}': -4.16611761}
+        self.sm_point_style = dict(marker='D', markersize=8, color='black')
 
         best_fit_point_style = dict(self.sm_point_style)
         best_fit_point_style['marker'] = 'x'
@@ -167,7 +176,7 @@ class MarginalContours(object):
         next_best_fit_point_style['marker'] = '+'
         next_best_fit_point_style['color'] = 'Blue'
 
-        self.best_fit_points_style = [[best_fit_point_style]*4, [next_best_fit_point_style]*4]
+        self.best_fit_points_style = [[best_fit_point_style] * 4, [next_best_fit_point_style] * 4]
 
         # highest to lowest contour
         self.contour_styles = [dict(linestyle='solid'),
@@ -197,7 +206,7 @@ class MarginalContours(object):
         cmd_template = ''
         # input file
         cmd_template += ' %s' % scenario.f
-#         cmd_template += ' --pmc-crop-outliers %d' % scenario.crop_outliers
+        #         cmd_template += ' --pmc-crop-outliers %d' % scenario.crop_outliers
         if self.max_samples is not None:
             cmd_template += ' --select 0 %d' % self.max_samples
         cmd_template += ' --contours  --pypmc'
@@ -233,7 +242,7 @@ class MarginalContours(object):
 
         bandwidth = self.scen[scenario].get_bandwidth1D(i)
         if m.use_histogram and bandwidth is None:
-                pass
+            pass
         else:
             m.use_histogram = False
             if bandwidth:
@@ -295,7 +304,7 @@ class MarginalContours(object):
             Index to identify a region of zoom (a *solution*) into the 2D marginal.
         """
 
-        assert(len(scenarios) in (1, 2))
+        assert (len(scenarios) in (1, 2))
 
         # parameter indices in EOS output file
         i = def1.i
@@ -356,7 +365,7 @@ class MarginalContours(object):
         fig = P.figure(figsize=(x_size, 1.8 * x_size))
 
         for i, s in enumerate(solution):
-            P.subplot(2,1,i)
+            P.subplot(2, 1, i)
             def1 = self.comparison_defs[(par1, s)]
             def2 = self.comparison_defs[(par2, s)]
             self.single_panel(def1, def2, solution=s, scenarios=scenarios, label=False, **kwargs)
@@ -387,7 +396,7 @@ class MarginalContours(object):
         ###
         # create overlays
         ###
-        P.figure(figsize=(8,8))
+        P.figure(figsize=(8, 8))
 
         for i, p1 in enumerate(self.pars):
             for j, p2 in enumerate(self.pars[self.pars.index(p1) + 1:]):
@@ -399,15 +408,16 @@ class MarginalContours(object):
                     P.xlabel(self.margs[k].tr.to_tex(p1))
                     P.ylabel(self.margs[k].tr.to_tex(p2))
                     # draw contours
-                    CS = self.margs[k].contours_two(self.defs[p1].range, self.defs[p2].range, self.scen[k].prob[(p1,p2)],
-                                   desired_levels=self.scen[k].sigma, color=self.scen[k].c, grid=False)
+                    CS = self.margs[k].contours_two(self.defs[p1].range, self.defs[p2].range,
+                                                    self.scen[k].prob[(p1, p2)],
+                                                    desired_levels=self.scen[k].sigma, color=self.scen[k].c, grid=False)
                     P.setp(CS.collections[1], alpha=self.scen[k].alpha)
                     c = self.scen[k].two_sigma_color
                     if c is not None:
                         P.setp(CS.collections[1], color=c)
 
                     # don't whiten beyond 2 sigma, so ignore lowest contour fill
-                    #P.setp(CS.collections[0], alpha=0.0)
+                    # P.setp(CS.collections[0], alpha=0.0)
                     CS.collections[0].remove()
 
                     P.savefig(self.out('overlay_%d_%d_%s' % (i, self.pars.index(p1) + j + 1, k)))
@@ -424,10 +434,10 @@ class MarginalContours(object):
         mode = np.empty_like(lower_one_sigma)
 
         for def1 in m.out.par_defs:
-            lower_one_sigma[def1.i] = m.credibilities[def1.i][0][0,0]
-            upper_one_sigma[def1.i] = m.credibilities[def1.i][0][0,1]
-            lower_two_sigma[def1.i] = m.credibilities[def1.i][1][0,0]
-            upper_two_sigma[def1.i] = m.credibilities[def1.i][1][0,1]
+            lower_one_sigma[def1.i] = m.credibilities[def1.i][0][0, 0]
+            upper_one_sigma[def1.i] = m.credibilities[def1.i][0][0, 1]
+            lower_two_sigma[def1.i] = m.credibilities[def1.i][1][0, 0]
+            upper_two_sigma[def1.i] = m.credibilities[def1.i][1][0, 1]
 
         # plot every one
         if two_sigma_style is not None:
@@ -462,6 +472,7 @@ class MarginalContours(object):
 
         P.xlim(x_range)
 
+
 def input_output():
     try:
         input_base = os.environ['EOS_RESULTS']
@@ -487,11 +498,12 @@ def transform(data, i, j):
     '''Assume `data` is a matrix. Modify `data` in-place to contain the sum and difference of the two columns `i, j` in `data.'''
 
     # pick out two nonadjacent columns with a slice object to return a view(!)
-    data = data[:, i:j+1:j-i]
+    data = data[:, i:j + 1:j - i]
     buffer = np.array(data.T[1])
     data.T[1][:] = data.T[0]
     data.T[0] += buffer
     data.T[1] -= buffer
+
 
 def betrag(data, i, j):
     '''Compute the Betrag of complex number, real part in column `i`, imaginary part in column `j` into column `k`.'''
@@ -499,12 +511,12 @@ def betrag(data, i, j):
     buffer += data.T[j] * data.T[j]
     return np.sqrt(buffer)
 
-class Spring2015(object):
 
+class Spring2015(object):
     # set up object
     input_base, output_base = input_output()
     max_samples = None
-    fig_size = 6 # inches, same for x and y
+    fig_size = 6  # inches, same for x and y
 
     def input(self, file):
         return os.path.join(self.input_base, file)
@@ -512,9 +524,9 @@ class Spring2015(object):
     def overlay(self, marg, def1, def2, scenarios, desired_levels=(0.683, 0.954)):
         marg.single_panel(def1, def2, scenarios=scenarios,
                           desired_levels=desired_levels,
-                          local_mode=[False] * len(scenarios)) # no local mode
+                          local_mode=[False] * len(scenarios))  # no local mode
         adjust_subplot()
-        P.savefig(marg.out(','.join(scenarios) + '_%d,%d' % (def1.i,def2.i)))
+        P.savefig(marg.out(','.join(scenarios) + '_%d,%d' % (def1.i, def2.i)))
 
     def figSP(self):
 
@@ -526,16 +538,16 @@ class Spring2015(object):
         s = 'scSP_Bsmumu'
         marg.scen[s] = Scenario(os.path.join(marg.input_base, 'mcmc_' + s + '.hdf5'), '#59955C',
                                 nbins=300)
-#                                         local_mode=[[-0.348441713,   3.787226592, -4.420530192],
-#                                                     [ 0.5021320352, -4.568457245,  4.25129282]])
+        #                                         local_mode=[[-0.348441713,   3.787226592, -4.420530192],
+        #                                                     [ 0.5021320352, -4.568457245,  4.25129282]])
         marg.scen[s].set_bandwidth(0, 2, 0.015)
         marg.scen[s].set_bandwidth(2, 6, 0.008)
 
         s = 'scSP_FH'
         marg.scen[s] = Scenario(os.path.join(marg.input_base, 'mcmc_' + s + '.hdf5'), '#2966B8',
                                 nbins=300)
-#                                         local_mode=[[-0.348441713,   3.787226592, -4.420530192],
-#                                                     [ 0.5021320352, -4.568457245,  4.25129282]])
+        #                                         local_mode=[[-0.348441713,   3.787226592, -4.420530192],
+        #                                                     [ 0.5021320352, -4.568457245,  4.25129282]])
         marg.scen[s].set_bandwidth(0, 2, 0.025)
         marg.scen[s].set_bandwidth(0, 4, 0.04)
         marg.scen[s].set_bandwidth(2, 6, 0.015)
@@ -578,8 +590,8 @@ class Spring2015(object):
 
         marg.scen[s] = Scenario(os.path.join(marg.input_base, 'mcmc_scTT5_FH.hdf5'), 'OrangeRed',
                                 nbins=300)
-#                                         local_mode=[[-0.348441713,   3.787226592, -4.420530192],
-#                                                     [ 0.5021320352, -4.568457245,  4.25129282]])
+        #                                         local_mode=[[-0.348441713,   3.787226592, -4.420530192],
+        #                                                     [ 0.5021320352, -4.568457245,  4.25129282]])
 
         marg.read_data()
         m = marg.margs[s]
@@ -588,7 +600,7 @@ class Spring2015(object):
         ###
         # transformations
         ###
-        for ii, name in [((0,1), 'CT'), ((2,3), 'CT5')]:
+        for ii, name in [((0, 1), 'CT'), ((2, 3), 'CT5')]:
             data[:, -1] = betrag(data, ii[0], ii[1])
             m.out.par_defs[-1].nuisance = False
             m.out.par_defs[-1].min = 0.0
@@ -598,8 +610,8 @@ class Spring2015(object):
             m.nBins[-1] = 200
 
             P.clf()
-            m.one_dimensional(data.shape[1]-1)
-            P.savefig(marg.out(s+'_Betrag_' + name))
+            m.one_dimensional(data.shape[1] - 1)
+            P.savefig(marg.out(s + '_Betrag_' + name))
 
     def fig_pred(self, scen_obs, measurement, ylabel, xlabel=r'$C_{T}$', yrange=None,
                  legendpos='upper center', rescale=None):
@@ -622,13 +634,13 @@ class Spring2015(object):
         # rescale every sample by a constant
         # this requires updating cached min/max values, too.
         if rescale:
-            for k,v in marg.margs.iteritems():
+            for k, v in marg.margs.iteritems():
                 v.out.samples *= rescale
                 v.min *= rescale
                 v.max *= rescale
 
         marg.compute_marginal1D_all(scenario_names)
-        wide_figure(x_size=8, ratio=4/3.0, left=0.165, right=0.95, top=0.93, bottom=0.145)
+        wide_figure(x_size=8, ratio=4 / 3.0, left=0.165, right=0.95, top=0.93, bottom=0.145)
 
         central_style = dict(color='black', linewidth=matplotlib.rcParams['axes.linewidth'],
                              linestyle='solid', alpha=1)
@@ -656,12 +668,13 @@ class Spring2015(object):
         return r'$\mathcal{C}_9^{\rm NP} = ' + str(value) + '$'
 
     def scenario_comparison(self, obs, s_min, s_max, scen=('ct', 'ct_c9_1dot1'), delta_c9=(0, -1.1)):
-        return [dict(name=scen[i] + '_' + obs + '%gto%g' % (s_min, s_max), unc_label=self.np_label(delta_c9[i])) for i in range(len(scen))]
+        return [dict(name=scen[i] + '_' + obs + '%gto%g' % (s_min, s_max), unc_label=self.np_label(delta_c9[i])) for i
+                in range(len(scen))]
 
     def fig_1(self):
 
         obs = 'K_FH'
-        ylabel=r'$\langle F_H \rangle'
+        ylabel = r'$\langle F_H \rangle'
         yrange = (-0.05, 0.9)
 
         s_min, s_max = 1, 6
@@ -676,7 +689,7 @@ class Spring2015(object):
 
         obs = 'K_BR'
         yrange = (0.5e-7, 2.75e-7)
-        ylabel=r'$\langle \mathcal{B}(K) \rangle'
+        ylabel = r'$\langle \mathcal{B}(K) \rangle'
 
         s_min, s_max = 1, 6
         self.fig_pred(scen_obs=self.scenario_comparison(obs, s_min, s_max),
@@ -690,7 +703,7 @@ class Spring2015(object):
 
         obs = 'Kstar_BR'
         yrange = (0.5e-7, 7e-7)
-        ylabel=r'$\langle \mathcal{B}(K^{\ast}) \rangle'
+        ylabel = r'$\langle \mathcal{B}(K^{\ast}) \rangle'
 
         s_min, s_max = 1, 6
         self.fig_pred(scen_obs=self.scenario_comparison(obs, s_min, s_max),
@@ -711,28 +724,28 @@ class Spring2015(object):
         tau_B = 1.519e-12 / 6.58212e-25
 
         obs = 'Kstar_J_1c_plus_J_2c'
-        yrange = (-0.1e-8, 12e-8) #tuple(np.array((-0.1e-20, 6e-20)) * inv_tau_B)
-        ylabel=r'$\tau_B \, \times \, \langle J_{1c} + J_{2c} \rangle'
+        yrange = (-0.1e-8, 12e-8)  # tuple(np.array((-0.1e-20, 6e-20)) * inv_tau_B)
+        ylabel = r'$\tau_B \, \times \, \langle J_{1c} + J_{2c} \rangle'
 
-        s_min, s_max = 1.1,6
+        s_min, s_max = 1.1, 6
         self.fig_pred(scen_obs=self.scenario_comparison(obs, 1, s_max),
                       measurement=None, rescale=tau_B,
                       ylabel=ylabel + '_{[%g,%g]}$' % (s_min, s_max), yrange=yrange)
 
-        s_min, s_max = 15,19
+        s_min, s_max = 15, 19
         self.fig_pred(scen_obs=self.scenario_comparison(obs, s_min, s_max),
                       measurement=None, rescale=tau_B,
                       ylabel=ylabel + '_{[%g,%g]}$' % (s_min, s_max), yrange=yrange)
 
-        yrange = (-0.05e-7, 5e-7) #tuple(np.array((-0.05e-19, 2.5e-19)) * inv_tau_B)
-        ylabel=r'$\tau_B \, \times \, \langle J_{1s} - 3 J_{2s} \rangle'
+        yrange = (-0.05e-7, 5e-7)  # tuple(np.array((-0.05e-19, 2.5e-19)) * inv_tau_B)
+        ylabel = r'$\tau_B \, \times \, \langle J_{1s} - 3 J_{2s} \rangle'
         obs = 'Kstar_J_1s_minus_3J_2s'
-        s_min, s_max = 1.1,6
+        s_min, s_max = 1.1, 6
         self.fig_pred(scen_obs=self.scenario_comparison(obs, 1, s_max),
                       measurement=None, rescale=tau_B,
                       ylabel=ylabel + '_{[%g,%g]}$' % (s_min, s_max), yrange=yrange)
 
-        s_min, s_max = 15,19
+        s_min, s_max = 15, 19
         self.fig_pred(scen_obs=self.scenario_comparison(obs, s_min, s_max),
                       measurement=None, rescale=tau_B,
                       ylabel=ylabel + '_{[%g,%g]}$' % (s_min, s_max), yrange=yrange)
@@ -743,6 +756,7 @@ class Spring2015(object):
         for m in inspect.getmembers(self, predicate=inspect.ismethod):
             if m[0].startswith('fig'):
                 m[1]()
+
 
 if __name__ == '__main__':
     matplotlib.rcParams['text.usetex'] = True
@@ -764,6 +778,6 @@ if __name__ == '__main__':
 
     f = Spring2015()
     # f.figSP()
-#     f.figTT5()
+    #     f.figTT5()
     f.fig_1()
-#    f.all()
+# f.all()
