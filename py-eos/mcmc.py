@@ -113,27 +113,17 @@ class MCMC_Sampler(object):
         valid_args = ['uniform', 'fixed']
         assert args.initial_values[0] in valid_args, \
         '--initial-values must begin with one of ' + str(valid_args) + ': ' + str(args.initial_values)
-        err = ValueError('Invalid argument for choosing initial values: ' + str(args.initial_values))
-        if len(args.initial_values) == 1:
-            if args.initial_values[0] == 'uniform':
-                start = self.draw_uniform_in_support()
-                # log_target(start) must not be -inf!
-                while self.analysis(start) == -np.inf:
-                    start[:] = self.draw_uniform_in_support()
-            elif args.initial_values[0] == 'fixed':
-                start = self.fixed_initial_values(args)
-            else:
-                raise err
+
+        if args.initial_values[0] == 'uniform':
+            start = self.draw_uniform_in_support()
+            # log_target(start) must not be -inf!
+            while self.analysis(start) == -np.inf:
+                start[:] = self.draw_uniform_in_support()
+        elif args.initial_values[0] == 'fixed':
+            start = self.fixed_initial_values(args)
         else:
-            # expect list
-            assert isinstance(args.initial_values, list)
+            ValueError('Invalid argument for choosing initial values: ' + str(args.initial_values))
 
-            if args.initial_values[0] == 'fixed':
-                start = self.fixed_initial_values(args)
-            else:
-                raise err
-
-        print('initial values (' + args.initial_values[0] + '):')
         for i, (prior, v) in enumerate(zip(self.analysis.priors, start)):
             print(i,":", prior.name, v)
             assert (v >= prior.range_min) and (v <= prior.range_max),\
@@ -214,8 +204,8 @@ class MCMC_Sampler(object):
             total_accept += last_accept
             last_accept_rate = last_accept / self.update
             total_accept_rate = total_accept / (iterations + self.update)
-            print("Acceptance rate in chunk %d: %4.2f%%, in total:  %4.2f%%" %
-                  (i, last_accept_rate * 100, total_accept_rate * 100))
+            print("Acceptance rate in chunk %d: %4.2f%%, in total:  %4.2f%%. Covar. scale factor: %g" %
+                  (i, last_accept_rate * 100, total_accept_rate * 100, self.chain.covar_scale_factor))
             try:
                 self.chain.adapt()
             except np.linalg.LinAlgError:
@@ -275,7 +265,7 @@ if __name__ == '__main__':
                         .... 1.24...
                         ''')
     parser.add_argument("--eos-integration-points", type=int)
-    parser.add_argument("--initial-values", default='uniform', nargs='*')
+    parser.add_argument("--initial-values", nargs='+')
     parser.add_argument("--output", help="Output file name")
     parser.add_argument("--proposal", choices=['gauss', 'cauchy'], default='gauss', const='gauss', nargs='?')
     parser.add_argument("--samples", type=int)
@@ -291,7 +281,6 @@ if __name__ == '__main__':
     ###
     # validate and use arguments
     ###
-    print(args)
     ana = make_analysis(args.analysis_from)
     if args.analysis_info:
         print(ana)
