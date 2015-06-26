@@ -623,7 +623,7 @@ class MarginalDistributions:
         print(np.array(local_modes))
 
     def contours_two(self, x_range, y_range, densities, desired_levels=None,
-                     color='blue', grid=True, line=False,
+                     color='blue', grid=True, line=None,
                      alpha=(1, 0.5, 0.3, 0.1, 0.05)):
         """
         Plot several filled 2D contours
@@ -649,7 +649,7 @@ class MarginalDistributions:
             Bool; superimpose grid a major locators.
 
         :param line:
-            Bool; ``True`` only plots contour line, ``False`` fills the contour.
+            String; ``None`` fills the contour, anything else considered a matplotlib linestyle
 
         :param alpha:
             Transparency of multiple contours. With default values,
@@ -682,9 +682,7 @@ class MarginalDistributions:
         extent = [x_range[0], x_range[1], y_range[0], y_range[1]]
 
         artist = None
-        if line:
-            artist = P.contour(densities, levels[1:-1], colors=color, extent=extent)
-        else:
+        if line is None:
             # give all colors explicitly
             colors = [color] * (len(levels) - 1)
             colors.append('white')
@@ -696,6 +694,8 @@ class MarginalDistributions:
 
             for i, zc in enumerate(reversed(artist.collections[1:])):
                 P.setp(zc, alpha=alpha[i])
+        else:
+            artist = P.contour(densities, levels[1:-1], colors=color, extent=extent, linestyles=line)
 
         # add grid lines for easier visual comparison
         P.grid(grid)

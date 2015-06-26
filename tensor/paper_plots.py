@@ -56,14 +56,14 @@ def adjust_subplot(fig=None, equal=True):
 
     if fig is None:
         fig = P.gcf()
-    fig.subplots_adjust(left=0.2, right=0.95, bottom=0.15)
+    fig.subplots_adjust(left=0.25, right=0.95, bottom=0.15)
 
 
 class Scenario(object):
     def __init__(self, file, color, nbins=200, alpha=0.4, sigma='2 sigma',
                  bandwidth_default=None, two_sigma_color=None, queue_output=True,
-                 crop_outliers=200, local_mode=None, defs={}, file_type='mcmc',
-                 unc_label='', histogram=True):
+                 crop_outliers=200, local_mode=None, defs={},
+                 unc_label='', histogram=True, linestyle='solid'):
         self.f = file
         self.c = color
         self.prob = {}
@@ -78,9 +78,9 @@ class Scenario(object):
         self.local_mode = local_mode
         # dictionary of name:ParameterDefinition
         self.defs = defs
-        self.file_type = file_type
         self.unc_label = unc_label
         self.histogram = histogram
+        self.linestyle = linestyle
 
     def get_bandwidth(self, par1, par2):
         try:
@@ -206,23 +206,26 @@ class MarginalContours(object):
         cmd_template = ''
         # input file
         cmd_template += ' %s' % scenario.f
-        #         cmd_template += ' --pmc-crop-outliers %d' % scenario.crop_outliers
         if self.max_samples is not None:
             cmd_template += ' --select 0 %d' % self.max_samples
         cmd_template += ' --contours  --pypmc'
-        if scenario.file_type == 'mcmc':
+        if 'mcmc' in scenario.f:
             cmd_template += ' --mcmc --skip-init 0.2'
             cmd_template += ' --2D-bins %d' % scenario.nbins
-        elif scenario.file_type == 'unc':
+        elif 'unc' in scenario.f:
             cmd_template += ' --unc'
             cmd_template += ' --1D-bins %d' % scenario.nbins
             cmd_template += ' --use-data-range 0.05'
+        elif 'vb' in scenario.f:
+            cmd_template += ' --pmc-crop-outliers %d' % scenario.crop_outliers
+            cmd_template += ' --2D-bins %d' % scenario.nbins
+            cmd_template += ' --determ'
         else:
-            raise Exception('Unknown file type' + scenario.file_type)
+            raise Exception('Unknown file type' + scenario.f)
         if not scenario.histogram:
             cmd_template += ' --use-KDE'
 
-        if not scenario.file_type == 'unc':
+        if not 'unc' in scenario.f:
             for p in scenario.defs:
                 cmd_template += ' --cut %d %s %s' % (p.i, p.min, p.max)
 
@@ -293,32 +296,53 @@ class MarginalContours(object):
 
     def single_panel(self, def1, def2, scenarios,
                      solution=None, SM_point=True, local_mode=[True],
-                     desired_levels=None, label=True):
+                     desired_levels=None, label=True, indices=None):
         """
-        Single marginal plot to compare two scenarios
+        Single marginal plot to compare multiple scenarios
 
-        First scenario is plotted with filled colored regions,
-        the second is plotted with contour lines
 
         :param solution:
             Index to identify a region of zoom (a *solution*) into the 2D marginal.
+
+        :param indices:
+            Indices of parameters in file. Example: [(0, 1), (23, 47)]
+
         """
 
-        assert (len(scenarios) in (1, 2))
-
-        # parameter indices in EOS output file
-        i = def1.i
-        j = def2.i
+        # assert (len(scenarios) in (1, 2))
+        if indices:
+            par_indices_i = [ind[0] for ind in indices]
+            par_indices_j = [ind[1] for ind in indices]
+        else:
+            print(def1.name, def2.name)
+            # get parameter indices in EOS output file by parameter name
+            par_indices_i = []
+            par_indices_j = []
+            for s in scenarios:
+                m = self.margs[s]
+                # search for parameter by name
+                for n, p in enumerate(m.out.par_defs):
+                    if p.name == def1.name:
+                        par_indices_i.append(n)
+                    elif p.name == def2.name:
+                        par_indices_j.append(n)
+        assert len(par_indices_i) == len(scenarios), par_indices_i
+        assert len(par_indices_j) == len(scenarios), par_indices_j
 
         # compute and cache densities
-        for s in scenarios:
+        for n, s in enumerate(scenarios):
+            # tmp store
+            i, j = def1.i, def2.i
+            def1.i, def2.i = par_indices_i[n], par_indices_j[n]
             self.compute_marginal2D(def1, def2, s, solution)
+            # rewind
+            def1.i, def2.i = i, j
 
         for k, s in enumerate(scenarios):
             # retrieve original range used to create prob_density
             # then zoom will work correctly
-            density, xrange, yrange = self.__density_cache[(i, j, s, solution)]
-            for line in [True, False]:
+            density, xrange, yrange = self.__density_cache[(par_indices_i[k], par_indices_j[k], s, solution)]
+            for line in [None, self.scen[s].linestyle]:
                 artist = self.margs[s].contours_two(xrange, yrange, density,
                                                     color=self.scen[s].c, line=line, grid=True,
                                                     desired_levels=desired_levels,
@@ -330,7 +354,7 @@ class MarginalContours(object):
             for n, s in enumerate(scenarios):
                 if local_mode[n]:
                     for style, p in zip(self.best_fit_points_style[n], self.scen[s].local_mode):
-                        P.plot(p[i], p[j], **style)
+                        P.plot(p[par_indices_i[n]], p[par_indices_j[n]], **style)
 
         ax = P.gca()
 
@@ -521,10 +545,11 @@ class Spring2015(object):
     def input(self, file):
         return os.path.join(self.input_base, file)
 
-    def overlay(self, marg, def1, def2, scenarios, desired_levels=(0.683, 0.954)):
+    def overlay(self, marg, def1, def2, scenarios, desired_levels=(0.683, 0.954), indices=None):
         marg.single_panel(def1, def2, scenarios=scenarios,
                           desired_levels=desired_levels,
-                          local_mode=[False] * len(scenarios))  # no local mode
+                          local_mode=[False] * len(scenarios),
+                          indices=indices)  # no local mode
         adjust_subplot()
         P.savefig(marg.out(','.join(scenarios) + '_%d,%d' % (def1.i, def2.i)))
 
@@ -535,22 +560,40 @@ class Spring2015(object):
         ###
         # scenarios
         ###
+
         s = 'scSP_Bsmumu'
-        marg.scen[s] = Scenario(os.path.join(marg.input_base, 'mcmc_' + s + '.hdf5'), '#59955C',
-                                nbins=300)
+        marg.scen[s] = Scenario(os.path.join(marg.input_base, 'mcmc_' + s + '.hdf5'), '#006600',
+                                nbins=300, linestyle='dashed')
         #                                         local_mode=[[-0.348441713,   3.787226592, -4.420530192],
         #                                                     [ 0.5021320352, -4.568457245,  4.25129282]])
         marg.scen[s].set_bandwidth(0, 2, 0.015)
         marg.scen[s].set_bandwidth(2, 6, 0.008)
+        marg.scen[s].set_bandwidth(4, 6, 0.015)
+
+        # indices of S,S' and P,P'
+        marg.scen[s].spind = [(0, 2), (4, 6)]
 
         s = 'scSP_FH'
         marg.scen[s] = Scenario(os.path.join(marg.input_base, 'mcmc_' + s + '.hdf5'), '#2966B8',
-                                nbins=300)
+                                nbins=300, linestyle='dotted')
         #                                         local_mode=[[-0.348441713,   3.787226592, -4.420530192],
         #                                                     [ 0.5021320352, -4.568457245,  4.25129282]])
         marg.scen[s].set_bandwidth(0, 2, 0.025)
         marg.scen[s].set_bandwidth(0, 4, 0.04)
-        marg.scen[s].set_bandwidth(2, 6, 0.015)
+        marg.scen[s].set_bandwidth(4, 6, 0.025)
+
+        # indices of S,S' and P,P'
+        marg.scen[s].spind = [(0, 2), (4, 6)]
+
+        s = 'sc910SP_K_KstarBR_Bsmumu'
+        marg.scen[s] = Scenario(os.path.join(marg.input_base, 'vb_' + s + '.hdf5'), '#FF3333',
+                                nbins=300, crop_outliers=500)
+        # indices of S,S' and P,P'
+        marg.scen[s].spind = [(8, 10), (12, 14)]
+        marg.scen[s].set_bandwidth(marg.scen[s].spind[0][0], marg.scen[s].spind[0][1], 0.025) # +-
+        marg.scen[s].set_bandwidth(marg.scen[s].spind[0][0], marg.scen[s].spind[1][0], 0.055) # ++
+        marg.scen[s].set_bandwidth(marg.scen[s].spind[0][1], marg.scen[s].spind[1][1], 0.015) # --
+        marg.scen[s].set_bandwidth(marg.scen[s].spind[1][0], marg.scen[s].spind[1][1], 0.025) # +- P
 
         marg.read_data()
         scenarios = marg.scen.keys()
@@ -558,25 +601,59 @@ class Spring2015(object):
         ###
         # transformations
         ###
-        for s in scenarios:
-            data = marg.margs[s].out.samples
-            transform(data, 0, 2)
-            transform(data, 4, 6)
+        for k, v in marg.scen.iteritems():
+            m = marg.margs[k]
+            data = m.out.samples
+            transform(data, *v.spind[0])
+            transform(data, *v.spind[1])
 
         ###
         # plot settings
         ###
-        defs = [ParameterDefinition(index=0, name=r"$\Re(\mathcal{C}_S + \mathcal{C}_S^{\prime})$", min=-1, max=1),
-                ParameterDefinition(index=2, name=r"$\Re(\mathcal{C}_S - \mathcal{C}_S^{\prime})$", min=-1, max=1),
-                ParameterDefinition(index=4, name=r"$\Re(\mathcal{C}_P + \mathcal{C}_P^{\prime})$", min=-1, max=1),
-                ParameterDefinition(index=6, name=r"$\Re(\mathcal{C}_P - \mathcal{C}_P^{\prime})$", min=-1, max=1),
+        defs = [ParameterDefinition(index=0, name=r"$\mathrm{Re}(\mathcal{C}_S + \mathcal{C}_{S'})$", min=-1, max=1),
+                ParameterDefinition(index=2, name=r"$\mathrm{Re}(\mathcal{C}_S - \mathcal{C}_{S'})$", min=-1, max=1),
+                ParameterDefinition(index=4, name=r"$\mathrm{Re}(\mathcal{C}_P + \mathcal{C}_{P'})$", min=-1, max=1),
+                ParameterDefinition(index=6, name=r"$\mathrm{Re}(\mathcal{C}_P - \mathcal{C}_{P'})$", min=-1, max=1),
                 ]
 
         square_figure(self.fig_size)
+        matplotlib.rcParams['font.size'] = 20
 
-        self.overlay(marg, defs[0], defs[1], scenarios)
-        self.overlay(marg, defs[1], defs[3], ['scSP_Bsmumu'])
-        self.overlay(marg, defs[0], defs[2], ['scSP_FH'])
+        # 1D intervals for table
+        '''
+        for k, v in marg.scen.iteritems():
+            m = marg.margs[k]
+
+            print("scenario", k)
+            for i, d in enumerate(defs):
+                P.clf()
+                m.nBins[-1] = 200
+                ind_in_file = v.spind[i // 2][i % 2]
+                m.fixed_1D_binning = False
+                m.use_histogram = False
+                m.kde_bandwidth = 0.01
+                m.nBins[ind_in_file] = 200
+
+                m.one_dimensional(ind_in_file)
+                P.savefig(marg.out(k + '_Betrag_' + d.name))
+        return
+        '''
+        # + vs - S
+        self.overlay(marg, defs[0], defs[1], scenarios, indices=[marg.scen[s].spind[0] for s in scenarios])
+
+        # + vs +
+        sel = ['scSP_FH', 'sc910SP_K_KstarBR_Bsmumu']
+        self.overlay(marg, defs[0], defs[2], sel,
+                     indices=[(marg.scen[s].spind[0][0], marg.scen[s].spind[1][0]) for s in sel])
+
+        # - vs -
+        sel = ['scSP_Bsmumu', 'sc910SP_K_KstarBR_Bsmumu']
+        self.overlay(marg, defs[1], defs[3], sel,
+                     indices=[(marg.scen[s].spind[0][1], marg.scen[s].spind[1][1]) for s in sel])
+
+        # + vs - P
+        self.overlay(marg, defs[2], defs[3], scenarios, indices=[marg.scen[s].spind[1] for s in scenarios])
+
 
     def figTT5(self):
 
@@ -587,31 +664,44 @@ class Spring2015(object):
         ###
         s = 'scTT5_FH'
         scenarios = [s]
-
         marg.scen[s] = Scenario(os.path.join(marg.input_base, 'mcmc_scTT5_FH.hdf5'), 'OrangeRed',
                                 nbins=300)
-        #                                         local_mode=[[-0.348441713,   3.787226592, -4.420530192],
-        #                                                     [ 0.5021320352, -4.568457245,  4.25129282]])
+        # in python, we can add class members as we please, use with care!
+        # indices of real and imaginary part
+        marg.scen[s].ctind = [(0, 1), (2, 3)]
+
+        s = 'scTT5_K_KstarBR'
+        scenarios.append(s)
+        marg.scen[s] = Scenario(os.path.join(marg.input_base, 'mcmc_' + s + '.hdf5'), 'Blue',
+                                nbins=300)
+        marg.scen[s].ctind = [(0, 1), (2, 3)]
+
+        s = 'sc910TT5_K_KstarBR_Bsmumu'
+        scenarios.append(s)
+        marg.scen[s] = Scenario(os.path.join(marg.input_base, 'mcmc_' + s + '.hdf5'), 'Green',
+                                nbins=300)
+        marg.scen[s].ctind = [(4, 5), (6, 7)]
 
         marg.read_data()
-        m = marg.margs[s]
-        data = m.out.samples
 
         ###
-        # transformations
+        # plot absolute value of CT and CT5
         ###
-        for ii, name in [((0, 1), 'CT'), ((2, 3), 'CT5')]:
-            data[:, -1] = betrag(data, ii[0], ii[1])
-            m.out.par_defs[-1].nuisance = False
-            m.out.par_defs[-1].min = 0.0
-            m.out.par_defs[-1].max = 1.45
-            m.use_contours = True
-            m.fixed_1D_binning = False
-            m.nBins[-1] = 200
+        for s in scenarios:
+            m = marg.margs[s]
+            data = m.out.samples
+            for ii, name in zip(marg.scen[s].ctind, ['CT', 'CT5']):
+                data[:, -1] = betrag(data, ii[0], ii[1])
+                m.out.par_defs[-1].nuisance = False
+                m.out.par_defs[-1].min = 0.0
+                m.out.par_defs[-1].max = 1.45
+                m.use_contours = True
+                m.fixed_1D_binning = False
+                m.nBins[-1] = 200
 
-            P.clf()
-            m.one_dimensional(data.shape[1] - 1)
-            P.savefig(marg.out(s + '_Betrag_' + name))
+                P.clf()
+                m.one_dimensional(data.shape[1] - 1)
+                P.savefig(marg.out(s + '_Betrag_' + name))
 
     def fig_pred(self, scen_obs, measurement, ylabel, xlabel=r'$C_{T}$', yrange=None,
                  legendpos='upper center', rescale=None):
@@ -672,6 +762,7 @@ class Spring2015(object):
                 in range(len(scen))]
 
     def fig_1(self):
+        matplotlib.rcParams['font.size'] = 28
 
         obs = 'K_FH'
         ylabel = r'$\langle F_H \rangle'
@@ -777,7 +868,7 @@ if __name__ == '__main__':
     matplotlib.rcParams['axes.linewidth'] = major['width']
 
     f = Spring2015()
-    # f.figSP()
-    #     f.figTT5()
-    f.fig_1()
-# f.all()
+    f.figSP()
+    # f.figTT5()
+    # f.fig_1()
+    # f.all()
