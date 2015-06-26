@@ -571,7 +571,8 @@ class Spring2015(object):
         marg.scen[s].set_bandwidth(4, 6, 0.025)
 
         # indices of S,S' and P,P'
-        marg.scen[s].spind = [(0, 2), (4, 6)]
+        marg.scen[s].spind = [(0, 2), (4, 6)] # real
+        # marg.scen[s].spind = [(1, 3), (5, 7)] # imaginary
 
         s = 'scSP_Bsmumu'
         marg.scen[s] = Scenario(os.path.join(marg.input_base, 'mcmc_' + s + '.hdf5'), '#2E64FE',
@@ -583,13 +584,16 @@ class Spring2015(object):
         marg.scen[s].set_bandwidth(4, 6, 0.015)
 
         # indices of S,S' and P,P'
-        marg.scen[s].spind = [(0, 2), (4, 6)]
+        marg.scen[s].spind = [(0, 2), (4, 6)] # real
+        # marg.scen[s].spind = [(1, 3), (5, 7)] # imaginary
 
         s = 'sc910SP_K_KstarBR_Bsmumu'
         marg.scen[s] = Scenario(os.path.join(marg.input_base, 'vb_' + s + '.hdf5'), '#FE2E2E',
                                 nbins=300, crop_outliers=500)
         # indices of S,S' and P,P'
-        marg.scen[s].spind = [(8, 10), (12, 14)]
+        marg.scen[s].spind = [(8, 10), (12, 14)] # real
+        # marg.scen[s].spind = [(9, 11), (13, 15)] # imaginary
+
         marg.scen[s].set_bandwidth(marg.scen[s].spind[0][0], marg.scen[s].spind[0][1], 0.025) # +-
         marg.scen[s].set_bandwidth(marg.scen[s].spind[0][0], marg.scen[s].spind[1][0], 0.055) # ++
         marg.scen[s].set_bandwidth(marg.scen[s].spind[0][1], marg.scen[s].spind[1][1], 0.015) # --
@@ -631,7 +635,7 @@ class Spring2015(object):
                 ind_in_file = v.spind[i // 2][i % 2]
                 m.fixed_1D_binning = False
                 m.use_histogram = False
-                m.kde_bandwidth = 0.01
+                m.kde_bandwidth = 0.05
                 m.nBins[ind_in_file] = 200
 
                 m.one_dimensional(ind_in_file)
