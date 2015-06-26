@@ -344,9 +344,9 @@ class MarginalContours(object):
             density, xrange, yrange = self.__density_cache[(par_indices_i[k], par_indices_j[k], s, solution)]
             for line in [None, self.scen[s].linestyle]:
                 artist = self.margs[s].contours_two(xrange, yrange, density,
-                                                    color=self.scen[s].c, line=line, grid=True,
+                                                    color=self.scen[s].c if line is None else 'black', line=line, grid=True,
                                                     desired_levels=desired_levels,
-                                                    alpha=self.contour_alpha)
+                                                    alpha=self.contour_alpha if line is None else 0.8)
 
         if SM_point:
             P.plot(self.sm_point.get(def1.name, 0.), self.sm_point.get(def2.name, 0.), **self.sm_point_style)
@@ -561,20 +561,8 @@ class Spring2015(object):
         # scenarios
         ###
 
-        s = 'scSP_Bsmumu'
-        marg.scen[s] = Scenario(os.path.join(marg.input_base, 'mcmc_' + s + '.hdf5'), '#006600',
-                                nbins=300, linestyle='dashed')
-        #                                         local_mode=[[-0.348441713,   3.787226592, -4.420530192],
-        #                                                     [ 0.5021320352, -4.568457245,  4.25129282]])
-        marg.scen[s].set_bandwidth(0, 2, 0.015)
-        marg.scen[s].set_bandwidth(2, 6, 0.008)
-        marg.scen[s].set_bandwidth(4, 6, 0.015)
-
-        # indices of S,S' and P,P'
-        marg.scen[s].spind = [(0, 2), (4, 6)]
-
         s = 'scSP_FH'
-        marg.scen[s] = Scenario(os.path.join(marg.input_base, 'mcmc_' + s + '.hdf5'), '#2966B8',
+        marg.scen[s] = Scenario(os.path.join(marg.input_base, 'mcmc_' + s + '.hdf5'), '#848484',
                                 nbins=300, linestyle='dotted')
         #                                         local_mode=[[-0.348441713,   3.787226592, -4.420530192],
         #                                                     [ 0.5021320352, -4.568457245,  4.25129282]])
@@ -585,8 +573,20 @@ class Spring2015(object):
         # indices of S,S' and P,P'
         marg.scen[s].spind = [(0, 2), (4, 6)]
 
+        s = 'scSP_Bsmumu'
+        marg.scen[s] = Scenario(os.path.join(marg.input_base, 'mcmc_' + s + '.hdf5'), '#2E64FE',
+                                nbins=300, linestyle='dashed')
+        #                                         local_mode=[[-0.348441713,   3.787226592, -4.420530192],
+        #                                                     [ 0.5021320352, -4.568457245,  4.25129282]])
+        marg.scen[s].set_bandwidth(0, 2, 0.015)
+        marg.scen[s].set_bandwidth(2, 6, 0.008)
+        marg.scen[s].set_bandwidth(4, 6, 0.015)
+
+        # indices of S,S' and P,P'
+        marg.scen[s].spind = [(0, 2), (4, 6)]
+
         s = 'sc910SP_K_KstarBR_Bsmumu'
-        marg.scen[s] = Scenario(os.path.join(marg.input_base, 'vb_' + s + '.hdf5'), '#FF3333',
+        marg.scen[s] = Scenario(os.path.join(marg.input_base, 'vb_' + s + '.hdf5'), '#FE2E2E',
                                 nbins=300, crop_outliers=500)
         # indices of S,S' and P,P'
         marg.scen[s].spind = [(8, 10), (12, 14)]
