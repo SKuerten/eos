@@ -1597,6 +1597,7 @@ def factory(cmd_line=None):
     parser.add_argument('--prerun', help="Use prerun instead of main", action='store_true')
     parser.add_argument('--prior', help="Plot the prior in 1D distributions.", action='store_true')
     parser.add_argument('--pypmc', help="Output file format from eos->pypmc interface.", action='store_true')
+    parser.add_argument('--rescale-samples', help="Scale every sample by a constant.", type=float)
     parser.add_argument('--single-1D', help="Plot only the 1D marginal distribution of the ith parameter, i=0...N-1",
                         type=int, nargs='+')
     parser.add_argument('--single-2D',
@@ -1698,6 +1699,12 @@ def factory(cmd_line=None):
     if args.nest:
         assert input_source == input_source_default
         input_source = 'multinest'
+
+    if args.rescale_samples is not None:
+        output.samples *= args.rescale_samples
+        for d in output.par_defs:
+            d.min *= args.rescale_samples
+            d.max *= args.rescale_samples
 
     #had some trouble getting the second argument out-of the namepace, so use the dictionary directly
     marg = MarginalDistributions(output, args.__dict__['use_KDE'], output_dir=args.__dict__['output_dir'],
