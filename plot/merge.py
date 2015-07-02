@@ -1,7 +1,7 @@
 #! /usr/bin/env python
 '''Merge multiple input files into one output file.'''
 
-from __future__ import print_function
+from __future__ import division, print_function
 import commands
 import glob
 import h5py
@@ -116,8 +116,8 @@ def merge_pypmc(output_file_name, search='mcmc_*.hdf5', input_files=None,
 
     # count chains copied
     nchains_valid = 0
-    n_samples_total = 0
     valid_file_chains = []
+    n_samples_total = 0
 
     with h5py.File(output_file_name, "w") as output_file:
         for file_name in input_files:
@@ -125,6 +125,7 @@ def merge_pypmc(output_file_name, search='mcmc_*.hdf5', input_files=None,
             with h5py.File(file_name, 'r') as input_file:
                 nchains_in_file = len(input_file['/'].keys())
                 valid_chains = []
+                n_samples = []
 
                 for i in range(nchains_in_file):
                     # check agreement
@@ -134,7 +135,9 @@ def merge_pypmc(output_file_name, search='mcmc_*.hdf5', input_files=None,
                         continue
                     else:
                         valid_chains.append(i)
-                        n_samples_total += int( (1 - skip_initial) * input_file['/chain #%d/samples' % i].len())
+                        # for 250 samples and thin = 100, take 3 samples at indices 0, 100, 200 => ceil(2.5) = 3
+                        n_samples.append(int(np.ceil(int( (1 - skip_initial) * input_file['/chain #%d/samples' % i].len()) / thin)))
+                        n_samples_total += n_samples[-1]
 
                     # copy data
                     for g in groups:
@@ -142,7 +145,7 @@ def merge_pypmc(output_file_name, search='mcmc_*.hdf5', input_files=None,
                             input_file.copy('/chain #%d' % i + g, output_file, name='/chain #%d' % nchains_valid + g)
                     nchains_valid += 1
                 if valid_chains:
-                    valid_file_chains.append((file_name, valid_chains))
+                    valid_file_chains.append((file_name, valid_chains, n_samples))
 
         # compress into one big chain
         if single_chain:
@@ -155,17 +158,16 @@ def merge_pypmc(output_file_name, search='mcmc_*.hdf5', input_files=None,
 
             # loop over valid input files
             old_length = 0
-            for j, (file_name, chains) in enumerate(valid_file_chains):
+            for j, (file_name, chains, n_samples) in enumerate(valid_file_chains):
                 with h5py.File(file_name, 'r') as input_file:
                     # copy descriptions only once
                     if j == 0:
                         s = first + '/descriptions'
                         input_file.copy(s, output_file, name=s)
                     # loop over chains
-                    for c in chains:
-                        n_samples = input_file['chain #%d/' % c + g[0]].len()
-                        first_index = int(skip_initial * n_samples)
-                        new_samples = (n_samples - first_index) // thin
+                    for c, new_samples in zip(chains, n_samples):
+                        first_index = int(skip_initial * input_file['chain #%d/' % c + g[0]].len())
+                        # for 250 samples and thin = 100, take 3 samples at indices 0, 100, 200 => ceil(2.5) = 3
                         print("Select %d samples from chain %d" % (new_samples, c))
 
                         for g, ds in zip(data_groups, data_sets):
