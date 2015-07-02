@@ -503,7 +503,7 @@ $F_H^\ell$ is very sensitive to tensorial couplings whereas $A_{\rm FB}^\ell$ to
 the interference of tensorial and scalar couplings.
 
 \begin{figure*}
-  \setlength{\relwidth}{0.31\textwidth}
+  \setlength{\relwidth}{0.33\textwidth}
   \includegraphics[width=\relwidth]{plots/pdf/ct_K_FH1to6}
   \includegraphics[width=\relwidth]{plots/pdf/ct_K_FH15to22}
   \\
@@ -511,7 +511,7 @@ the interference of tensorial and scalar couplings.
   \includegraphics[width=\relwidth]{plots/pdf/ct_K_BR15to22}
   \\
   \includegraphics[width=\relwidth]{plots/pdf/ct_Kstar_BR1to6}
-  \includegraphics[width=\relwidth]{plots/pdf/ct_Kstar_BR14to16}
+  %\includegraphics[width=\relwidth]{plots/pdf/ct_Kstar_BR14to16}
   \includegraphics[width=\relwidth]{plots/pdf/ct_Kstar_BR16to19}
   \\
   \includegraphics[width=\relwidth]{plots/pdf/ct_Kstar_J_1c_plus_J_2c1to6}
@@ -531,7 +531,9 @@ the interference of tensorial and scalar couplings.
       shown for the SM, $\wilson[NP]{9} = 0$ (blue), and
       $\wilson[NP]{9} = -1.1$ (red), and an additional band of the
       latest 68\% uncertainty reported by LHCb (grey) if a measurement
-      is available. }
+      is available. 
+      \todo{Perhaps restrict plots to range $C_T \in [-0.7, +0.7]$ 
+            or even $\in [-0.5, +0.5]$?}}
   \label{fig:FHvsCT}
 \end{figure*}
 
@@ -882,8 +884,8 @@ by a \eos{factor of two}.
   \\
   $\mbox{Im}(\wilson{S} - \wilson{S'})$
   & $\quad$ $-$ $\quad$
-  & \eos{$\quad$ $[-0.08,\, 0.08]$ ($[-0.12,\, 0.12]$) $\quad$}
-  & \eos{$\quad$ $[-0.08,\, 0.08]$ ($[-0.12,\, 0.12]$) $\quad$}
+  & $\quad$ $[-0.07,\, 0.07]$ ($[-0.11,\, 0.12]$) $\quad$
+  & $\quad$ $[-0.07,\, 0.07]$ ($[-0.12,\, 0.11]$) $\quad$
   \\[0.1cm]
   $\mbox{Re}(\wilson{S} + \wilson{S'})$
   & $[-0.36,\, 0.39]$ ($[-0.69,\, 0.68]$)
@@ -891,9 +893,9 @@ by a \eos{factor of two}.
   & $[-0.32,\, 0.32]$ ($[-0.59,\, 0.62]$)
   \\
   $\mbox{Im}(\wilson{S} + \wilson{S'})$
-  & \eos{$[-0.4,\, 0.4]$ ($[-0.7,\, 0.7]$)}
+  & $[-0.37,\, 0.35]$ ($[-0.68,\, 0.66]$)
   & $-$
-  & \eos{$[-0.4,\, 0.4]$ ($[-0.7,\, 0.7]$)}
+  & $[-0.25,\, 0.41]$ ($[-0.57,\, 0.64]$)
   \\[0.1cm]
   $\mbox{Re}(\wilson{P} - \wilson{P'})$
   & $-$
@@ -902,8 +904,8 @@ by a \eos{factor of two}.
   \\
   $\mbox{Im}(\wilson{P} - \wilson{P'})$
   & $-$
-  & \eos{$[-0.08,\, 0.08]$ ($[-0.12,\, 0.12]$)}
-  & \eos{$[-0.10,\, 0.10]$ ($[-0.20,\, 0.20]$)}
+  & $[-0.07,\, 0.08]$ ($[-0.12,\, 0.12]$)
+  & $[-0.07,\, 0.09]$ ($[-0.14,\, 0.16]$)
   \\[0.1cm]
   $\mbox{Re}(\wilson{P} + \wilson{P'})$
   & $[-0.24,\, 0.51]$ ($[-0.51,\, 0.82]$)
@@ -911,9 +913,9 @@ by a \eos{factor of two}.
   & $[-0.12,\, 0.52]$ ($[-0.42,\, 0.78]$)
   \\
   $\mbox{Im}(\wilson{P} + \wilson{P'})$
-  & \eos{$[-0.4,\, 0.4]$ ($[-0.7,\, 0.7]$)}
+  & $[-0.36,\, 0.37]$ ($[-0.67,\, 0.67]$)
   & $-$
-  & \eos{$[-0.4,\, 0.4]$ ($[-0.7,\, 0.7]$)}
+  & $[-0.37,\, 0.29]$ ($[-0.68,\, 0.57]$)
   \\
   \hline
   \end{tabular}
@@ -962,7 +964,7 @@ $F_H^\mu$, $ii)$ only $\overline{\cal B}(B_s \to \bar\mu\mu)$ and $iii)$
 their combination with all the other observables in \reftab{tab:observables},
 even allowing new physics in vectorial couplings
 $\wilson{9,\ 9',\, 10,\, 10'}$ in \reftab{tab:cSP:1-dimCLs}, utilising
-\todo{uniform priors for $\mbox{Re, Im}(\wilson{i}) \in[-7,\, 7]$}.
+uniform priors for $\mbox{Re, Im}(\wilson{i}) \in[-7,\, 7]$.
 Neither $F_H^\ell$ nor $\overline{\cal B}(B_s \to \bar\mu\mu)$
 alone can bound all four complex-valued scalar couplings, however their
 combination is capable to do so and moreover, the bounds are stable against
@@ -1008,7 +1010,8 @@ augmented by dimension six operators that respect the SM gauge group and are
 composed out of SM fields. After the discovery of a scalar resonance at the LHC
 that complies currently with all requirements of the Higgs particle in the SM
 and the steadily rising lower bounds on new particle masses towards higher energies
-from ATLAS and CMS such a scenario becomes more and more viable.
+from ATLAS and CMS such a scenario becomes more and more viable\footnote{\todo{
+comment on Cata/Jung \cite{Cata:2015ltad}.}}.
 
 A non-redundant set of dimension six operators of
 this effective theory (SM-EFT) was given in \cite{Grzadkowski:2010es} and the
@@ -1094,58 +1097,58 @@ and in addition similarly among their imaginary parts.
     observable
   & $q^2$-bin [GeV$^2$]
   & SM
-  & $9,10,T,T5$
-  & $10^{(')},S^{(')},P^{(')}$
-  & $10^{(')},S^{(')},P^{(')},T,T5$
+  & $T,\,T5,\,9,\,10,$
+  & $S^{(')},\,P^{(')},\,9^{(')},\,10^{(')}$
+  & $S^{(')},P^{(')},\,T,\,T5,\,9^{(')},10^{(')}$
   \\
   \hline \hline
-  \multirow{2}{*}{$J_{6c}$}
+  \multirow{2}{*}{$\tau_{B^0} \times J_{6c}$}
   & $[1.1,\, 6]$
   & $\simeq 0$
-  & \eos{$(-1.27_{-0.64}^{+3.08}) \cdot 10^{-21}$}
-  & \eos{$( 0.01_{-0.12}^{+0.06}) \cdot 10^{-21}$}
+  & $(0.7_{-2.1}^{+1.7}) \cdot 10^{-9\;}$
+  & $(0.0_{-2.1}^{+2.2}) \cdot 10^{-10}$
   & \eos{$( 0.71_{-1.98}^{+0.52}) \cdot 10^{-21}$}
   \\
   & $[15,\, 19]$
   & $\simeq 0$
-  & \eos{$(-0.43_{-0.25}^{+1.06}) \cdot 10^{-21}$}
-  & \eos{$(-0.03_{-0.00}^{+0.02}) \cdot 10^{-21}$}
+  & $(2.1_{-6.2}^{+5.1}) \cdot 10^{-10}$
+  & $(0.7_{-6.6}^{+5.4}) \cdot 10^{-11}$
   & \eos{$(-0.25_{-0.23}^{+0.72}) \cdot 10^{-21}$}
   \\
   \hline
-  \multirow{2}{*}{$J_{1c} + J_{2c}$}
+  \multirow{2}{*}{$\tau_{B^0} \times (J_{1c} + J_{2c})$}
   & $[1.1,\, 6]$
-  & \eos{$(1.80_{-0.26}^{+0.30}) \cdot 10^{-21}$}
-  & \eos{$(3.05_{-0.96}^{+1.31}) \cdot 10^{-21}$}
-  & \eos{$(1.22_{-0.17}^{+0.26}) \cdot 10^{-21}$}
+  & $(3.54_{-0.66}^{+0.65}) \cdot 10^{-9\;}$
+  & $(5.0_{-1.9}^{+1.7}) \cdot 10^{-9\;}$
+  & $(2.9_{-0.5}^{+0.4}) \cdot 10^{-9\;}$
   & \eos{$(3.23_{-1.31}^{+2.36}) \cdot 10^{-21}$}
   \\
   & $[15,\, 19]$
-  & \eos{$(8.75_{-1.82}^{+2.05}) \cdot 10^{-23}$}
-  & \eos{$(5.63_{-2.58}^{+3.29}) \cdot 10^{-21}$}
-  & \eos{$(7.49_{-2.02}^{+1.01}) \cdot 10^{-23}$}
+  & $(1.72_{-0.16}^{+0.16}) \cdot 10^{-10}$
+  & $(4.7_{-2.6}^{+3.3}) \cdot 10^{-9\;}$
+  & $(1.9_{-0.7}^{+0.3}) \cdot 10^{-10}$
   & \eos{$(7.28_{-3.29}^{+5.17}) \cdot 10^{-21}$}
   \\
   \hline
-  \multirow{2}{*}{$J_{1s} - 3 J_{2s}$}
+  \multirow{2}{*}{$\tau_{B^0} \times (J_{1s} - 3 J_{2s})$}
   & $[1.1,\, 6]$
-  & \eos{$(2.04_{-0.50}^{+0.57}) \cdot 10^{-22}$}
-  & \eos{$(1.46_{-0.60}^{+0.76}) \cdot 10^{-20}$}
-  & \eos{SM}
+  & $(2.98_{-0.54}^{+0.63}) \cdot 10^{-10}$
+  & $(1.9_{-1.1}^{+1.4}) \cdot 10^{-8\;}$
+  & $(4.9_{-1.4}^{+1.6}) \cdot 10^{-10}$
   & \eos{$(2.00_{-0.97}^{+1.03}) \cdot 10^{-20}$}
   \\
   & $[15,\, 19]$
-  & \eos{$(5.99_{-1.08}^{+1.19}) \cdot 10^{-23}$}
-  & \eos{$(6.57_{-2.72}^{+3.40}) \cdot 10^{-21}$}
-  & \eos{SM}
+  & $(1.12_{-0.10}^{+0.10}) \cdot 10^{-10}$
+  & $(7.1_{-3.8}^{+5.6}) \cdot 10^{-9\;}$
+  & $(1.4_{-0.4}^{+0.3}) \cdot 10^{-10}$
   & \eos{$(9.29_{-4.54}^{+3.86}) \cdot 10^{-21}$}
   \\
   \hline \hline
-  \multicolumn{2}{c|}{$A_{\Delta \Gamma}$}
+  \multicolumn{2}{c|}{$A_{\Delta \Gamma}(B_s \to \bar\mu\mu)$}
   & 1
-  &
   & SM
-  &
+  & $[-1,\, 1]$
+  & \eos{???}
   \\
   \hline
   \end{tabular}
@@ -1175,24 +1178,26 @@ in the low- and high-$q^2$ bins $q^2\in [1.1,\, 6]$ GeV$^2$ and $q^2\in [15,\, 1
 GeV$^2$, respectively. Their posterior distributions have been obtained from the
 final posterior samples as explained in~\cite{Beaujean:2012uj}.
 
-For comparison, the SM estimates are also given in \reftab{tab:postdictions}.
-At low-$q^2$ they are of order ${\cal O}(10^{-21})$ for $(J_{1s} - 3\, J_{2s})$ and
-$(J_{1c} + J_{2c})$, getting suppressed down to ${\cal O}(10^{-23})$ at high-$q^2$
+For comparison, the SM estimates are also given in \reftab{tab:postdictions}
+multiplied by the $B^0$-meson life time $\tau_{B^0} = 1.519$~ps.
+At low-$q^2$ they are of order ${\cal O}(10^{-9})$ for $(J_{1s} - 3\, J_{2s})$ and
+$(J_{1c} + J_{2c})$, getting suppressed down to ${\cal O}(10^{-10})$ at high-$q^2$
 due to the $m_\ell/\sqrt{q^2}$ dependence. In order to compare it to the typical
-magnitude of vectorial couplings, note that for example the decay width of
-$B\to K^*\bar\ell\ell$
+magnitude of vectorial couplings, note that for example the branching ratio of
+$B\to K^*\bar\ell\ell$ 
 \begin{align}
-  \frac{{\rm d}\Gamma}{{\rm d}q^2} & =
+  \frac{1}{\tau_{B^0}} \frac{{\rm d}\BR}{{\rm d}q^2} & =
     \frac{2}{3} (3 J_{1s} - J_{2s}) + \frac{1}{3} (3 J_{1c} -  J_{2c})
 \end{align}
-is numerically of the order ${\cal O}(10^{-19})$ in the SM
+is numerically of the order ${\cal O}(10^{-19})$ in the SM 
+\todo{check large SM uncertainty of 30\% at low-$q^2$}
 \begin{equation}
 \begin{aligned}
-  \langle {\rm d}\Gamma/{\rm d}q^2 \rangle_{[1.1,\, 6]} & =
-  \eos{\left(1.07_{-0.25}^{+0.28} \right) \cdot 10^{-19}} \,,
+  \langle {\rm d}\BR/{\rm d}q^2 \rangle_{[1.1,\, 6]} & =
+  \left(1.86_{-0.44}^{+0.53} \right) \cdot 10^{-7} \,,
 \\
-  \langle {\rm d}\Gamma/{\rm d}q^2 \rangle_{[\eos{16},\, 19]} & =
-  \eos{\left(0.63_{-0.17}^{+0.20} \right) \cdot 10^{-19}} \,,
+  \langle {\rm d}\BR/{\rm d}q^2 \rangle_{[15,\, 19]} & =
+  \left(1.91_{-0.16}^{+0.16} \right) \cdot 10^{-7} \,,
 \end{aligned}
 \end{equation}
 when integrated over low- and high-$q^2$ regions. On the other hand, $J_{6c}$
