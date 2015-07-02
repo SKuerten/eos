@@ -731,6 +731,7 @@ class MarginalDistributions:
         print("Maxima of 68 %% contours at = %s " % np.array(maxima_68))
         """
 
+        # todo +-1 error seen in left most bin. Printed interval has one more bin than plotted
     def __extract_smallest_intervals(self, x, prob_density, level_68, level_95, index=None):
         """
         Extract set of smallest intervals in 1D

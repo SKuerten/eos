@@ -57,8 +57,22 @@ $SCAN_sm
 --scan      Re{cP'}     $non_sm_min     $non_sm_max      --prior flat
 --scan      Im{cP'}     $non_sm_min     $non_sm_max      --prior flat
 "
-
 export SCAN_sc910SPTT5="
 $SCAN_sc910SP
 $SCAN_scTT5
+"
+export SCAN_smEFTS="
+--global-option model ConstrainedWilsonScan
+--global-option scan-mode cartesian
+--scan      Re{cS}      $non_sm_min     $non_sm_max      --prior flat
+--scan      Im{cS}      $non_sm_min     $non_sm_max      --prior flat
+--scan      Re{cS'}     $non_sm_min     $non_sm_max      --prior flat
+--scan      Im{cS'}     $non_sm_min     $non_sm_max      --prior flat
+"
+export SCAN_smEFTS10="
+$SCAN_smEFTS
+--scan      Re{c10}     $sm_min         $sm_max          --prior flat
+--scan      Im{c10}     $sm_min         $sm_max          --prior flat
+--scan      Re{c10'}    $sm_min         $sm_max          --prior flat
+--scan      Im{c10'}    $sm_min         $sm_max          --prior flat
 "
