@@ -713,7 +713,7 @@ class Spring2015(object):
 
         marg = MarginalContours(self.input_base, self.output_base, max_samples=self.max_samples)
 
-        scen_kw = dict(nbins=200, file_type='unc', histogram=False)
+        scen_kw = dict(nbins=200, histogram=False)
         colors = ['blue', 'red']
         scenario_names = []
         for i, d in enumerate(scen_obs):
@@ -872,7 +872,7 @@ if __name__ == '__main__':
     matplotlib.rcParams['axes.linewidth'] = major['width']
 
     f = Spring2015()
-    f.figSP()
+    # f.figSP()
     # f.figTT5()
-    # f.fig_1()
+    f.fig_1()
     # f.all()
