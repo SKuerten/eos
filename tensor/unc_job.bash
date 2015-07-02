@@ -19,7 +19,7 @@ unc() {
         --fix ${EOS_UNC_FIX} \
         --input-range $low $high \
         --kinematics ${EOS_UNC_KINEMATICS} \
-        --mcmc-input $input \
+        --input $input \
         --observable ${EOS_UNC_OBSERVABLE} \
         --output $output_dir/unc_${low}_${high}.hdf5 \
         --parameter ${EOS_UNC_PARAMETER}

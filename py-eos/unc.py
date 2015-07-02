@@ -16,31 +16,39 @@ hdf5_subdirectory = '/unc'
 class Unc(object):
     def __init__(self, args):
         self.args = args
-
-        # read MCMC input file
-        select = [int(x) for x in args.input_range]
-        self.input = samplingOutput.EOS_PYPMC_MCMC(self.args.mcmc_input, skip_initial=0.0,
-                                                   select=select)
-
         self.fixed_name = args.fix[0]
 
+        select = [int(x) for x in args.input_range]
+
+        # read input file
+        if 'mcmc' in args.input:
+            self.input = samplingOutput.EOS_PYPMC_MCMC(self.args.input, skip_initial=0.0,
+                                                   select=select)
+            path_to_descriptions = '/chain #0'
+        else:
+            self.input = samplingOutput.EOS_PYPMC_IS(self.args.input, select=select,
+                                                     deterministic_mixture=True)
+            path_to_descriptions = ''
+
+        self.par_attributes(path_to_descriptions, select)
         self.results = np.empty((len(self.input.samples), int(args.fix[-1])))
 
-        desc = 'descriptions'
-        with h5py.File(args.output, 'w') as output_file:
-            with h5py.File(args.mcmc_input, 'r') as input_file:
-                input_file.copy('/chain #0/' + desc, output_file, name=desc)
-
-            ds_par = output_file[desc + '/parameters']
-            ds_par.attrs['input file'] = self.args.mcmc_input
-            ds_par.attrs['min sample index'] = select[0]
-            ds_par.attrs['max sample index'] = select[1]
+    def par_attributes(self, path_to_descriptions, select):
+        with h5py.File(self.args.output, 'w') as output_file:
+            with h5py.File(self.args.input, 'r') as input_file:
+                desc = 'descriptions'
+                input_file.copy(path_to_descriptions + '/' + desc, output_file, name=desc)
+                ds_par = output_file[desc + '/parameters']
+                ds_par.attrs['input file'] = self.args.input
+                ds_par.attrs['min sample index'] = select[0]
+                ds_par.attrs['max sample index'] = select[1]
 
     def run(self):
         for n, x in enumerate(self.input.samples):
             cmd = self.build_cmd(x)
             status, output = commands.getstatusoutput(cmd)
             if status:
+                print("Error in calling eos-evaluate (escape `'` or `\"` in parameter names?):")
                 print(cmd)
                 print(output)
                 exit(status)
@@ -81,7 +89,8 @@ if __name__ == '__main__':
     parser.add_argument("--kinematics", nargs='*',
                         help='''Use it to define kinematics.
                         Example: --kinematics s_min 1 s_max 6''')
-    parser.add_argument("--mcmc-input", help='File name with MCMC samples. Only `chain #0` is used!')
+    parser.add_argument("--input",
+                        help='File name with samples. If `mcmc` part of the file name, it is treated as containing MCMC samples. Then only `chain #0` is used! Otherwise the samples are assumed to come from importance sampling with variational Bayes.')
     parser.add_argument('--observable',
                         help='''Specify observable for `eos-evaluate`. Watch the string quoting!
                         Example: '--observable "B->Kll::dBR/ds@LowRecoil,l=tau" ''')
