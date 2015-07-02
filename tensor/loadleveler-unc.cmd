@@ -50,6 +50,18 @@ nsamples=$(h5ls -r $input | grep '/chain\\ #0/samples' | egrep -o '\{.*,')
 # remove '{' and ',' from '{20000,'
 nsamples=${nsamples:1:${#nsamples}-2}
 if [ -z $nsamples ]; then
+    # try with importance samples
+
+    # s=/step\ #5/combination/weights\ #5 Dataset {99968, 1}
+    s=$(h5ls -r $input | egrep 'step.*/combination/weights' | tail -n1)
+    # $3 = "#5"
+    nsteps=$(echo "$s" | awk -F'[ ,]+' '{print $3}' | cut -c 2-)
+    # $5 ="{99968"
+    samples=$(echo "$s" | awk -F'[ ,]+' '{print $5}' | cut -c 2-)
+    # start counting at zero => + 1
+    nsamples=$(( (nsteps + 1) * samples))
+fi
+if [ -z $nsamples ]; then
     echo "Could not determine number of input samples"
     exit -1
 fi
