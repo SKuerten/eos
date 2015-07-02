@@ -53,6 +53,9 @@ export UNC_KIN_Kstar_BR14to16="s_min 14.18 s_max 16"
 export UNC_OBS_Kstar_BR16to19="B->K^*ll::BRavg@LowRecoil${GLOBAL_OPTIONS}${KSTAR_OPTIONS}"
 export UNC_KIN_Kstar_BR16to19="s_min 16 s_max 19"
 
+export UNC_OBS_Kstar_BR15to19="B->K^*ll::BRavg@LowRecoil${GLOBAL_OPTIONS}${KSTAR_OPTIONS}"
+export UNC_KIN_Kstar_BR15to19="s_min 15 s_max 19"
+
 
 export UNC_OBS_Kstar_J_1c_plus_J_2c1to6="B->K^*ll::J_1c+J_2cavg@LargeRecoil${GLOBAL_OPTIONS}${KSTAR_OPTIONS}"
 export UNC_KIN_Kstar_J_1c_plus_J_2c1to6=${UNC_KIN_Kstar_BR1to6}
