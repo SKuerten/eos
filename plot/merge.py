@@ -2,13 +2,14 @@
 '''Merge multiple input files into one output file.'''
 
 from __future__ import division, print_function
+
 import commands
 import glob
 import h5py
-import os
-import shutil
-
 import numpy as np
+import os
+import samplingOutput
+import shutil
 
 # solution from http://stackoverflow.com/a/341730
 def natsorted(strings):
@@ -215,6 +216,19 @@ def merge_unc_pypmc(output_file_name, search='unc_*.hdf5', input_files=None):
             obs_ds = output_file.create_dataset('/observable', data=obs_ds[:], maxshape=(None, obs_ds.shape[1]))
             obs_ds.attrs['name'] = obs_name
 
+            # check if input from importance sampling, then get weights
+            with h5py.File(sample_input_file, 'r') as original_input_file:
+                try:
+                    original_input_file['/step #0/vb/weights']
+                except KeyError:
+                    weights = None
+                else:
+                    weights = True
+                if weights:
+                    weights = samplingOutput.EOS_PYPMC_IS(sample_input_file, deterministic_mixture=True).weights
+                    weights_ds = output_file.create_dataset('/weights', maxshape=(None,),
+                                                             data=weights[par_ds.attrs['min sample index']:par_ds.attrs['max sample index']])
+
         for file_name in input_files[1:]:
             with h5py.File(file_name, 'r') as input_file:
                 # check agreement
@@ -236,8 +250,16 @@ def merge_unc_pypmc(output_file_name, search='unc_*.hdf5', input_files=None):
 
                 print("merging %s" % os.path.split(file_name)[1])
                 old_length = obs_ds.len()
+                output_slice = slice(old_length, old_length + in_obs_ds.len())
+
+                # add more observables
                 obs_ds.resize(old_length + in_obs_ds.len(), axis=0)
-                obs_ds[old_length:old_length + in_obs_ds.len()] = in_obs_ds[:]
+                obs_ds[output_slice] = in_obs_ds[:]
+
+                # add more weights
+                if weights is not None:
+                    weights_ds.resize(old_length + in_obs_ds.len(), axis=0)
+                    weights_ds[output_slice] = weights[par_ds.attrs['min sample index']:par_ds.attrs['max sample index']]
 
                 # reset max. There may be holes in the range of min to max
                 s = 'max sample index'

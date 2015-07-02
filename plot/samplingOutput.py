@@ -1271,7 +1271,10 @@ class EOS_PYPMC_UNC(SamplingOutput):
         with open_hdf5(self.input_file_name) as input_file:
             obs_ds = input_file['/observable']
             self.samples = obs_ds[:]
-            self.weights = np.ones(len(self.samples))
+            try:
+                self.weights = input_file['/weights'][:]
+            except KeyError:
+                self.weights = np.ones(len(self.samples))
             fixed_ds = input_file['/descriptions/fixed parameter']
             fixed_name = fixed_ds.attrs['name']
             try:
