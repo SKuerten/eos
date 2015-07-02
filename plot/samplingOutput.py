@@ -1268,11 +1268,16 @@ class EOS_PYPMC_UNC(SamplingOutput):
     '''Read samples of a single observable computed from parameter samples.'''
 
     def _read(self, *args, **kwargs):
+        self.crop_outliers = kwargs.get('crop_outliers', 0)
+
         with open_hdf5(self.input_file_name) as input_file:
             obs_ds = input_file['/observable']
             self.samples = obs_ds[:]
             try:
                 self.weights = input_file['/weights'][:]
+                if self.crop_outliers > 0:
+                    crop(self.weights, self.crop_outliers)
+
             except KeyError:
                 self.weights = np.ones(len(self.samples))
             fixed_ds = input_file['/descriptions/fixed parameter']
