@@ -20,6 +20,8 @@ file=${name}_${steps}_${nnode}.job
 
 export OMP_NUM_THREADS=1
 export MP_TASK_AFFINITY=cpu:$OMP_NUM_THREADS
+# create stack trace if MPI timeout occurs
+export MP_DEBUG_TIMEOUT_COMMAND=~/.local/bin/timeout_debug.sh
 
 common() {
 echo "#! /bin/bash
@@ -44,24 +46,22 @@ if [[ $step -gt 0 ]]; then
     dependency="#@ dependency = vb_${step} == 0"
 fi
 
+tasks_per_node=16
+
 # beware of shell escaping: loadlever variables
 # must not be expanded by this shell
 echo "
 #@ step_name = is_${step}
 $dependency
-#@ job_type = parallel
+#@ job_type = mpich
 #@ class = parallel
-#
-##@ node_usage = shared
-##@ total_tasks = $nnode
-##@ blocking = unlimited
 #
 #@ node_usage = not_shared
 #@ node = $nnode
-#@ tasks_per_node = 16
+#@ tasks_per_node = ${tasks_per_node}
 #
-#@ executable = /usr/bin/poe
-#@ arguments = $script is $step
+#@ executable = $(which mpirun)
+#@ arguments = -n $((tasks_per_node * nnode)) $script is $step
 #@ queue
 "
 }

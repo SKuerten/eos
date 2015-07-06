@@ -56,6 +56,7 @@ class IS(object):
 
     def run(self):
         self.parallel_sampler.run(self.n_samples)
+        print("rank %d: sampling completed" % rank)
         if master:
             hdf5_io.save_is_samples(self.args.output, primary_group(self.args.step) + hdf5_subdirectory, self.parallel_sampler.history_list)
             # todo every process could do that, not just master
