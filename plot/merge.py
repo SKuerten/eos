@@ -6,19 +6,11 @@ from __future__ import division, print_function
 import commands
 import glob
 import h5py
+from natsort import natsorted
 import numpy as np
 import os
 import samplingOutput
 import shutil
-
-# solution from http://stackoverflow.com/a/341730
-def natsorted(strings):
-    "Sort strings the way humans are said to expect."
-    return sorted(strings, key=natural_sort_key)
-
-def natural_sort_key(key):
-    import re
-    return [int(t) if t.isdigit() else t for t in re.split(r'(\d+)', key)]
 
 def invalid_chain(file, chain, cut_off=None, format='eos'):
     """Check if mode larger than cut off"""
