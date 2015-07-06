@@ -10,6 +10,12 @@ import h5py
 import numpy as np
 import os, re, sys
 
+try:
+    from natsort import natsorted
+except ImportError:
+    "Please install the natsort package using for example `pip install --user natsort`"
+    raise
+
 def open_hdf5(name, mode='r'):
     print('Opening ' + name)
     return h5py.File(name, mode)
@@ -995,7 +1001,7 @@ class EOS_PYPMC_IS(IS_Output):
         with open_hdf5(self.input_file_name) as hdf5_file:
             # find last step
             groups = list(hdf5_file['/'].keys())
-            steps = sorted(filter(lambda x:re.search(r'^step #', x), groups))
+            steps = natsorted(filter(lambda x:re.search(r'^step #', x), groups))
             # extract 3 from 'step #3'
             last_step = int(steps[-1][steps[-1].find('#')+1:]) if steps else 0
 
@@ -1016,7 +1022,7 @@ class EOS_PYPMC_IS(IS_Output):
 
                 # read samples
                 group = hdf5_file['/step #%d/combination' % step]
-                combinations = sorted(filter(lambda x:re.search(r'^weights #', x), group.keys()))
+                combinations = natsorted(filter(lambda x:re.search(r'^weights #', x), group.keys()))
                 assert combinations, 'No deterministic-mixture weights found'
                 assert len(combinations) == len(steps), \
                 "samples (%d) and combined weights (%d) don't match" % (len(steps), len(combinations))
@@ -1114,9 +1120,7 @@ class EOS_PYPMC_IS(IS_Output):
 
     def _n_combined_weights(self, hdf5_group):
         n = []
-#         elements = hdf5_group.keys()
-        weights = sorted(filter(lambda x:re.search(r'^weights #', x), hdf5_group.keys()))
-        print(weights)
+        weights = natsorted(filter(lambda x:re.search(r'^weights #', x), hdf5_group.keys()))
         for i, c in enumerate(weights):
             assert c == 'weights #%d' % i
             n.append(hdf5_group[c].len())
