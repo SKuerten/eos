@@ -175,8 +175,8 @@ if __name__ == '__main__':
                         help="Output file name. If left empty, the output is written to 'vb.hdf5'" \
                         " in the same directory as the input file."
                         "For the special name 'APPEND', the output is written to the input file.")
-    parser.add_argument('--prune', help="Components responsible for less than this value are removed.",
-                        default=None, const=None, nargs='?')
+    parser.add_argument('--prune', default=None, const=None, nargs='?',
+                        help="Components responsible for less than this value are removed. If left blank, a rule of thumb based on the number of samples, N,  is used; i.e., the prune threshold is chosen as 0.5 * N / K, where K is the number of components.",)
     parser.add_argument('--rel-tol', type=float, default=None, const=None, nargs='?',
                         help="Relative tolerance to determine convergence of variational Bayes")
     parser.add_argument('--R-value', help="Critical R value used in grouping of chains", type=float)
