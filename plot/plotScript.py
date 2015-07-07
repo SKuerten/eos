@@ -529,61 +529,84 @@ class MarginalDistributions:
         self.nBins[index] = int(( self.max[index] - self.min[index]) / bandwidth)
         return bandwidth
 
-    def contours_one(self, x, densities, level, specifier, hist=True, **kwargs):
+    def __double_array(self, x, y):
         """
-        Plot contours and output intervals for one dim. distributions of parameter x.
+        Interpret ``y`` as an estimate of the density of a function in bins centered on ``x``. Assume uniform spacing
+        in ``x``. If ``x, y`` have length ``N``, then compute new arrays of length ``2 N + 1`` such that each point
+        in ``x`` gets a neighbor on either side. The values of ``y`` are used for linear interpolation for interior
+        points, and linear extrapolation for the two points at the boundary. If the extrapolation leads to negative
+        values, set it to zero instead.
+
+        :return: ``new_x, new_y``
+        """
+        # bin centers are given, assume uniform bin width
+        # and extrapolate linearly.
+        assert len(x) >= 2, 'Cannot determine bin width for less than two points'
+
+        # extend the array such that every original point has two neighbors
+        half_bin_width = (x[1] - x[0]) / 2
+        new_x = np.linspace(x[0] - half_bin_width, x[-1] + half_bin_width, 2 * len(x) + 1)
+        new_y = np.empty_like(new_x)
+
+        # interpolate interior points as mean value
+        for i in range(len(new_y))[1:-1]:
+            # values at odd index are the original values
+            if i % 2 == 1:
+                new_y[i] = y[i // 2]
+            else:
+                new_y[i] = (y[i // 2] + y[i // 2 - 1]) / 2
+
+        # first point: extrapolate backwards linearly
+        new_y[0] = max(1.5 * y[0] - 0.5 * y[1], 0.0)
+        # last point: extrapolate forward linearly
+        new_y[-1] = max(1.5 * y[-1] - 0.5 * y[-2], 0.0)
+
+        return new_x, new_y
+
+    def contours_one(self, x, y, level, doubled_arrays=None, **kwargs):
+        """
+        Plot contours for one dim. distributions of parameter x.
         args:
-        x = the ordinate
-        densities = the estimate of the probability density
-        level = the desired credibility level
-        specifier = label used for text output, e.g. 'one sigma'
-        hist = if `True`, plot with histogram bars, else interpolate smoothly
-        **kwargs are passed to the plotting routine of pylab.fill_between
+        x = the bin centers
+        y = the estimate of the probability density at x
+        level = the critical level of ``y``. Only points that exceed ``level`` are in the credible region
+        doubled_arrays = if ``None``, plot with histogram bars, else interpolate linearly
+        **kwargs are passed to the plotting routine of ``pylab.fill_between``
         """
-        if hist:
-            # bin edges are given
-            for i in range(len(x) - 1):
-                if densities[i] >= level:
-                    P.fill_between((x[i], x[i + 1]), 0, densities[i], **kwargs)
-        else:
+        if doubled_arrays is None:
             # bin centers are given, assume uniform bin width
-            # and extrapolate linearly. Extend by one bin!
-            assert len(x) >= 2
-            # extend the array such that every original point has two neighbors
+            assert len(x) >= 2, 'Cannot determine bin width for less than two points'
             half_bin_width = (x[1] - x[0]) / 2
-            new_x = np.linspace(x[0] - half_bin_width, x[-1] + half_bin_width, 2 * len(x) + 1)
-            new_f = np.empty_like(new_x)
-            # interpolate interior points as mean value
-            for i in range(len(new_f))[1:-1]:
-                # values at odd index are the original values
-                if i % 2 == 1:
-                    new_f[i] = densities[i // 2]
-                else:
-                    new_f[i] = (densities[i // 2] + densities[i // 2 - 1]) / 2
-            # first point: extrapolate backwards linearly
-            new_f[0] = max(1.5 * densities[0] - 0.5 * densities[1], 0.0)
-            # last point: extrapolate forward linearly
-            new_f[-1] = max(1.5 * densities[-1] - 0.5 * densities[-2], 0.0)
 
-            # due to the interpolation, we now have lower the level a bit for regions at the boundary of the credible region
-            # indices = np.where(densities == level)[0]
-            # assert len(indices) >= 1, "level doesn't match any bin content exactly"
-            for i, f_i in enumerate(new_f):
-                # color either side but only if needed to avoid double plot that is visible if alpha < 1
+            # fill points in list to have only one call to fill_between for to avoid rendering artefacts
+            above_x, above_y = [], []
+            for i, x_i in enumerate(x):
+                if y[i] >= level:
+                    above_x += [x_i - half_bin_width, x_i + half_bin_width]
+                    above_y += [y[i], y[i]]
+            P.fill_between(above_x, 0, above_y, **kwargs)
+        else:
+            double_x, double_y = doubled_arrays
 
-                # ignore old values
+            # everything above the `level` should be filled
+            mask = double_y >= level
+
+            # due to the interpolation, we now have to also fill the half bins adjacent to boundaries of the credible
+            # region at the boundary of the credible region even if the displayed function value is below `level`
+            # Update the mask so there is only one call to `fill_between` and there are no ugly thin strips in some
+            # levels of the pdf zoom
+            for i, y_i in enumerate(double_y):
+                # ignore values that are note interpolated
                 if i % 2 == 1:
                     continue
                 # check if half bin fell below level to the right, skip last half bin
-                if i < len(new_f) - 1 and f_i < level and densities[i // 2] >= level:
-                    sl = slice(i, i + 2)
-                    P.fill_between(new_x[sl], new_f[sl], 0, **kwargs)
+                if i < len(double_y) - 1 and y_i < level and y[i // 2] >= level:
+                    mask[i] = True
                 # look the left except at first half bin
-                if i > 0 and f_i < level and densities[i // 2 - 1] >= level:
-                    sl = slice(i - 1, i + 1)
-                    P.fill_between(new_x[sl], new_f[sl], 0, **kwargs)
+                if i > 0 and y_i < level and y[i // 2 - 1] >= level:
+                    mask[i] = True
 
-            P.fill_between(new_x, new_f, 0, where=new_f >= level, **kwargs)
+            P.fill_between(double_x, double_y, 0, where=mask, **kwargs)
 
     def contours_two(self, x_range, y_range, densities, desired_levels=None,
                      color='blue', grid=True, line=None,
@@ -694,10 +717,9 @@ class MarginalDistributions:
         print("Maxima of 68 %% contours at = %s " % np.array(maxima_68))
         """
 
-        # todo +-1 error seen in left most bin. Printed interval has one more bin than plotted
     def __extract_smallest_intervals(self, x, prob_density, level_68, level_95, index=None):
         """
-        Extract set of smallest intervals in 1D
+        Extract set of smallest intervals in 1D. Assume x contains the bin centers!
         """
         points_95 = prob_density >= level_95
 
@@ -821,9 +843,16 @@ class MarginalDistributions:
             #                                normed=True, range=(x_min, x_max), label=legend_label, **marginal_style)
             # x_values, y_values = np.asanyarray(x_values), np.asanyarray(y_values)
 
-            # data for contours
-            x_values, y_values = hist_normal
-            assert len(x_values) == len(y_values) + 1, "x values (%d) and y values (%d) should differ in length by one" % (len(x_values), len(y_values))
+            # data for contours should contain bin centers
+            half_bin_width = 0.5 * (x_max - x_min) / self.nBins[index]
+            print(half_bin_width)
+            print(hist_normal[0])
+            x_values = hist_normal[0][1:] - half_bin_width
+            y_values = hist_normal[1]
+            print(x_values)
+            print(y_values / np.sum(y_values))
+            assert len(x_values) == len(y_values), \
+                "x values (%d) and y values (%d) should match in length" % (len(x_values), len(y_values))
         else:  #use KDE
             bin_width = (x_max - x_min) / self.nBins[index]
             mesh_points = np.linspace(x_min + bin_width / 2, x_max - bin_width / 2, self.nBins[index])
@@ -838,10 +867,12 @@ class MarginalDistributions:
             # normalize to unity for proper pdf
             densities /= np.sum(densities) * (x_max - x_min) / len(mesh_points)
 
-            P.plot(mesh_points, densities, label=legend_label, **marginal_style)
-
             # data for contours
             x_values, y_values = mesh_points, densities
+
+            double_x, double_y = self.__double_array(x_values, y_values)
+
+            P.plot(double_x, double_y, label=legend_label, **marginal_style)
 
         #now add credibility bands
         if self.use_contours:
@@ -851,10 +882,10 @@ class MarginalDistributions:
             level_68, level_95 = self.find_hist_limits(y_values)
             self.__extract_smallest_intervals(x_values, y_values, level_68, level_95, index)
 
-            for level, tag, style in [(level_95, 'two_sigma', two_sigma_style),
-                                      (level_68, 'one_sigma', one_sigma_style)]:
-                self.contours_one(x_values, y_values, level, tag,
-                                  hist=self.use_histogram,
+            for level, style in [(level_95, two_sigma_style),
+                                      (level_68, one_sigma_style)]:
+                self.contours_one(x_values, y_values, level,
+                                  doubled_arrays=None if self.use_histogram else (double_x, double_y),
                                   linewidth=0, edgecolor='none', **style)
 
         # determine goodness-of-fit
