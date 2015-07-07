@@ -13,6 +13,8 @@ define scenario and observable
 prepare input
 -------------
 
+### MCMC
+
 1. Run multiple MCMCs to create parameter samples
    `BASE_NAME=$WORK/eos/2015-tensor/2015-03-25 ./loadleveler-single.cmd sm-unc_K.bash mcmc 1 100`
 
@@ -25,6 +27,10 @@ prepare input
 
 3. plot to check for example correlation of samples
    `plotScript.py mcmc_pre_merged.hdf5 --pypmc --mcmc --nuis`
+
+### importance sampling
+
+Create file `vb.hdf5`
 
 compute
 -------

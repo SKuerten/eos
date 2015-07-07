@@ -666,8 +666,10 @@ class Spring2015(object):
         ###
         # scenarios
         ###
+        scenarios = []
+        '''
         s = 'scTT5_FH'
-        scenarios = [s]
+        scenarios.append(s)
         marg.scen[s] = Scenario(os.path.join(marg.input_base, 'mcmc_scTT5_FH.hdf5'), 'OrangeRed',
                                 nbins=300)
         # in python, we can add class members as we please, use with care!
@@ -685,6 +687,13 @@ class Spring2015(object):
         marg.scen[s] = Scenario(os.path.join(marg.input_base, 'mcmc_' + s + '.hdf5'), 'Green',
                                 nbins=300)
         marg.scen[s].ctind = [(4, 5), (6, 7)]
+        '''
+        s = 'sc910SPTT5_K_KstarBR_Bsmumu'
+        scenarios.append(s)
+        marg.scen[s] = Scenario(os.path.join(marg.input_base, 'vb_' + s + '.hdf5'), 'Green',
+                                nbins=300)
+        marg.scen[s].ctind = [(16, 17), (18, 19)]
+
 
         marg.read_data()
 
@@ -873,6 +882,6 @@ if __name__ == '__main__':
 
     f = Spring2015()
     # f.figSP()
-    # f.figTT5()
-    f.fig_1()
+    f.figTT5()
+    # f.fig_1()
     # f.all()
