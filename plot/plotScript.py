@@ -457,53 +457,6 @@ class MarginalDistributions:
             self.min[index] = np.min(self.out.samples.T[index])
             self.max[index] = np.max(self.out.samples.T[index])
 
-    def find_limits_1D(self, index, method='ECDF'):
-        """
-        Find the central limits using the empirical CDF
-        in 1D for the parameter identified by *index*
-        """
-
-        if method == 'ECDF':
-            #ascending order
-
-            #find multiplicity of multiple events
-            #it's in last column
-            order_statistics = filter_duplicates(np.sort(self.out.samples.T[index]))
-
-            #build cdf. normalize to unity
-            ecdf = np.cumsum(order_statistics.T[-1])
-            ecdf /= float(ecdf[-1])
-
-
-            #binary search for index next to CDF value,
-            #then extract physical parameter
-            #subtract/add one from index to overcover
-            limit_one_sigma = [order_statistics[max(0, np.searchsorted(ecdf, 0.15865525393145705) - 1), 0],
-                               order_statistics[
-                                   min(ecdf.shape[0] - 1, np.searchsorted(ecdf, 0.84134474606854293) + 1), 0]]
-            limit_two_sigma = [order_statistics[max(0, np.searchsorted(ecdf, 0.02275013194817919) - 1), 0],
-                               order_statistics[
-                                   min(ecdf.shape[0] - 1, np.searchsorted(ecdf, 0.97724986805182079) + 1), 0]]
-            return (limit_one_sigma, limit_two_sigma)
-
-        if method == 'histogram':
-            #bin the data
-            histo, edges = np.histogram(self.out.samples.T[index], self.nBins[index])
-
-            #build CDF
-            temp = np.cumsum(histo)
-            cdf = temp / float(temp[-1])
-
-            #binary search for index next to CDF value,
-            #then extract physical parameter
-            #subtract/add one from index to overcover
-            limit_one_sigma = [edges[max(0, np.searchsorted(cdf, 0.15865525393145705) - 1)],
-                               edges[min(cdf.shape[0] - 1, np.searchsorted(cdf, 0.84134474606854293) + 2)]]
-
-            limit_two_sigma = [edges[max(0, np.searchsorted(cdf, 0.02275013194817919) - 1)],
-                               edges[min(cdf.shape[0] - 1, np.searchsorted(cdf, 0.97724986805182079) + 2)]]
-            return (limit_one_sigma, limit_two_sigma)
-
     @staticmethod
     def find_hist_limits(histo, credibilities=(0.68268949213708585, 0.95449973610364158), density=None):
         """
@@ -514,7 +467,7 @@ class MarginalDistributions:
         thus overcovers.
         Note:
         * procedure works for one and 2D
-        * expect a histogram with the actual, integer counts
+        * expect a histogram with the actual (weighted) counts
 
         If **density**, check at what credibility level
         the given posterior density lies, i.e. starting from a mode,
@@ -549,8 +502,7 @@ class MarginalDistributions:
         levels = np.array(credibilities)
         for i, p in enumerate(credibilities):
             #now start at back, the highest value, the full number of samples
-            #minus -1 to overcover
-            index = max(0, np.searchsorted(cdf, (1 - p) * cdf[-1]) - 1)
+            index = max(0, np.searchsorted(cdf, (1 - p) * cdf[-1]))
             levels[i] = bin_counts[index]
 
         return levels
@@ -589,38 +541,49 @@ class MarginalDistributions:
         **kwargs are passed to the plotting routine of pylab.fill_between
         """
         if hist:
+            # bin edges are given
             for i in range(len(x) - 1):
-                if densities[i] > level:
+                if densities[i] >= level:
                     P.fill_between((x[i], x[i + 1]), 0, densities[i], **kwargs)
-                    continue
-
-            return
         else:
-            P.fill_between(x, densities, 0, interpolate=True, where=densities > level, **kwargs)
-            return
+            # bin centers are given, assume uniform bin width
+            # and extrapolate linearly. Extend by one bin!
+            assert len(x) >= 2
+            # extend the array such that every original point has two neighbors
+            half_bin_width = (x[1] - x[0]) / 2
+            new_x = np.linspace(x[0] - half_bin_width, x[-1] + half_bin_width, 2 * len(x) + 1)
+            new_f = np.empty_like(new_x)
+            # interpolate interior points as mean value
+            for i in range(len(new_f))[1:-1]:
+                # values at odd index are the original values
+                if i % 2 == 1:
+                    new_f[i] = densities[i // 2]
+                else:
+                    new_f[i] = (densities[i // 2] + densities[i // 2 - 1]) / 2
+            # first point: extrapolate backwards linearly
+            new_f[0] = max(1.5 * densities[0] - 0.5 * densities[1], 0.0)
+            # last point: extrapolate forward linearly
+            new_f[-1] = max(1.5 * densities[-1] - 0.5 * densities[-2], 0.0)
 
-        high_points = densities >= level
+            # due to the interpolation, we now have lower the level a bit for regions at the boundary of the credible region
+            # indices = np.where(densities == level)[0]
+            # assert len(indices) >= 1, "level doesn't match any bin content exactly"
+            for i, f_i in enumerate(new_f):
+                # color either side but only if needed to avoid double plot that is visible if alpha < 1
 
-        # find connected regions
-        runs = find_runs(high_points, True)
+                # ignore old values
+                if i % 2 == 1:
+                    continue
+                # check if half bin fell below level to the right, skip last half bin
+                if i < len(new_f) - 1 and f_i < level and densities[i // 2] >= level:
+                    sl = slice(i, i + 2)
+                    P.fill_between(new_x[sl], new_f[sl], 0, **kwargs)
+                # look the left except at first half bin
+                if i > 0 and f_i < level and densities[i // 2 - 1] >= level:
+                    sl = slice(i - 1, i + 1)
+                    P.fill_between(new_x[sl], new_f[sl], 0, **kwargs)
 
-        #green band for each interval
-        for run in runs:
-            P.fill_between(x[run[0]:run[1]], 0, densities[run[0]:run[1]], **kwargs)
-
-        # print intervals and local modes
-        intervals = []
-        local_modes = []
-        for run in runs:
-            intervals.append([x[run[0]], x[run[1] - 1]])
-            intervals[-1].append(intervals[-1][1] - intervals[-1][0])
-            local_modes.append(x[run[0] + np.argmax(densities[run[0]:run[1]])])
-
-        print("Minimal %s interval(s):" % specifier)
-        print(np.array(intervals))
-
-        print("Local marginalized mode(s) at:")
-        print(np.array(local_modes))
+            P.fill_between(new_x, new_f, 0, where=new_f >= level, **kwargs)
 
     def contours_two(self, x_range, y_range, densities, desired_levels=None,
                      color='blue', grid=True, line=None,
@@ -862,7 +825,8 @@ class MarginalDistributions:
             x_values, y_values = hist_normal
             assert len(x_values) == len(y_values) + 1, "x values (%d) and y values (%d) should differ in length by one" % (len(x_values), len(y_values))
         else:  #use KDE
-            mesh_points = np.linspace(x_min, x_max, self.nBins[index])
+            bin_width = (x_max - x_min) / self.nBins[index]
+            mesh_points = np.linspace(x_min + bin_width / 2, x_max - bin_width / 2, self.nBins[index])
 
             #setup for figtree
             start_time = time.time()
@@ -871,19 +835,13 @@ class MarginalDistributions:
             end_time = time.time()
             print("figtree with bandwidth %g took %f s" % (bandwidth, end_time - start_time))
 
-            from scipy import interpolate
-            #do a spline interpolation on a finer grid
-            tck = interpolate.splrep(mesh_points, densities, s=0)
-            finer_mesh = np.linspace(x_min, x_max, 5 * self.nBins[index])
-            densities_interp = interpolate.splev(finer_mesh, tck, der=0)
+            # normalize to unity for proper pdf
+            densities /= np.sum(densities) * (x_max - x_min) / len(mesh_points)
 
-            # normalize to unity
-            densities_interp /= np.sum(densities_interp * (x_max - x_min) / len(finer_mesh))
-
-            P.plot(finer_mesh, densities_interp, label=legend_label, **marginal_style)
+            P.plot(mesh_points, densities, label=legend_label, **marginal_style)
 
             # data for contours
-            x_values, y_values = finer_mesh, densities_interp
+            x_values, y_values = mesh_points, densities
 
         #now add credibility bands
         if self.use_contours:
@@ -891,7 +849,6 @@ class MarginalDistributions:
             #minimal interval
             ###
             level_68, level_95 = self.find_hist_limits(y_values)
-
             self.__extract_smallest_intervals(x_values, y_values, level_68, level_95, index)
 
             for level, tag, style in [(level_95, 'two_sigma', two_sigma_style),
