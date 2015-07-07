@@ -12,9 +12,8 @@ import os, re, sys
 
 try:
     from natsort import natsorted
-except ImportError:
-    "Please install the natsort package using for example `pip install --user natsort`"
-    raise
+except:
+    raise ImportError("Please install the natsort package from the package manager or `pip install --user natsort`")
 
 def open_hdf5(name, mode='r'):
     print('Opening ' + name)
