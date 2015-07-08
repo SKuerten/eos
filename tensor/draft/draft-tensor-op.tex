@@ -988,17 +988,14 @@ considered there.
   \includegraphics[width=.35\textwidth]{plots/pdf/smEFTS_K_Bsmumu,smEFTS10_K_KstarBR_Bsmumu_0,2}
   \includegraphics[width=.35\textwidth]{plots/pdf/smEFTS_K_Bsmumu,smEFTS10_K_KstarBR_Bsmumu_1,3}
   \caption{
-    \eos{
-    Constraints on real-valued [left] and complex-valued [right] scalar couplings
-    $\wilson{S,\,S'}$ in the scenario SM-EFT from only $\overline{\cal B}(B_s \to
-    \bar\mu\mu)$ (blue) and all data in \reftab{tab:observables} (green)
-    at 68\% (darker) and 95\% (lighter) probability when marginalising
-    over non-zero $\mbox{Re}(\wilson[NP]{10}) \in [-1,\, 9]$ as well as and
-    $\mbox{Im}(\wilson[NP]{10})$ and $\mbox{Re, Im}(\wilson[NP]{10'}) \in [-5,\,5]$.
-    For comparison the according constraints from all data when keeping
-    $\mbox{Re, Im}(\wilson[NP]{10,\, 10'}) = 0$ (red)
-    at 68\% (darker) and 95\% (lighter) probability.
-    }
+    Constraints (2D-marginalized) on complex-valued scalar couplings 
+    $\wilson{S,\,S'}$ in the scenario SM-EFT from all data in 
+    \reftab{tab:observables} (red) at 68\% (darker) and 95\% 
+    (lighter) probability when marginalising over non-zero $\mbox{Re, Im}
+    (\wilson[NP]{10,\,10'}) \in [-7,\,7]$.
+    For comparison the according constraints from only $\overline{\cal B}(B_s\to \bar\mu\mu)$
+    and $F_H^\mu$ \todo{What else?}
+    (dashed blue contours) at 68\% (inner) and 95\% (outer) probability.
   }
   \label{fig:scalar:SM-EFT}
 \end{figure*}
@@ -1065,9 +1062,11 @@ The SM gauge groups do not impose constraints on the operators of the SM-EFT tha
 imply relations among $\wilson{10}$ and $\wilson{10'}$, so they
 are in general additional independent parameters. Here we find that destructive
 interference with contributions involving $\wilson{10,\, 10'}$ do not change
-much upper bounds on $|\wilson{S,\, S'}|$ found in \cite{Alonso:2014csa}. However,
-for the most general case of complex-valued couplings destructive interference
-constrains (4 parameters) \todo{finish, describe \reffig{fig:scalar:SM-EFT}}
+much upper bounds on $|\wilson{S,\, S'}|$ found in \cite{Alonso:2014csa}. Since we
+consider here complex-valued couplings the allowed regions are circles rather
+than rings as for the case of real-valued couplings. The result of the simultaneous
+fit of complex-valued $\wilson{S,\,S',\,10,\,10'}$ is shown in 
+\reffig{fig:scalar:SM-EFT}.
 
 It must be noted that relations \refeq{eq:mEFT-constraints} are a consequence
 of embedding the Higgs in a weak doublet along with the Goldstone bosons.
