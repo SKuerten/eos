@@ -19,6 +19,7 @@ sys.path.append(os.path.realpath('../plot'))
 import plotScript
 from plotScript import ParameterDefinition
 
+colors = dict(red='#FE2E2E', blue='#2E64FE', grey='#848484')
 
 def run_command(com):
     import commands
@@ -63,7 +64,8 @@ class Scenario(object):
     def __init__(self, file, color, nbins=200, alpha=0.4, sigma='2 sigma',
                  bandwidth_default=None, two_sigma_color=None, queue_output=True,
                  crop_outliers=200, local_mode=None, defs={},
-                 unc_label='', histogram=True, linestyle='solid'):
+                 unc_label='', histogram=True, linestyle='solid', fill=True,
+                 pred_range=None):
         self.f = file
         self.c = color
         self.prob = {}
@@ -81,6 +83,8 @@ class Scenario(object):
         self.unc_label = unc_label
         self.histogram = histogram
         self.linestyle = linestyle
+        self.fill = fill
+        self.pred_range = pred_range
 
     def get_bandwidth(self, par1, par2):
         try:
@@ -342,9 +346,15 @@ class MarginalContours(object):
             # retrieve original range used to create prob_density
             # then zoom will work correctly
             density, xrange, yrange = self.__density_cache[(par_indices_i[k], par_indices_j[k], s, solution)]
-            for line in [None, self.scen[s].linestyle]:
+            # fill contour only if desired but always draw contour line
+            fill = [self.scen[s].linestyle]
+            if self.scen[s].fill:
+                fill.append(None)
+                # color fill should come first
+                fill.reverse()
+            for line in fill:
                 artist = self.margs[s].contours_two(xrange, yrange, density,
-                                                    color=self.scen[s].c if line is None else 'black', line=line, grid=True,
+                                                    color=self.scen[s].c if (len(fill) == 1) or line is None else 'black', line=line, grid=True,
                                                     desired_levels=desired_levels,
                                                     alpha=self.contour_alpha if line is None else 0.8)
 
@@ -455,7 +465,6 @@ class MarginalContours(object):
         upper_one_sigma = np.empty_like(lower_one_sigma)
         lower_two_sigma = np.empty_like(lower_one_sigma)
         upper_two_sigma = np.empty_like(lower_one_sigma)
-        mode = np.empty_like(lower_one_sigma)
 
         for def1 in m.out.par_defs:
             lower_one_sigma[def1.i] = m.credibilities[def1.i][0][0, 0]
@@ -463,18 +472,23 @@ class MarginalContours(object):
             lower_two_sigma[def1.i] = m.credibilities[def1.i][1][0, 0]
             upper_two_sigma[def1.i] = m.credibilities[def1.i][1][0, 1]
 
+        # plot only a subset of the available range
+        input_slice = self.scen[scen].pred_range
+
         # plot every one
         if two_sigma_style is not None:
-            P.fill_between(m.out.fixed_values, lower_two_sigma, upper_two_sigma, **two_sigma_style)
-        P.fill_between(m.out.fixed_values, lower_one_sigma, upper_one_sigma,
-                       **one_sigma_style)
+            P.fill_between(m.out.fixed_values[input_slice], lower_two_sigma[input_slice],
+                           upper_two_sigma[input_slice], **two_sigma_style)
+        P.fill_between(m.out.fixed_values[input_slice], lower_one_sigma[input_slice],
+                       upper_one_sigma[input_slice], **one_sigma_style)
 
     def stack_prediction(self, scenarios, measurement, legendpos='best'):
         legend_patches = []
 
         # plot measurement first and below the patches
         m = self.margs[scenarios[0]]
-        x_range = m.out.fixed_values[0], m.out.fixed_values[-1]
+        s = self.scen[scenarios[0]]
+        x_range = m.out.fixed_values[s.pred_range][0], m.out.fixed_values[s.pred_range][-1]
         if measurement:
             P.fill_between(x_range, [measurement.lower] * 2, [measurement.upper] * 2, **measurement.one_sigma_style)
             P.plot(x_range, [measurement.central] * 2, **measurement.central_style)
@@ -551,7 +565,10 @@ class Spring2015(object):
                           local_mode=[False] * len(scenarios),
                           indices=indices)  # no local mode
         adjust_subplot()
-        P.savefig(marg.out(','.join(scenarios) + '_%d,%d' % (def1.i, def2.i)))
+        i,j = def1.i, def2.i
+        if indices is not None:
+            i, j = indices[0]
+        P.savefig(marg.out(','.join(scenarios) + '_%d,%d' % (i, j)))
 
     def figSP(self):
 
@@ -562,7 +579,7 @@ class Spring2015(object):
         ###
 
         s = 'scSP_FH'
-        marg.scen[s] = Scenario(os.path.join(marg.input_base, 'mcmc_' + s + '.hdf5'), '#848484',
+        marg.scen[s] = Scenario(os.path.join(marg.input_base, 'mcmc_' + s + '.hdf5'), colors['grey'],
                                 nbins=300, linestyle='dotted')
         #                                         local_mode=[[-0.348441713,   3.787226592, -4.420530192],
         #                                                     [ 0.5021320352, -4.568457245,  4.25129282]])
@@ -575,7 +592,7 @@ class Spring2015(object):
         # marg.scen[s].spind = [(1, 3), (5, 7)] # imaginary
 
         s = 'scSP_Bsmumu'
-        marg.scen[s] = Scenario(os.path.join(marg.input_base, 'mcmc_' + s + '.hdf5'), '#2E64FE',
+        marg.scen[s] = Scenario(os.path.join(marg.input_base, 'mcmc_' + s + '.hdf5'), colors['blue'],
                                 nbins=300, linestyle='dashed')
         #                                         local_mode=[[-0.348441713,   3.787226592, -4.420530192],
         #                                                     [ 0.5021320352, -4.568457245,  4.25129282]])
@@ -588,7 +605,7 @@ class Spring2015(object):
         # marg.scen[s].spind = [(1, 3), (5, 7)] # imaginary
 
         s = 'sc910SP_K_KstarBR_Bsmumu'
-        marg.scen[s] = Scenario(os.path.join(marg.input_base, 'vb_' + s + '.hdf5'), '#FE2E2E',
+        marg.scen[s] = Scenario(os.path.join(marg.input_base, 'vb_' + s + '.hdf5'), colors['red'],
                                 nbins=300, crop_outliers=500)
         # indices of S,S' and P,P'
         marg.scen[s].spind = [(8, 10), (12, 14)] # real
@@ -731,14 +748,15 @@ class Spring2015(object):
 
         marg = MarginalContours(self.input_base, self.output_base, max_samples=self.max_samples)
 
-        scen_kw = dict(nbins=200, histogram=False)
-        colors = ['blue', 'red']
+        scen_kw = dict(nbins=500, histogram=False)
         scenario_names = []
-        for i, d in enumerate(scen_obs):
+        for d, c in zip(scen_obs, ['blue', 'red']):
             kw = dict(scen_kw)
-            kw['color'] = colors[i]
+            kw['color'] = colors[c]
             name = d.pop('name')
             kw.update(d)
+            # hack: plot cT in [-1,1] only
+            kw['pred_range'] = slice(5, 26)
             marg.scen[name] = Scenario(self.input('unc_' + name + '.hdf5'), **kw)
             scenario_names.append(name)
         marg.read_data()
@@ -756,7 +774,7 @@ class Spring2015(object):
 
         central_style = dict(color='black', linewidth=matplotlib.rcParams['axes.linewidth'],
                              linestyle='solid', alpha=1)
-        one_sigma_style = dict(color='grey', alpha=1)
+        one_sigma_style = dict(color=colors['grey'], alpha=0.7)
         if measurement:
             if not measurement.has_key('sigma_lower'):
                 measurement['sigma_lower'] = measurement['sigma_upper']
@@ -863,6 +881,78 @@ class Spring2015(object):
                       measurement=None, rescale=tau_B,
                       ylabel=ylabel + '_{[%g,%g]}$' % (s_min, s_max), yrange=yrange)
 
+    def fig_constrained(self):
+        marg = MarginalContours(self.input_base, self.output_base, max_samples=self.max_samples)
+
+        s = 'smEFTS_K_Bsmumu'
+        marg.scen[s] = Scenario(os.path.join(marg.input_base, 'mcmc_' + s + '.hdf5'), colors['blue'],
+                                nbins=300, linestyle='dashed', fill=False)
+        # indices of S,S'
+        marg.scen[s].real_ind = [(0, 2)] # real
+        marg.scen[s].imag_ind = [(1, 3)] # imaginary
+        marg.scen[s].set_bandwidth(0, 1, 0.01)
+        marg.scen[s].set_bandwidth(0, 2, 0.01)
+        marg.scen[s].set_bandwidth(0, 3, 0.01)
+        marg.scen[s].set_bandwidth(2, 1, 0.01)
+        marg.scen[s].set_bandwidth(1, 3, 0.01)
+        marg.scen[s].set_bandwidth(2, 3, 0.01)
+
+        s = 'smEFTS10_K_KstarBR_Bsmumu'
+        marg.scen[s] = Scenario(os.path.join(marg.input_base, 'vb_' + s + '.hdf5'), colors['red'],
+                                nbins=300, crop_outliers=500)
+        # indices of S,S'
+        marg.scen[s].real_ind = [(0, 2)] # real
+        marg.scen[s].imag_ind = [(1, 3)] # imaginary
+        marg.scen[s].set_bandwidth(0, 1, 0.02)
+        marg.scen[s].set_bandwidth(0, 2, 0.02)
+        marg.scen[s].set_bandwidth(0, 3, 0.02)
+        marg.scen[s].set_bandwidth(1, 3, 0.02)
+        marg.scen[s].set_bandwidth(2, 1, 0.02)
+        marg.scen[s].set_bandwidth(2, 3, 0.02)
+
+        '''
+        s = 'sc910SPTT5_K_KstarBR_Bsmumu'
+        marg.scen[s] = Scenario(os.path.join(marg.input_base, 'vb_' + s + '.hdf5'), colors['red'],
+                                nbins=300, crop_outliers=500)
+        # indices of S,S' and P,P'
+        marg.scen[s].real_ind = [(8, 10), (12, 14)] # real
+        marg.scen[s].imag_ind = [(9, 11), (13, 15)] # imaginary
+        marg.scen[s].set_bandwidth(8, 10, 0.02)
+        '''
+        marg.read_data()
+        scenarios = marg.scen.keys()
+
+        square_figure(self.fig_size)
+        matplotlib.rcParams['font.size'] = 20
+
+        ###
+        # plot settings
+        ###
+        limit = 0.25
+        defs = [ParameterDefinition(index=0, name=r"$\mathrm{Re}(\mathcal{C}_S)$", min=-limit, max=limit),
+                ParameterDefinition(index=1, name=r"$\mathrm{Im}(\mathcal{C}_S)$", min=-limit, max=limit),
+                ParameterDefinition(index=2, name=r"$\mathrm{Re}(\mathcal{C}_{S'})$", min=-limit, max=limit),
+                ParameterDefinition(index=3, name=r"$\mathrm{Im}(\mathcal{C}_{S'})$", min=-limit, max=limit),
+                ]
+        # Re(cS) vs Re(cS')
+        self.overlay(marg, defs[0], defs[2], scenarios, indices=[marg.scen[s].real_ind[0] for s in scenarios])
+        # Im(cS) vs Im(cS')
+        self.overlay(marg, defs[1], defs[3], scenarios, indices=[marg.scen[s].imag_ind[0] for s in scenarios])
+        '''
+        # Re(cS) vs Im(cS)
+        self.overlay(marg, defs[0], defs[1], scenarios,
+                     indices=[(marg.scen[s].real_ind[0][0], marg.scen[s].imag_ind[0][0]) for s in scenarios])
+        # Re(cS) vs Im(cS')
+        self.overlay(marg, defs[0], defs[3], scenarios,
+                     indices=[(marg.scen[s].real_ind[0][0], marg.scen[s].imag_ind[0][1]) for s in scenarios])
+
+        # Re(cS') vs Im(cS)
+        self.overlay(marg, defs[2], defs[1], scenarios,
+                     indices=[(marg.scen[s].real_ind[0][1], marg.scen[s].imag_ind[0][0]) for s in scenarios])
+        # Re(cS') vs Im(cS')
+        self.overlay(marg, defs[2], defs[3], scenarios,
+                     indices=[(marg.scen[s].real_ind[0][1], marg.scen[s].imag_ind[0][1]) for s in scenarios])
+        '''
     def all(self):
         import inspect
 
@@ -890,7 +980,8 @@ if __name__ == '__main__':
     matplotlib.rcParams['axes.linewidth'] = major['width']
 
     f = Spring2015()
-    f.figSP()
+    # f.figSP()
     # f.figTT5()
-    # f.fig_1()
+    f.fig_1()
+    # f.fig_constrained()
     # f.all()
