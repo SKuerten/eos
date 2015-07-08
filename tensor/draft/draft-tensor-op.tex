@@ -1007,20 +1007,21 @@ considered there.
 
 In the following we consider a model-independent scenario as predicted by the SM
 augmented by dimension six operators that respect the SM gauge group and are
-composed out of SM fields. After the discovery of a scalar resonance at the LHC
+composed out of SM fields only. After the discovery of a scalar resonance at the LHC
 that complies currently with all requirements of the Higgs particle in the SM
 and the steadily rising lower bounds on new particle masses towards higher energies
-from ATLAS and CMS such a scenario becomes more and more viable\footnote{\todo{
-comment on Cata/Jung \cite{Cata:2015ltad}.}}.
+from ATLAS and CMS such a scenario becomes more and more viable.
 
 A non-redundant set of dimension six operators of
 this effective theory (SM-EFT) was given in \cite{Grzadkowski:2010es} and the
 matching to the effective theory of $\Delta B = 1$ decays \refeq{eq:Heff} at the
-scale $\mu \sim m_W$ of the order of the $W$-boson mass in \cite{D'Ambrosio:2002ex}
+scale $\mu \sim m_W$ of the order of the $W$-boson mass in~\cite{D'Ambrosio:2002ex}
 for vector couplings $\wilson{7,\,9,\,10}$. The matching for tensor
 \refeq{eq:tensor:ops} and scalar \refeq{eq:scalar:ops} operators
-\cite{Alonso:2014csa} shows that SM gauge groups impose the relations
+\cite{Alonso:2014csa} shows that SM gauge groups in conjunction with the linear
+representation impose the relations
 \begin{align}
+  \label{eq:mEFT-constraints}
   \wilson{P}  & = -\wilson{S}\,, &
   \wilson{P'} & = \wilson{S'}\,, &
   \wilson{T}  & = \wilson{T5} = 0
@@ -1065,27 +1066,34 @@ much upper bounds on $|\wilson{S,\, S'}|$ found in \cite{Alonso:2014csa}. Howeve
 for the most general case of complex-valued couplings destructive interference
 constrains (4 parameters) \todo{finish, describe \reffig{fig:scalar:SM-EFT}}
 
+It must be noted that relations \refeq{eq:mEFT-constraints} are a consequence
+of embedding the Higgs in a weak doublet along with the Goldstone bosons.
+For example choosing a non-linear representation of the scalar sector allows
+for additional dimension six operators in the SM-EFT, such that $\wilson{S,S',P,P'}$
+are all independent and tensor operators have non-vanishing couplings already
+at dimension six \cite{Cata:2015lta}.
+
 %
 %
 %--------+---------+---------+---------+---------+---------+---------+---------+
 \subsection{Tensor, scalar and vector couplings \label{sec:tensor:scalar}}
 
-The most general fit of complex-valued tensorial and scalar couplings 
-$\wilson{S,S',P,P',T,T5}$ in combination with complex-valued vectorial couplings
+The most general fit of complex-valued tensor and scalar couplings 
+$\wilson{S,S',P,P',T,T5}$ in combination with complex-valued vector couplings
 $\wilson{9,\,9',\,10,\, 10'}$ --- i.e. the combination of \refsec{sec:tensor}
 and \refsec{sec:scalar} with same prior ranges --- does not yield very different
 bounds. The changes are only small and in fact the bounds tend to be even more
 stringent, because tensor and scalar couplings can contribute to $F_H^{\mu}$
 only constructively --- see \refeq{eq:FH-dependence}.
-As before ${\cal B}$'s of $B\to K^{(*)}\bar\mu\mu$ help to strengthen the
-constraints on $\wilson{T,\, T5}$. This demonstrates that even in the case
+As before branching-ratio measurements of $B\to K^{*}\bar\mu\mu$ help to strengthen
+the constraints on $\wilson{T,\, T5}$. This demonstrates that even in the case
 of complex-valued couplings the data is able to constrain all real and imaginary
 parts.
 
 %
 %
 %--------+---------+---------+---------+---------+---------+---------+---------+
-\subsection{ for $B\to K^* \bar\ell\ell$}
+\subsection{Angular observables in $B\to K^* \bar\ell\ell$}
 
 \begin{table*}
   \renewcommand{\arraystretch}{1.5}
@@ -1095,9 +1103,9 @@ parts.
     observable
   & $q^2$-bin [GeV$^2$]
   & SM
-  & $T,\,T5,\,9,\,10,$
-  & $S^{(')},\,P^{(')},\,9^{(')},\,10^{(')}$
-  & $S^{(')},P^{(')},\,T,\,T5,\,9^{(')},10^{(')}$
+  & $\quad T(5),\,9,\,10\quad$
+  & $\quad S^{(')},\,P^{(')},\,9^{(')},\,10^{(')} \quad$
+  & $\quad S^{(')},P^{(')},\,T(5),\,9^{(')},10^{(')}$
   \\
   \hline \hline
   \multirow{2}{*}{$\tau_{B^0} \times J_{6c}$}
@@ -1105,13 +1113,13 @@ parts.
   & $\simeq 0$
   & $(0.7_{-2.1}^{+1.7}) \cdot 10^{-9\;}$
   & $(0.0_{-2.1}^{+2.2}) \cdot 10^{-\todo{10}}$
-  & $( 0.2_{-1.1}^{+1.2}) \cdot 10^{-9}$
+  & $(0.2_{-1.1}^{+1.2}) \cdot 10^{-9}$
   \\
   & $[15,\, 19]$
   & $\simeq 0$
   & $(2.1_{-6.2}^{+5.1}) \cdot 10^{-10}$
   & $(0.7_{-6.6}^{+5.4}) \cdot 10^{-11}$
-  & $(-0.24_{-2.9}^{+3.5}) \cdot 10^{-11}$
+  & $(-0.2_{-2.9}^{+3.5}) \cdot 10^{-11}$
   \\
   \hline
   \multirow{2}{*}{$\tau_{B^0} \times (J_{1c} + J_{2c})$}
@@ -1119,13 +1127,13 @@ parts.
   & $(3.54_{-0.66}^{+0.65}) \cdot 10^{-9\;}$
   & $(5.0_{-1.9}^{+1.7}) \cdot 10^{-9\;}$
   & $(2.9_{-0.5}^{+0.4}) \cdot 10^{-9\;}$
-  & $(2.82_{-0.96}^{+1.62}) \cdot 10^{-9}$
+  & $(2.8_{-1.0}^{+1.6}) \cdot 10^{-9}$
   \\
   & $[15,\, 19]$
   & $(1.72_{-0.16}^{+0.16}) \cdot 10^{-10}$
   & $(4.7_{-2.6}^{+3.3}) \cdot 10^{-9\;}$
   & $(1.9_{-0.7}^{+0.3}) \cdot 10^{-10}$
-  & $(3.1_{-2.25}^{+2.45}) \cdot 10^{-9}$
+  & $(3.1_{-2.3}^{+2.5}) \cdot 10^{-9}$
   \\
   \hline
   \multirow{2}{*}{$\tau_{B^0} \times (J_{1s} - 3 J_{2s})$}
@@ -1167,10 +1175,10 @@ Eventually, we present the yet allowed ranges due to non-standard tensor
 and scalar couplings of the so far unmeasured angular observables $J_{6c}$,
 $(J_{1s} - 3\, J_{2s})$ and $(J_{1c} + J_{2c})$ in $B\to K^*(\to K\pi)\bar\ell\ell$
 in order to explore the potential of their future measurements in fits of the kind
-pursued in this work. \todo{Find nice place to cite method of moments paper.}
+pursued in this work. 
 The 68\% probability intervals are collected in \reftab{tab:postdictions}
-for the various general scenarios, i.e. allowing for interference with non-zero
-vector couplings, in \refsec{sec:tensor}, \refsec{sec:scalar}
+for the various model-independent scenarios, allowing for interference with
+non-zero vector couplings, in \refsec{sec:tensor}, \refsec{sec:scalar}
 and \refsec{sec:tensor:scalar} for $q^2$-integrated quantities
 in the low- and high-$q^2$ bins $q^2\in [1.1,\, 6]$ GeV$^2$ and $q^2\in [15,\, 19]$
 GeV$^2$, respectively. Their posterior distributions have been obtained from the
@@ -1184,10 +1192,11 @@ due to the $m_\ell/\sqrt{q^2}$ dependence. In order to compare it to the typical
 magnitude of vector couplings, note that for example the branching ratio of
 $B\to K^*\bar\ell\ell$
 \begin{align}
-  \frac{1}{\tau_{B^0}} \frac{{\rm d}\BR}{{\rm d}q^2} & =
-    \frac{2}{3} (3 J_{1s} - J_{2s}) + \frac{1}{3} (3 J_{1c} -  J_{2c})
+  \frac{{\rm d}\BR}{{\rm d}q^2} & = \frac{\tau_{B^0}}{3} \left[
+    2\, (3 J_{1s} - J_{2s}) + (3 J_{1c} -  J_{2c}) 
+  \right]
 \end{align}
-is numerically of the order ${\cal O}(10^{-19})$ in the SM
+is numerically of the order ${\cal O}(10^{-7})$ in the SM
 \todo{check large SM uncertainty of 30\% at low-$q^2$}
 \begin{equation}
 \begin{aligned}
@@ -1201,7 +1210,7 @@ is numerically of the order ${\cal O}(10^{-19})$ in the SM
 when integrated over low- and high-$q^2$ regions. On the other hand, $J_{6c}$
 is strictly zero for the approximation adopted here. Non-zero contributions
 can be generated by QED corrections or potentially from higher-dimensional
-($d > 6$) $|\Delta B| = |\Delta S| = 1$ operators, leading to parametrical
+($d \geq 8$) $|\Delta B| = |\Delta S| = 1$ operators, leading to parametrical
 suppression of $\alpha_e/(4 \pi)$ or $(m_b/m_W)^2$, respectively. Such a
 suppression must be compared to potential suppression present for tensor
 and scalar contributions in particular NP models in order to decide their
@@ -1210,18 +1219,19 @@ considerations are insignificant since current experimental measurements, in
 combination with theory uncertainties, do not impose yet too stringent
 constraints on tensor and scalar couplings.
 
-Beyond the SM, $J_{6c}$ can get of order ${\cal O}(10^{-21})$ in scenarios
-involving tensor couplings and only ${\cal O}(10^{-23})$ in their absence.
+Beyond the SM, $J_{6c}$ can become of order ${\cal O}(10^{-9})$ in scenarios
+involving tensor couplings and only ${\cal O}(10^{-10})$ in their absence.
 Concerning $(J_{1c} + J_{2c})$ and $(J_{1s} - 3\, J_{2s})$, again substantial
 deviations from the SM prediction are possible only in the presence of non-zero
 tensor couplings. In this case enhancement by two orders of magnitude are
-possible up to the ${\cal O}(10^{-20})$ at high-$q^2$ and also at low-$q^2$ in
+possible up to the ${\cal O}(10^{-8})$ at high-$q^2$ and also at low-$q^2$ in
 the case of $(J_{1s} - 3\, J_{2s})$, always being consistent with all included
 experimental constraints in \reftab{tab:observables}. In view of current
-experimental precision of \eos{$20\%$} branching ratio measurements corresponding
-to the \eos{${\cal O}(10^{-20})$} one can indeed hope for some sensitivity to
-such large effects in $(J_{1c} + J_{2c})$ and $(J_{1s} - 3\, J_{2s})$ in future
-measurements.
+experimental precision of $20\%$ of the branching ratio measurements at LHCb
+\cite{Aaij:2013iag} with only 1 fb$^{-1}$, corresponding to the ${\cal O}(10^{-8})$, one can
+indeed hope for some sensitivity to such large effects in $(J_{1c} + J_{2c})$
+and $(J_{1s} - 3\, J_{2s})$ for the not yet published 3 fb$^{-1}$ data set. 
+\todo{Would be a nice place to cite method of moments paper?}
 
 
 %
@@ -1244,22 +1254,24 @@ and $(J_{1s} - 3 J_{2s})$ in $B\to K^* (\to K\pi) \bar\mu\mu$.
 
 We find that the experimental measurement of $F_H^\mu$
 \begin{enumerate}
-\item imposes by itself constraints on tensor couplings \eos{$|{\cal C}_{T,\,T5}|
-  < 0.35\, (0.55)$} at 68\% (95\%) probability, superseding previous bounds.
+\item imposes by itself constraints on tensor couplings $|{\cal C}_{T,\,T5}|
+  < 0.43\, (0.57)$ at 68\% (95\%) probability, superseding previous bounds.
   In combination with current data from $B\to K^* \bar\mu\mu$ and lattice
-  $B\to K^*$ form factors they become tighter \eos{$|{\cal C}_{T,\,T5}^\mu| < 0.30\,
-  (0.45)$}, even in the presence of non-standard contributions in vector
+  $B\to K^*$ form factors they become tighter $|{\cal C}_{T,\,T5}| < 0.33\,
+  (0.43)$, even in the presence of non-standard contributions in vector
   couplings.
 \item allows for the first time to bound all four scalar and pseudo-scalar
   couplings due to it's complementarity to $\overline{\cal B}(B_s \to \bar\mu\mu)$.
   Even when taking into account destructive interference with vector couplings
-  \eos{$|\wilson{i} + \wilson{i'}| < 0.4\, (0.7)$ and $|\wilson{i} - \wilson{i'}| <
-  0.1\, (0.2)$} for $i = S,P$ at 68\% (95\%) probability. Currently, the bounds
+  $|\wilson{i} + \wilson{i'}| < 0.3\, (0.6)$ and $|\wilson{i} - \wilson{i'}| <
+  0.1\, (0.2)$ for $i = S,P$ at 68\% (95\%) probability. Currently, the bounds
   from $F_H^\mu$ are not as strong as those from $\overline{\cal B}(B_s \to \bar\mu\mu)$
-  by a factor four. In the future, measurements at LHCb and Belle II will
-  further tighten the bounds. Moreover, measurements of $F_H^e$ ($\ell = e$)
+  by about a factor four. In the future, measurements at LHCb and Belle II will
+  further tighten the bounds. 
+  
+  Moreover, measurements of $F_H^e$ ($\ell = e$)
   will provide constraints on scalar couplings in the electron channel in
-  the lack of measurements of $B_s \to \bar{e}e$.
+  the lack of measurements of the branching ratio of $B_s \to \bar{e}e$.
 \item SM-EFT $\ldots$
 \end{enumerate}
 
