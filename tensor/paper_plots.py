@@ -598,6 +598,13 @@ class Spring2015(object):
         marg.scen[s].set_bandwidth(marg.scen[s].spind[0][0], marg.scen[s].spind[1][0], 0.055) # ++
         marg.scen[s].set_bandwidth(marg.scen[s].spind[0][1], marg.scen[s].spind[1][1], 0.015) # --
         marg.scen[s].set_bandwidth(marg.scen[s].spind[1][0], marg.scen[s].spind[1][1], 0.025) # +- P
+        '''
+        s = 'sc910SPTT5_K_KstarBR_Bsmumu'
+        marg.scen[s] = Scenario(os.path.join(marg.input_base, 'vb_' + s + '.hdf5'), '#FE2E2E',
+                                nbins=300, crop_outliers=500)
+        # indices of S,S' and P,P'
+        marg.scen[s].spind = [(8, 10), (12, 14)] # real
+        '''
 
         marg.read_data()
         scenarios = marg.scen.keys()
@@ -634,9 +641,8 @@ class Spring2015(object):
                 m.nBins[-1] = 200
                 ind_in_file = v.spind[i // 2][i % 2]
                 m.fixed_1D_binning = False
-                m.use_histogram = False
-                m.kde_bandwidth = 0.05
-                m.nBins[ind_in_file] = 200
+                # m.use_histogram = True; m.nBins[ind_in_file] = 80
+                m.use_histogram = False; m.nBins[ind_in_file] = 200; m.kde_bandwidth = 0.08
 
                 m.one_dimensional(ind_in_file)
                 P.savefig(marg.out(k + '_Betrag_' + d.name))
@@ -707,10 +713,13 @@ class Spring2015(object):
                 data[:, -1] = betrag(data, ii[0], ii[1])
                 m.out.par_defs[-1].nuisance = False
                 m.out.par_defs[-1].min = 0.0
-                m.out.par_defs[-1].max = 1.45
+                m.out.par_defs[-1].max = 0.6
                 m.use_contours = True
-                m.fixed_1D_binning = False
-                m.nBins[-1] = 200
+                m.plot_prior = False
+                m.fixed_1D_binning = True;
+                # sc910SPTT5_K_KstarBR_Bsmumu
+                m.use_histogram = False; m.kde_bandwidth = 0.03; m.one_dim_n_bins = 500
+                # m.use_histogram = True; m.one_dim_n_bins = 50
 
                 P.clf()
                 m.one_dimensional(data.shape[1] - 1)
@@ -881,7 +890,7 @@ if __name__ == '__main__':
     matplotlib.rcParams['axes.linewidth'] = major['width']
 
     f = Spring2015()
-    # f.figSP()
-    f.figTT5()
+    f.figSP()
+    # f.figTT5()
     # f.fig_1()
     # f.all()

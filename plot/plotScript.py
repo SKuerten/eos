@@ -578,23 +578,29 @@ class MarginalDistributions:
             assert len(x) >= 2, 'Cannot determine bin width for less than two points'
             half_bin_width = (x[1] - x[0]) / 2
 
-            # fill points in list to have only one call to fill_between for to avoid rendering artefacts
+            # fill points in list to have only one call to fill_between for to avoid rendering
+            # artefacts for adjacent bins. Flush after each 'run'.
             above_x, above_y = [], []
             for i, x_i in enumerate(x):
                 if y[i] >= level:
                     above_x += [x_i - half_bin_width, x_i + half_bin_width]
                     above_y += [y[i], y[i]]
-            P.fill_between(above_x, 0, above_y, **kwargs)
+                elif above_x:
+                    P.fill_between(above_x, 0, above_y, **kwargs)
+                    above_x, above_y = [], []
+            if above_x:
+                P.fill_between(above_x, 0, above_y, **kwargs)
         else:
             double_x, double_y = doubled_arrays
 
             # everything above the `level` should be filled
             mask = double_y >= level
 
-            # due to the interpolation, we now have to also fill the half bins adjacent to boundaries of the credible
-            # region at the boundary of the credible region even if the displayed function value is below `level`
-            # Update the mask so there is only one call to `fill_between` and there are no ugly thin strips in some
-            # levels of the pdf zoom
+            # due to the interpolation, we now have to also fill the half bins adjacent to
+            # boundaries of the credible region at the boundary of the credible region even if
+            # the displayed function value is below `level` Update the mask so there is only one
+            # call to `fill_between` and there are no ugly thin strips in some levels of the pdf
+            # zoom
             for i, y_i in enumerate(double_y):
                 # ignore values that are note interpolated
                 if i % 2 == 1:
@@ -728,6 +734,7 @@ class MarginalDistributions:
 
         # assume fix bin width!
         bin_width = x[1] - x[0]
+        print('bin width', bin_width)
 
         # print intervals
         intervals95 = []
@@ -791,15 +798,11 @@ class MarginalDistributions:
 
         samples = self.out.samples.T[index]
 
-        #Scott's rule from
-        #A, D.W.S. & B, S.R.S. Multi-dimensional Density Estimation, p. 9 .
-        #at <http://citeseerx.ist.psu.edu/viewdoc/summary?doi=10.1.1.85.7837>
-
+        # set bandwidth and number of bins with Scott's rule from
+        # A, D.W.S. & B, S.R.S. Multi-dimensional Density Estimation, p. 9 .
+        # at <http://citeseerx.ist.psu.edu/viewdoc/summary?doi=10.1.1.85.7837>
         if not self.use_histogram:
             bandwidth = self.__bandwidth(samples, index)
-        #            self.sigma[index] = np.sqrt(np.var(samples, ddof=1))
-        #            bandwidth = 5 * self.sigma[index] * np.power( samples.shape[0], -1/3.)
-        #            self.nBins[index] = int(( self.max[index] - self.min[index])/bandwidth)
         if self.fixed_1D_binning:
             self.nBins[index] = self.one_dim_n_bins
         if self.kde_bandwidth is not None:
@@ -845,17 +848,13 @@ class MarginalDistributions:
 
             # data for contours should contain bin centers
             half_bin_width = 0.5 * (x_max - x_min) / self.nBins[index]
-            print(half_bin_width)
-            print(hist_normal[0])
             x_values = hist_normal[0][1:] - half_bin_width
             y_values = hist_normal[1]
-            print(x_values)
-            print(y_values / np.sum(y_values))
             assert len(x_values) == len(y_values), \
                 "x values (%d) and y values (%d) should match in length" % (len(x_values), len(y_values))
         else:  #use KDE
             bin_width = (x_max - x_min) / self.nBins[index]
-            mesh_points = np.linspace(x_min + bin_width / 2, x_max - bin_width / 2, self.nBins[index])
+            mesh_points = np.linspace(x_min + bin_width / 2, x_max - bin_width / 2, num=self.nBins[index])
 
             #setup for figtree
             start_time = time.time()

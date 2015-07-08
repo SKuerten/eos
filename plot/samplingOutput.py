@@ -1293,7 +1293,7 @@ class EOS_PYPMC_UNC(SamplingOutput):
             for i in range(len(fixed_values)):
                 # get everything up to '@' to remove lengthy options
                 name = obs_ds.attrs['name']
-                name = name[:name.find('@')] + '@' + fixed_name + '= %g' % fixed_values[i]
+                name = name[:name.find(',')] + '@' + fixed_name + '= %g' % fixed_values[i]
                 self.par_defs.append(ParameterDefinition(name, np.min(self.samples.T[i]), np.max(self.samples.T[i]),
                                                          index=i))
             self.priors = [None] * len(fixed_values)

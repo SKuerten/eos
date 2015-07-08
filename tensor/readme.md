@@ -67,8 +67,9 @@ parameter values. In the `i`-th call,
 
 5. copy over
     ```
-    for obs in $observables; do rsync -avR c2pap:/gpfs/work/pr85tu/ru72xaf2/eos/2015-tensor/2015-05-19/ct_c9_1dot1_Kstar_${obs}/unc_merged.hdf5 ./; done
     # on desktop machine
+    for obs in $observables; do rsync -avR c2pap:/gpfs/work/pr85tu/ru72xaf2/eos/2015-tensor/2015-05-19/ct_c9_1dot1_Kstar_${obs}/unc_merged.hdf5 ./; done
+
     Kobs=$(ls 2015-04-01/)
     for obs in $Kobs; do ln -s 2015-04-01/${obs}/unc_merged.hdf5 unc_${obs}.hdf5; done
     ```
