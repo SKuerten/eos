@@ -490,6 +490,17 @@ class MarginalContours(object):
         s = self.scen[scenarios[0]]
         x_range = m.out.fixed_values[s.pred_range][0], m.out.fixed_values[s.pred_range][-1]
         if measurement:
+            try:
+                linestyle = measurement.one_sigma_style.pop('linestyle')
+            except KeyError:
+                pass
+            else:
+                kwargs = dict(color=measurement.central_style.get('color', 'black'),
+                              linewidth=measurement.central_style.get('linewidth', 10),
+                              linestyle=linestyle)
+                P.axhline(measurement.lower, **kwargs)
+                P.axhline(measurement.upper, **kwargs)
+
             P.fill_between(x_range, [measurement.lower] * 2, [measurement.upper] * 2, **measurement.one_sigma_style)
             P.plot(x_range, [measurement.central] * 2, **measurement.central_style)
             legend_patches.append((matplotlib.patches.Patch(**measurement.one_sigma_style), measurement.label))
@@ -646,7 +657,30 @@ class Spring2015(object):
 
         square_figure(self.fig_size)
         matplotlib.rcParams['font.size'] = 20
+        '''
+        # absolute values
+        m = marg.margs[s]
+        data = m.out.samples
+        data[:, -4] = betrag(data, 8, 9)
+        data[:, -3] = betrag(data, 10, 11)
+        data[:, -2] = betrag(data, 12, 13)
+        data[:, -1] = betrag(data, 14, 15)
 
+        m.use_contours = True
+        m.plot_prior = False
+        m.fixed_1D_binning = True;
+        m.use_histogram = False; m.kde_bandwidth = 0.03; m.one_dim_n_bins = 500
+        # m.use_histogram = True; m.one_dim_n_bins = 50
+
+        for i in range(1, 5):
+            m.out.par_defs[-i].nuisance = False
+            m.out.par_defs[-i].min = 0.0
+            m.out.par_defs[-i].max = 1
+            P.clf()
+            m.one_dimensional(data.shape[1] - i)
+            P.savefig(marg.out(s + '_Betrag_%d' % i))
+        return
+        '''
         # 1D intervals for table
         '''
         for k, v in marg.scen.iteritems():
@@ -755,8 +789,8 @@ class Spring2015(object):
             kw['color'] = colors[c]
             name = d.pop('name')
             kw.update(d)
-            # hack: plot cT in [-1,1] only
-            kw['pred_range'] = slice(5, 26)
+            # hack: plot cT in [-0.7, 0.7] only
+            kw['pred_range'] = slice(8, 23)
             marg.scen[name] = Scenario(self.input('unc_' + name + '.hdf5'), **kw)
             scenario_names.append(name)
         marg.read_data()
@@ -770,11 +804,11 @@ class Spring2015(object):
                 v.max *= rescale
 
         marg.compute_marginal1D_all(scenario_names)
-        wide_figure(x_size=8, ratio=4 / 3.0, left=0.165, right=0.95, top=0.93, bottom=0.145)
+        wide_figure(x_size=8, ratio=4 / 3.0, left=0.17, right=0.95, top=0.93, bottom=0.145)
 
         central_style = dict(color='black', linewidth=matplotlib.rcParams['axes.linewidth'],
                              linestyle='solid', alpha=1)
-        one_sigma_style = dict(color=colors['grey'], alpha=0.7)
+        one_sigma_style = dict(color=colors['grey'], alpha=0.9, linestyle='dashed')
         if measurement:
             if not measurement.has_key('sigma_lower'):
                 measurement['sigma_lower'] = measurement['sigma_upper']
@@ -806,7 +840,7 @@ class Spring2015(object):
 
         obs = 'K_FH'
         ylabel = r'$\langle F_H \rangle'
-        yrange = (-0.05, 0.9)
+        yrange = (-0.02, 0.3)
 
         s_min, s_max = 1, 6
         self.fig_pred(scen_obs=self.scenario_comparison(obs, s_min, s_max),
@@ -833,7 +867,7 @@ class Spring2015(object):
                       ylabel=ylabel + '_{[%g,%g]}$' % (s_min, s_max), yrange=yrange)
 
         obs = 'Kstar_BR'
-        yrange = (0.5e-7, 7e-7)
+        yrange = (0.5e-7, 4.5e-7)
         ylabel = r'$\langle \mathcal{B}(K^{\ast}) \rangle'
 
         s_min, s_max = 1, 6
@@ -855,7 +889,7 @@ class Spring2015(object):
         tau_B = 1.519e-12 / 6.58212e-25
 
         obs = 'Kstar_J_1c_plus_J_2c'
-        yrange = (-0.1e-8, 12e-8)  # tuple(np.array((-0.1e-20, 6e-20)) * inv_tau_B)
+        yrange = (-0.1e-8, 2.5e-8)  # tuple(np.array((-0.1e-20, 6e-20)) * inv_tau_B)
         ylabel = r'$\tau_B \, \times \, \langle J_{1c} + J_{2c} \rangle'
 
         s_min, s_max = 1.1, 6
@@ -868,7 +902,7 @@ class Spring2015(object):
                       measurement=None, rescale=tau_B,
                       ylabel=ylabel + '_{[%g,%g]}$' % (s_min, s_max), yrange=yrange)
 
-        yrange = (-0.05e-7, 5e-7)  # tuple(np.array((-0.05e-19, 2.5e-19)) * inv_tau_B)
+        yrange = (-0.05e-7, 1.3e-7)  # tuple(np.array((-0.05e-19, 2.5e-19)) * inv_tau_B)
         ylabel = r'$\tau_B \, \times \, \langle J_{1s} - 3 J_{2s} \rangle'
         obs = 'Kstar_J_1s_minus_3J_2s'
         s_min, s_max = 1.1, 6
@@ -980,8 +1014,8 @@ if __name__ == '__main__':
     matplotlib.rcParams['axes.linewidth'] = major['width']
 
     f = Spring2015()
-    # f.figSP()
+    f.figSP()
     # f.figTT5()
-    f.fig_1()
+    # f.fig_1()
     # f.fig_constrained()
     # f.all()
