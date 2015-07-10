@@ -776,7 +776,7 @@ class Spring2015(object):
                 m.one_dimensional(data.shape[1] - 1)
                 P.savefig(marg.out(s + '_Betrag_' + name))
 
-    def fig_pred(self, scen_obs, measurement, ylabel, xlabel=r'$C_{T}$', yrange=None,
+    def fig_pred(self, scen_obs, measurement, ylabel, xlabel=r'$\wilson{T}$', yrange=None,
                  legendpos='upper center', rescale=None):
         '''Plot predictions/postdictions with uncertainty varying one parameter over a fixed range.'''
 
@@ -829,7 +829,7 @@ class Spring2015(object):
         P.savefig(marg.out(scenario_names[0]))
 
     def np_label(self, value):
-        return r'$\mathcal{C}_9^{\rm NP} = ' + str(value) + '$'
+        return r'$\wilson[NP]{9} = ' + str(value) + '$'
 
     def scenario_comparison(self, obs, s_min, s_max, scen=('ct', 'ct_c9_1dot1'), delta_c9=(0, -1.1)):
         return [dict(name=scen[i] + '_' + obs + '%gto%g' % (s_min, s_max), unc_label=self.np_label(delta_c9[i])) for i
@@ -1000,8 +1000,8 @@ if __name__ == '__main__':
     matplotlib.rcParams['text.latex.unicode'] = True
     matplotlib.rcParams['font.size'] = 28
     matplotlib.rcParams['text.latex.preamble'] = r'''
-    \usepackage[proportional]{libertine}
-    \usepackage[libertine]{newtxmath}
+    \usepackage{mathptmx}
+    \newcommand{\wilson}[2][{}]{\mathcal{C}_{#2}^{\mathrm{#1}}}
     '''
 
     # enlarge ticks
@@ -1015,7 +1015,6 @@ if __name__ == '__main__':
 
     f = Spring2015()
     f.figSP()
-    # f.figTT5()
-    # f.fig_1()
-    # f.fig_constrained()
-    # f.all()
+    f.figTT5()
+    f.fig_1()
+    f.fig_constrained()
