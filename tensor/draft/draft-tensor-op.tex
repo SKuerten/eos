@@ -1576,15 +1576,11 @@ $\rho_1^-$ provided scalar couplings vanish.
   \label{app:theory:inputs}
 }
 
-Here we describe the theoretical treatment of observables and collect
-numerical input of the most relevant parameters. The software package
-{\tt EOS} \cite{Bobeth:2011gi, Bobeth:2011nj, EOS} is used for
-predictions of observables in $B_s\to \bar\mu\mu$ and $B\to
-K^{(*)}\bar\ell\ell$. The fit is performed with the package {\tt
-  pypmc}, which incorporates the algorithm presented in
-\cite{Beaujean:2013:PMC, Beaujean:2012uj} and in addition an
-implementation of the variational Bayes algorithm. \fred{Add, get DOI
-  for pypmc version}
+Here we describe the theoretical treatment of observables and collect numerical
+input of the most relevant parameters. The software package {\tt EOS}
+\cite{Bobeth:2011gi, Bobeth:2011nj, EOS} is used for the calculation of
+observables in $B_s\to \bar\mu\mu$ and $B\to K^{(*)}\bar\ell\ell$ and associated
+constraints. Both the likelihood and the prior are defined entirely within EOS.
 
 Concerning numerical input, we refer the reader to~\cite{Beaujean:2013soa} for
 the compilation of nuisance parameters and according values, whose uncertainties
@@ -1755,7 +1751,53 @@ results influence the fit such that form factors tend to be higher than LCSR
 predictions at low $q^2$ leading to a worse fit. Hence we prefer the three-parameter
 setup as it accommodates better LCSR and lattice results.}
 
-\todo{Describe how we do prior/posterior predictive}
+\section{Monte Carlo sampling}
+\label{app:mc}
+\todo{reference in main text}
+The marginalization of the posterior is performed with the package {\tt
+  pypmc}~\cite{beaujean_2015_20045}, which incorporates the algorithm presented
+in \cite{Beaujean:2013:PMC, Beaujean:2012uj} and in addition an implementation
+of the variational Bayes algorithm. In every analysis we first run multiple
+adaptive Markov chains (MCMC) in parallel through \texttt{pypmc}. If necessary,
+chains are seeded at the SM point to exclude solutions in which multiple
+nuisance parameters simultaneously deviate strongly from prior expectations.
+
+In total, there are 19 parameters $\alpha^i_j$ to describe $B\to K^*$ form
+factors and most of them are strongly correlated. But it is well known that
+strong correlation leads to poor sampling as it can cause the random-walk Markov
+chains to spend significant time in regions of low probability and thus produce
+spurious peaks. To mitigate this issue, we perform a fit to form-factor
+constraints without any experimental data and use the resulting covariance
+matrix to transform parameters such that the new parameters are uncorrelated. \todo{Why no Jacobian involved?}
+
+In all but three cases, the Markov chains then give reliable results. But when
+we analyze scenarios with $\wilson[NP]{S,P} \ne 0$ and all exp.  constraints,
+strong correlations appear again. As a final solution, we then use importance
+sampling with the initial proposal function determined by a fit of a Gaussian
+mixture to the MCMC samples within the variational Bayes approximation. As the
+posterior is unimodal and closely resembles a Gaussian, only a few Gaussian
+components are need; i.e., 3 components proved optimal by the variational
+approximation to the model evidence. In the most challenging run with 62
+parameters, we obtain a relative effective sample size of only 0.038\%. We want
+to have enough samples such that the 68\% region is determined with a relative
+precision of about 1\%. As a rule of thumb, we consider the ``relative error of
+the error'' given by $1/\sqrt{2 N_{\rm eff}}$~\cite[ch. 37]{Agashe:2014kda}.
+
+% consider the binomial model with flat
+% prior. Then the standard deviation over the mean of the posterior on the
+% binomial parameter $p$ is $\sqrt{ \frac{1-p}{N_{\rm eff} p}}$ where $N_{\rm
+%   eff}$ is the number of independent samples.
+
+In the 62D case, we compute $1.1\cdot10^6$ importance samples such that $N_{\rm
+  eff} \approx 3500$ and the estimated relative error of the error is 1.2\% and
+thus good enough for our purposes.
+
+To create the smooth marginal plots in Figures
+\ref{fig:FHvsCT}--\ref{fig:scalar:SM-EFT}, we apply kernel density estimation
+for MCMC and importance samples using the fast \texttt{figtree}
+library~\cite{morariu08figtree}. In the latter case, we additionally crop 500
+outliers.
+
 %
 %
 %
