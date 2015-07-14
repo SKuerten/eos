@@ -1232,20 +1232,17 @@ imaginary parts.
   }
 \end{table*}
 
-Now we present the yet allowed ranges due to non-standard tensor and
-scalar couplings of the so far unmeasured angular observables
-$J_{6c}$, $(J_{1s} - 3\, J_{2s})$ and $(J_{1c} + J_{2c})$ in $B\to
-K^*(\to K\pi)\bar\ell\ell$ in order to explore the potential of their
-future measurements in fits of the kind pursued in this work.  The
-68\% probability intervals are collected in \reftab{tab:postdictions}
-for the various model-independent scenarios, allowing for interference
-with non-zero vector couplings, in \refsec{sec:tensor},
-\refsec{sec:scalar} and \refsec{sec:tensor:scalar} for
-$q^2$-integrated quantities in the low- and high-$q^2$ bins $q^2\in
-[1.1,\, 6]$ GeV$^2$ and $q^2\in [15,\, 19]$ GeV$^2$,
-respectively. Their posterior distributions have been obtained from
-the final posterior samples as explained in~\cite{Beaujean:2012uj}
-\todo{check uncertainty propagation there}.
+Now we present the yet allowed ranges due to non-standard tensor and scalar
+couplings of the so far unmeasured angular observables $J_{6c}$, $(J_{1s} - 3\,
+J_{2s})$ and $(J_{1c} + J_{2c})$ in $B\to K^*(\to K\pi)\bar\ell\ell$ in order to
+explore the potential of their future measurements in fits of the kind pursued
+in this work.  The 68\% probability intervals are collected in
+\reftab{tab:postdictions} for the various model-independent scenarios, allowing
+for interference with non-zero vector couplings, in \refsec{sec:tensor},
+\refsec{sec:scalar} and \refsec{sec:tensor:scalar} for $q^2$-integrated
+quantities in the low- and high-$q^2$ bins $q^2\in [1.1,\, 6]$ GeV$^2$ and
+$q^2\in [15,\, 19]$ GeV$^2$, respectively. Their posterior distributions have
+been obtained from the posterior samples as explained in~\ref{app:mc}.
 
 For comparison, the SM estimates are also given in \reftab{tab:postdictions}
 multiplied by the $B^0$-meson life time $\tau_{B^0} = 1.519$~ps.
@@ -1753,19 +1750,19 @@ setup as it accommodates better LCSR and lattice results.}
 
 \section{Monte Carlo sampling}
 \label{app:mc}
-\todo{reference in main text}
-The marginalization of the posterior is performed with the package {\tt
-  pypmc}~\cite{beaujean_2015_20045}, which incorporates the algorithm presented
-in \cite{Beaujean:2013:PMC, Beaujean:2012uj} and in addition an implementation
-of the variational Bayes algorithm. In every analysis we first run multiple
-adaptive Markov chains (MCMC) in parallel through \texttt{pypmc}. If necessary,
-chains are seeded at the SM point to exclude solutions in which multiple
-nuisance parameters simultaneously deviate strongly from prior expectations.
+\todo{reference in main text} The marginalization of the posterior is performed
+with the package {\tt pypmc}~\cite{beaujean_2015_20045}, which incorporates the
+algorithm presented in \cite{Beaujean:2013:PMC, Beaujean:2012uj} and in addition
+an implementation of the variational Bayes algorithm. In every analysis we first
+run multiple adaptive Markov chains (MCMC) in parallel through
+\texttt{pypmc}. If necessary, chains are seeded at the SM point to exclude
+solutions in which multiple nuisance parameters---mostly for hadronic
+corrections---simultaneously deviate strongly from prior expectations.
 
 In total, there are 19 parameters $\alpha^i_j$ to describe $B\to K^*$ form
 factors and most of them are strongly correlated. But it is well known that
 strong correlation leads to poor sampling as it can cause the random-walk Markov
-chains to spend an excessive amount of time in regions of low probability and
+chains to spend an excessive amount of  time in regions of low probability and
 thus produce spurious peaks. To mitigate this issue, we perform a fit to
 form-factor constraints without any experimental data and use the resulting
 covariance matrix to transform parameters such that the new parameters are
@@ -1777,27 +1774,33 @@ strong correlations appear again. As a final solution, we then use importance
 sampling with the initial proposal function determined by a fit of a Gaussian
 mixture to the MCMC samples within the variational Bayes approximation. As the
 posterior is unimodal and closely resembles a Gaussian, only a few Gaussian
-components are need; i.e., 3 components proved optimal by the variational
-approximation to the model evidence. In the most challenging run with 62
-parameters, we obtain a relative effective sample size of only 0.038\%. We want
-to have enough samples such that the 68\% region is determined with a relative
-precision of about 1\%. As a rule of thumb, we consider the ``relative error of
-the error'' given by $1/\sqrt{2 N_{\rm eff}}$~\cite[ch. 37]{Agashe:2014kda}.
+components are needed; i.e., 3 components proved optimal by the variational
+approximation to the model evidence.
 
-% consider the binomial model with flat
-% prior. Then the standard deviation over the mean of the posterior on the
-% binomial parameter $p$ is $\sqrt{ \frac{1-p}{N_{\rm eff} p}}$ where $N_{\rm
-%   eff}$ is the number of independent samples.
-
-In the 62D case, we compute $1.1\cdot10^6$ importance samples such that $N_{\rm
-  eff} \approx 3500$ and the estimated relative error of the error is 1.2\% and
-thus good enough for our purposes.
+In the most challenging run with 62 parameters, we obtain a relative effective
+sample size of only 0.038\%. We want to have enough independent samples $N$ such
+that the 68\% region is determined with a relative precision of about 1\%. As a
+rule of thumb, we consider the ``relative error of the error'' given by
+$1/\sqrt{2 N}$~\cite[ch. 37]{Agashe:2014kda}.  In the 62D case, we compute
+$1.1\cdot10^6$ importance samples such that $N \approx 3500$ and the estimated
+relative error of the error is 1.2\% and thus good enough for our purposes.
 
 To create the smooth marginal plots in Figures
 \ref{fig:FHvsCT}--\ref{fig:scalar:SM-EFT}, we apply kernel density estimation
-for MCMC and importance samples using the fast \texttt{figtree}
+for both MCMC and importance samples using the fast \texttt{figtree}
 library~\cite{morariu08figtree}. In the latter case, we additionally crop 500
 outliers.
+
+The prior or posterior predictive distribution of an observable $X$ within a
+model $M$ in which $X=f(\vecth)$ is a definite function of the
+parameters $\vecth$ is given as
+\begin{align}
+  \label{eq:predictive}
+  P(X | M) &= \int \rmdx{\vecth} P(X|\vecth,M) P(\vecth|M)\nn
+  &= \int \rmdx{\vecth} \delta(X - f(\vecth)) P(\vecth|M) \,.
+\end{align}
+We estimate $P(X|M)$ by computing $f(\vecth_i)$ for every sample $\vecth_i \sim
+P(\vecth|M)$, then smooth as above.
 
 %
 %
