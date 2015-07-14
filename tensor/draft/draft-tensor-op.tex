@@ -313,7 +313,7 @@
   use latest experimental results for $\ell = \mu$ in combination with
   $B_s\to \bar\mu\mu$ to derive stronger model-independent constraints
   on tensor and scalar effective couplings and determine their impact
-  on not yet measured angular observables in $B\to K^*\bar\mu\mu$,
+  on not-yet-measured angular observables in $B\to K^*\bar\mu\mu$,
   which feature the same suppression of vector couplings.  Most
   notably, the measurement of $F_H^\mu$ provides constraints on
   (pseudo-)scalar couplings and their chirality-flipped counterparts
@@ -383,7 +383,7 @@ hadronic recoil.
 Here we exploit current data from $B^+\to K^+ \bar\mu\mu$ and $B_s\to
 \bar\mu\mu$ to derive stronger constraints than before on tensor and scalar
 couplings in various model-independent scenarios and study their impact on the
-not yet measured sensitive observables in $B\to K^* \bar\ell\ell$. In
+not-yet-measured sensitive observables in $B\to K^* \bar\ell\ell$. In
 \refsec{sec:EFT}, we specify the effective theory of $|\Delta B| = 1$ decays on
 which our model-independent fits are based. Within this theory, we discuss the
 dependence of observables in $B\to K \bar\ell\ell$ and $B\to K^* \bar\ell\ell$
@@ -649,7 +649,7 @@ $B_s\to \bar\mu\mu$
 & $\int\dd\tau \BR(\tau)$ &  --  & \cite{Aaij:2013aka,Chatrchyan:2013bka,CMS:2014xfa}
 \\
 \hline
-\multirow{2}{*}{${B^+\to K^+ \bar\mu\mu}$}
+\multirow{5}{*}{${B^+\to K^+ \bar\mu\mu}$}
     & \multirow{2}{*}{$\BR_\mu$}
     & $q^2\in [1,\, 6],\, [14.18,\, 16],\, [> 16]$ GeV$^2$  & \cite{CDF:2012:BKstarll} \\
     &
@@ -662,7 +662,7 @@ $B_s\to \bar\mu\mu$
     &  $\,\,\,\,\, q^2 \in [1.1,\, 6.0],\, [15.0,\, 22.0]$ GeV$^2$  & \cite{Aaij:2014bsa}
 \\
 \hline
-    ${B^0\to K^{\ast 0} \bar\mu\mu}$
+    \multirow{3}{*}{${B^0\to K^{\ast 0} \bar\mu\mu}$}
     & $\BR_\mu$
     & $q^2\in [1,\, 6],\, [14.18,\, 16],\, [> 16]$ GeV$^2$  & \cite{CDF:2012:BKstarll, Aaij:2013iag,Chatrchyan:2013cda} \\
     & $A_{\rm FB}^\mu$
@@ -681,13 +681,12 @@ ${B\to K}$ form factors
 \hline
 \end{tabular}
 \renewcommand{\arraystretch}{1.0}
-\caption{\label{tab:observables} List of all observables of the various
-  $b\to s \bar\mu\mu$ decays that enter the fits with respective kinematics
-  and experiments that provide the measurements. LCSR and lattice results of
-  $B\to K^{(*)}$ form factors are used to constrain parameters of their
-  $q^2$-dependence.
-  For more details see the text and \refapp{app:theory:inputs}.
-}
+\caption{\label{tab:observables} List of all observables of the various $b\to s
+  \bar\mu\mu$ decays entering the fits with the respective kinematics and
+  experiments that provide the measurements. LCSR and lattice results of $B\to
+  K^{(*)}$ form factors are used to constrain a $q^2$-dependent form-factor
+  parametrization.  For more details see \refsec{sec:observables} and
+  \refapp{app:theory:inputs}. \checked{} }
 \end{center}
 \end{table*}
 
@@ -742,11 +741,9 @@ couplings $\wilson{9,\,9',\,10,\,10'}$ on the bounds on tensor and scalar
 couplings.  For this purpose we include also the branching ratio, the lepton
 forward-backward asymmetry, and the rate CP asymmetry of $B\to K^* \bar\mu\mu$
 as they provide additional constraints on the real and imaginary parts of
-$\wilson{9,\,9',\,10,\,10'}$.
-
-The experimental inputs of all observables entering our fits is listed
-in \reftab{tab:observables} together with input for the $B\to K^{(*)}$
-form factors. More details on the latter can be found in
+$\wilson{9,\,9',\,10,\,10'}$. The experimental inputs of all observables
+entering our fits is listed in \reftab{tab:observables} together with input for
+the $B\to K^{(*)}$ form factors. More details on the latter can be found in
 \refapp{app:theory:inputs}.
 
 %
@@ -758,34 +755,38 @@ form factors. More details on the latter can be found in
   \label{sec:results}
 }
 
-As a matter of the fact there are no discrepancies between the latest measurements
-for $\ell = \mu$ (throughout this section) of $F_H^\mu$ and $A_{\rm FB}^\mu$ in
-$B^+ \to K^+ \bar\mu\mu$ and
-their tiny SM predictions. Thus our main objective is the derivation of stronger
-constraints on tensor and scalar couplings, taking advantage of their enhancement
-in both observables over vector ones. For this purpose, we will consider several
-model-independent scenarios, starting from rather restricted to more general ones,
-in order to asses the effect of cancellations due to interference of various
-contributions.
+There are no discrepancies between the latest measurements for $\ell = \mu$
+(throughout this section) of $F_H^\mu$ and $A_{\rm FB}^\mu$ in $B^+ \to K^+
+\bar\mu\mu$ and their tiny SM predictions; cf. \reffig{fig:FHvsCT}. Thus our
+main objective is to derive constraints on tensor and scalar couplings through
+the enhanced sensitivity of both observables to those couplings compared to
+vector couplings. For this purpose, we will consider several model-independent
+scenarios, progressing from rather restricted to more general ones in order to
+asses the effect of cancellations due to interference of various contributions.
 
-We will start with the scenario of only tensor couplings and see that they are
-well constrained by $F_H^\mu$ alone. In a second scenario we consider only scalar
-couplings in order to investigate the complementarity of $F_H^\mu$ and
-$B_s \to \bar\mu\mu$. Here we find that for the first time all scalar couplings
-can be bounded simultaneously by the combination of both measurements. Eventually
-we will consider as a special scenario the SM
-augmented by dimension six operators as an effective theory of new physics below
-some high scale $\Lambda_{\rm NP}$, much larger than the typical scale of electroweak
-symmetry breaking $v$ in the presence of one scalar doublet under $SU(2)_L$,
-as in the SM, i.e. $v \ll \Lambda_{\rm NP}$. For each scenario, we investigate
-also interference effects with new physics in vector couplings. Finally, we
-conclude this section with postirior predictions of the allowed ranges of the yet
-not measured angular observables in $B\to K^*\bar\mu\mu$ and $A_{\Delta\Gamma}$ in
-$B_s\to\bar\mu\mu$ given all other experimental constraints.
+For each coupling we vary in a fit, we remain as general as possible, treat it
+as a complex number and use the cartesian parametrization assuming uniform
+priors for ease of comparison with previous studies. Specifically, we set
+\begin{align}
+  \label{eq:wilson-prior}
+  \mbox{Re}(\wilson{S,S',P,P',T,T5}) &\in [-1, 1],\nn \mbox{Re}(\wilson{9,9',10,10'}) &\in [-7, 7],
+\end{align}
+and the same for the imaginary parts. The priors of the nuisance parameters are given in \refapp{app:theory:inputs}.
 
-\todo{Explain special initialisation of Markov chains at fixed point in parameter
-space in order to avoid other local modes in subspace of nuisance parameters.
-What would be appropriate place to do so?}
+We start with the scenario of only tensor couplings and see that they are well
+constrained by $F_H^\mu$ alone. In a second scenario we consider only scalar
+couplings in order to investigate the complementarity of $F_H^\mu$ and $B_s \to
+\bar\mu\mu$. Here we find that---for the first time---all complex-valued scalar
+couplings can be bounded simultaneously by the combination of both
+measurements. Finally we consider as a special scenario the SM augmented by
+dimension six operators as an effective theory of new physics below some high
+scale $\Lambda_{\rm NP}$ assumed much larger than the typical scale of
+electroweak symmetry breaking. In addition, the model contains one scalar
+doublet under $SU(2)_L$ as in the SM. For each scenario, we also investigate
+interference effects with new physics in vector couplings. Finally, we conclude
+this section with posterior predictions---conditional on all experimental
+constraints---of the probable ranges of the not-yet-measured angular observables
+in $B\to K^*\bar\mu\mu$ and $A_{\Delta\Gamma}$ in $B_s\to\bar\mu\mu$.
 
 %
 %
@@ -807,32 +808,37 @@ What would be appropriate place to do so?}
   & $\wilson{T,\,T5}$
   & $\wilson{T,\,T5,\, 9,\,10}$
   \\
+  credibility level
+  & 68\%, 95\%
+  & 68\%, 95\%
+  & 68\%, 95\%
+  \\
   \hline
   $\mbox{Re}\,\wilson{T}$
-  & $\quad$ $[-0.32,\, 0.16]$ ($[-0.52,\, 0.35]$) $\quad$
-  & $\quad$ $[-0.29,\, 0.09]$ ($[-0.43,\, 0.27]$) $\quad$
-  & $\quad$ $[-0.23,\, 0.14]$ ($[-0.39,\, 0.30]$) $\quad$
+  & $\quad$ $[-0.32,\, 0.16]$, $[-0.52,\, 0.35]$ $\quad$
+  & $\quad$ $[-0.29,\, 0.09]$, $[-0.43,\, 0.27]$ $\quad$
+  & $\quad$ $[-0.23,\, 0.14]$, $[-0.39,\, 0.30]$ $\quad$
   \\
   $\mbox{Im}\,\wilson{T}$
-  & $[-0.25,\, 0.24]$ ($[-0.44,\, 0.44]$)
-  & $[-0.19,\, 0.21]$ ($[-0.37,\, 0.35]$)
-  & $[-0.17,\, 0.22]$ ($[-0.33,\, 0.37]$)
+  & $[-0.25,\, 0.24]$, $[-0.44,\, 0.44]$
+  & $[-0.19,\, 0.21]$, $[-0.37,\, 0.35]$
+  & $[-0.17,\, 0.22]$, $[-0.33,\, 0.37]$
   \\[0.1cm]
   $\mbox{Re}\,\wilson{T5}$
-  & $[-0.25,\, 0.24]$ ($[-0.44,\, 0.44]$)
-  & $[-0.19,\, 0.17]$ ($[-0.33,\, 0.33]$)
-  & $[-0.18,\, 0.16]$ ($[-0.32,\, 0.32]$)
+  & $[-0.25,\, 0.24]$, $[-0.44,\, 0.44]$
+  & $[-0.19,\, 0.17]$, $[-0.33,\, 0.33]$
+  & $[-0.18,\, 0.16]$, $[-0.32,\, 0.32]$
   \\
   $\mbox{Im}\,\wilson{T5}$
-  & $[-0.24,\, 0.25]$ ($[-0.44,\, 0.45]$)
-  & $[-0.21,\, 0.19]$ ($[-0.37,\, 0.35]$)
-  & $[-0.20,\, 0.18]$ ($[-0.36,\, 0.35]$)
+  & $[-0.24,\, 0.25]$, $[-0.44,\, 0.45]$
+  & $[-0.21,\, 0.19]$, $[-0.37,\, 0.35]$
+  & $[-0.20,\, 0.18]$, $[-0.36,\, 0.35]$
   \\
   \hline
   $|\wilson{T}|$, $|\wilson{T5}|$
-  & $[0.13,\, 0.43]$ ($[0.03,\, 0.57]$)
-  & $[0.09,\, 0.33]$ ($[0.02,\, 0.44]$)
-  & $[0.10,\, 0.33]$ ($[0.02,\, 0.43]$)
+  & $[0.13,\, 0.43]$, $[0.03,\, 0.57]$
+  & $[0.09,\, 0.33]$, $[0.02,\, 0.44]$
+  & $[0.10,\, 0.33]$, $[0.02,\, 0.43]$
   \\
   \hline
   \end{tabular}
@@ -842,53 +848,62 @@ What would be appropriate place to do so?}
   \renewcommand{\arraystretch}{1.0}
   \caption{
      \label{tab:cTT5:1-dimCLs}
-     The constraints on complex-valued $\wilson{T,\,T5}$ --- [upper] 1D-marginalized
-     at 68\% (95\%) probability and [lower] 2D-marginalized --- when using
-     measurements of $i)$ only $F_H^\mu$, $ii)$ $F_H^\mu$ and other data in
-     \reftab{tab:observables} (except $\overline{\cal B}(B_s \to \bar\mu\mu)$), and $iii)$ allowing
-     also complex-valud new physics contributions to $\wilson{9,\,10}$. \fred{For 9,10,S,P,T,T5, the absolute value is in $[0.077,0.269] ([0.020, 0.379])$}
-  }
+     The constraints on complex-valued $\wilson{T,\,T5}$ when using
+     measurements of only $F_H^\mu$, $F_H^\mu$ and other data in
+     \reftab{tab:observables} (except $\overline{\cal B}(B_s \to \bar\mu\mu)$), and finally allowing
+     complex-valued new physics contributions to $\wilson{9,\,10}$. \checked{} %\fred{For 9,10,S,P,T,T5, the absolute value is in $[0.077,0.269] ([0.020, 0.379])$}
+   }
 \end{table*}
 
-In a scenario with only tensor complex-valued couplings $\wilson{T,\,
-  T5}$, the experimental measurement of $F_H^\mu$ constrains the
-combination $|\wilson{T}|^2 + |\wilson{T5}|^2$, up to some small
-interference of $\wilson{T}$ with vector couplings
-$\wilson{7,\,7',\,9,\,9'}$.  The according 68\% (95\%) 1D-marginalized
-probability intervals are listed in the first column of
-\reftab{tab:cTT5:1-dimCLs}. As can be seen further in the second
-column, the constraints become tighter when utilising all observables
-in \reftab{tab:observables}, mainly due to the sensitivity of the
-branching ratio of $B\to K^{*} \bar\mu\mu$ to tensor couplings (see
-also \reffig{fig:FHvsCT}). The latter stronger bounds are driven by
-the new lattice results of $B\to K^*$ form factors that yield too high
-predictions compared to the measurements~\cite{Horgan:2013pva}. Since
-tensor couplings contribute constructively to ${\cal B}(B\to
-K^{*}\bar\mu\mu)$ large values are stronger constrained. In this
-scenario with vanishing scalar couplings, current measurements of
-$A_{\rm FB}^\mu(B^+\to K^+\bar\mu\mu)$ barely provide any constraint;
+In a scenario with only tensor complex-valued couplings $\wilson{T,\, T5}$, the
+experimental measurement of $F_H^\mu$ constrains the combination $|\wilson{T}|^2
++ |\wilson{T5}|^2$, up to some small interference of $\wilson{T}$ with vector
+couplings $\wilson{7,\,7',\,9,\,9'}$; cf. \refeq{eq:FH-dependence}.  The
+according 68\% (95\%) 1D-marginalized probability intervals are listed in the
+second column of \reftab{tab:cTT5:1-dimCLs}. From the third column, it is seen
+that the constraints become tighter when utilising all observables in
+\reftab{tab:observables}, mainly due to the sensitivity of the branching ratio
+of $B\to K^{*} \bar\mu\mu$ to tensor couplings (see also
+\reffig{fig:FHvsCT}). The latter stronger bounds are driven by the new lattice
+results of $B\to K^*$ form factors that predict values above the measured
+values~\cite{Horgan:2013pva}. Since tensor couplings contribute constructively
+to ${\cal B}(B\to K^{*}\bar\mu\mu)$, large values are better constrained. In
+this scenario with vanishing scalar couplings, current measurements of $A_{\rm
+  FB}^\mu(B^+\to K^+\bar\mu\mu)$ barely provide any constraint;
 cf.~\refeq{eq:AFB-dependence}.
 
-We also perform a fit with non-zero complex-valued $\wilson{9,\,10}$
-by allowing uniform priors for $\mbox{Re, Im}(\wilson{i}) \in[-7,\,
-7]$, ($i = 9,10$) in order to access the stability of the bounds
-against interference. Note that $\wilson{7,7'}$ appears in linear
-combinations with $\wilson{9,9'}$ such that its interference with
-tensor and scalar couplings is captured implicitly by allowing new
-physics in $\wilson{9,9'}$. Thus we fix $\wilson{7,7'}$ to the SM
-value without loss of generality. In this case, $F_H^\mu$ by itself
-still provides bounds on $|\wilson{T,\,T5}|$ that are weakened by a
-factor of two since $F_H^\mu$ does not pose constraints on
-$\wilson{9,\,10}$ (in the chosen prior range). Once additional
-experimental measurements of \reftab{tab:observables} are taken into
-account, the potential destructive effects of new physics in
-$\wilson{9,\,10}$ become reduced and almost the same constraints on
-$\wilson{T,\,T5}$ are recovered, as shown in the third column in
-\reftab{tab:cTT5:1-dimCLs}.  In consequence, the $F_H^\mu$
-measurement~\cite{Aaij:2014tfa} of LHCb with 3 fb$^{-1}$ shrinks the
-previous bounds \cite{Bobeth:2012vn} on $\wilson{T,\,T5}$ by 50\%.
+We also perform a fit with non-zero $\wilson[NP]{9,\,10}$ \fred{Is this
+  $\wilson[NP]{}$ ever introduced?} in order to assess the robustness of the
+bounds with respect to interference. Note that $\wilson{7,7'}$ appears in linear
+combinations with $\wilson{9,9'}$ such that its interference with tensor and
+scalar couplings is captured implicitly by allowing new physics in
+$\wilson{9,9'}$. Thus we fix $\wilson{7,7'}$ to the SM value without loss of
+generality. In this case, $F_H^\mu$ by itself still provides bounds on
+$|\wilson{T,\,T5}|$ that are weakened by a factor of two since $F_H^\mu$ does
+not pose constraints on $\wilson{9,\,10}$ (in the chosen prior range). Once
+additional experimental measurements of \reftab{tab:observables} are taken into
+account, the potential destructive effects of new physics in $\wilson{9,\,10}$
+become reduced and almost the same constraints on $\wilson{T,\,T5}$ are
+recovered, as shown in the last column in \reftab{tab:cTT5:1-dimCLs}. If in
+addition we allow $\wilson{S,S',P,P'} \ne 0$ (not shown in
+\reftab{tab:cTT5:1-dimCLs}), the credible regions further shrink by about 10\%
+which we attribute to cumulative effect of $\wilson{S,S',P,P'} \ne 0$ in
+$F_H^\ell$; cf. \refeq{eq:FH-dependence}. In summary, the $F_H^\mu$
+measurement~\cite{Aaij:2014tfa} of LHCb with 3 fb$^{-1}$ shrinks the previous
+bounds \cite{Bobeth:2012vn} on $\wilson{T,\,T5}$ by roughly 50\%.
 
-\fred{comment on last row: SM in all cartesian intervals but not in polar!}
+A keen observer may notice that in \reftab{tab:cTT5:1-dimCLs} the SM point
+$\wilson{T,T5} \equiv 0$ is contained in every 68\% region in cartesian
+coordinates but never in even the 95\% region in polar coordinates. This is a
+consequence of the general \emph{concentration of measure}. Another way to look
+at it is to transform the uniform prior density from cartesian to polar
+coordinates. For the example of the single Wilson coefficient, say $\wilson{T}$,
+the transformed density is proportional to the determinant of the Jacobian which
+is $|\wilson{T}|$. In words, the uniform prior on $\mbox{Re}(\wilson{T})$ and
+$\mbox{Im}(\wilson{T})$ favors larger values of $|\wilson{T}|$ even though we
+consider it consensus in the community that smaller rather than larger values
+are held reasonable because in the SM, $\wilson{T} = 0$. We suggest therefore
+that the default prior be changed in the future.
 
 %
 %
@@ -902,16 +917,15 @@ previous bounds \cite{Bobeth:2012vn} on $\wilson{T,\,T5}$ by 50\%.
     \includegraphics[width=.325\textwidth]{plots/pdf/scSP_FH,sc910SP_K_KstarBR_Bsmumu_0,4}
     \includegraphics[width=.325\textwidth]{plots/pdf/scSP_Bsmumu,sc910SP_K_KstarBR_Bsmumu_2,6}
   \end{center}
-  \caption{
-    The constraints on complex-valued $\wilson{S,\,S',\,P,\,P'}$
-    from $i)$ only $F_H^\mu$~(grey dotted), $ii)$ only $\overline{\cal B}(B_s \to \bar\mu\mu)$
-    (blue dashed) and $iii)$ their combination with other data in \reftab{tab:observables}
-    as well as non-zero $\wilson[]{9,\,9',\,10,\, 10'}$ (red solid)
-    at 68\% (darker) and 95\% (lighter) probability. The constraints on
-    Re$(\wilson{P}Ê\pm \wilson{P'})$ are identical to Re$(\wilson{S}Ê\pm \wilson{S'})$,
-    apart from a small shift of the contours by $(+0.2,\, +0.15)$. The SM is indicated
-    by the black diamond.
-  }
+  \caption{ The constraints on complex-valued $\wilson{S,\,S',\,P,\,P'}$ from
+    only $F_H^\mu$~[grey dotted, left panel], only $\overline{\cal B}(B_s \to
+    \bar\mu\mu)$ [blue dashed, center panel], and the combination with all other
+    data in \reftab{tab:observables} as well as non-zero
+    $\wilson[]{9,\,9',\,10,\, 10'}$ [red solid, right panel] at 68\% (darker)
+    and 95\% (lighter) probability. The constraints on Re$(\wilson{P}Ê\pm
+    \wilson{P'})$ are identical to Re$(\wilson{S}Ê\pm \wilson{S'})$, apart from
+    a small translation of the contours by $(+0.2,\, +0.15)$. The SM prediction is
+    indicated by the black diamond. \checked{} }
   \label{fig:scalar}
 \end{figure*}
 
@@ -930,46 +944,51 @@ previous bounds \cite{Bobeth:2012vn} on $\wilson{T,\,T5}$ by 50\%.
   & $\wilson{S,\,S',\,P,\,P'}$
   & $\wilson{S,\,S',\,P,\,P',\,9,\,9',\,10,\,10'}$
   \\
+  credibility level
+  & 68\%, 95\%
+  & 68\%, 95\%
+  & 68\%, 95\%
+  \\
   \hline
   $\mbox{Re}(\wilson{S} - \wilson{S'})$
   & $\quad$ $-$ $\quad$
-  & $\quad$ $[-0.10,\, 0.08]$ ($[-0.14,\, 0.13]$) $\quad$
-  & $\quad$ $[-0.08,\, 0.07]$ ($[-0.13,\, 0.13]$) $\quad$
+  & $\quad$ $[-0.10,\, 0.08]$, $[-0.14,\, 0.13]$ $\quad$
+  & $\quad$ $[-0.08,\, 0.07]$, $[-0.13,\, 0.13]$ $\quad$
   \\
   $\mbox{Im}(\wilson{S} - \wilson{S'})$
   & $\quad$ $-$ $\quad$
-  & $\quad$ $[-0.07,\, 0.07]$ ($[-0.11,\, 0.12]$) $\quad$
-  & $\quad$ $[-0.07,\, 0.07]$ ($[-0.12,\, 0.11]$) $\quad$
+  & $\quad$ $[-0.07,\, 0.07]$, $[-0.11,\, 0.12]$ $\quad$
+  & $\quad$ $[-0.07,\, 0.07]$, $[-0.12,\, 0.11]$ $\quad$
   \\[0.1cm]
   $\mbox{Re}(\wilson{S} + \wilson{S'})$
-  & $[-0.36,\, 0.39]$ ($[-0.69,\, 0.68]$)
+  & $[-0.36,\, 0.39]$, $[-0.69,\, 0.68]$
   & $-$
-  & $[-0.32,\, 0.32]$ ($[-0.59,\, 0.62]$)
+  & $[-0.32,\, 0.32]$, $[-0.59,\, 0.62]$
   \\
   $\mbox{Im}(\wilson{S} + \wilson{S'})$
-  & $[-0.37,\, 0.35]$ ($[-0.68,\, 0.66]$)
+  & $[-0.37,\, 0.35]$, $[-0.68,\, 0.66]$
   & $-$
-  & $[-0.25,\, 0.41]$ ($[-0.57,\, 0.64]$)
+  & $[-0.25,\, 0.41]$, $[-0.57,\, 0.64]$
   \\[0.1cm]
   $\mbox{Re}(\wilson{P} - \wilson{P'})$
   & $-$
-  & $[ 0.05,\, 0.20]$ ($[ 0.01,\, 0.26]$)
-  & $[ 0.00,\, 0.16]$ ($[-0.07,\, 0.22]$)
+  & $[ 0.05,\, 0.20]$, $[ 0.01,\, 0.26]$
+  & $[ 0.00,\, 0.16]$, $[-0.07,\, 0.22]$ \hspace{-3mm}
   \\
   $\mbox{Im}(\wilson{P} - \wilson{P'})$
   & $-$
-  & $[-0.07,\, 0.08]$ ($[-0.12,\, 0.12]$)
-  & $[-0.07,\, 0.09]$ ($[-0.14,\, 0.16]$)
+  & $[-0.07,\, 0.08]$, $[-0.12,\, 0.12]$
+  & $[-0.07,\, 0.09]$, $[-0.14,\, 0.16]$
   \\[0.1cm]
   $\mbox{Re}(\wilson{P} + \wilson{P'})$
-  & $[-0.24,\, 0.51]$ ($[-0.51,\, 0.82]$)
+  & $[-0.24,\, 0.51]$, $[-0.51,\, 0.82]$
   & $-$
-  & $[-0.12,\, 0.52]$ ($[-0.42,\, 0.78]$)
+  & $[-0.12,\, 0.52]$, $[-0.42,\, 0.78]$
   \\
   $\mbox{Im}(\wilson{P} + \wilson{P'})$
-  & $[-0.36,\, 0.37]$ ($[-0.67,\, 0.67]$)
+  & $[-0.36,\, 0.37]$, $[-0.67,\, 0.67]$
   & $-$
-  & $[-0.37,\, 0.29]$ ($[-0.68,\, 0.57]$)
+  & $[-0.37,\, 0.29]$, $[-0.68,\, 0.57]$
   \\
   \hline
   \end{tabular}
@@ -979,61 +998,48 @@ previous bounds \cite{Bobeth:2012vn} on $\wilson{T,\,T5}$ by 50\%.
   \caption{
      \label{tab:cSP:1-dimCLs}
      The 1D-marginalized constraints on complex-valued $\wilson{S,\,S',\,P,\,P'}$
-     at 68\% (95\%) probability from measurements of $i)$ only $F_H^\mu$,
-     $ii)$ only $\overline{\cal B}(B_s \to \bar\mu\mu)$ and $iii)$ all the data in
+     at 68\% (95\%) probability from measurements of only $F_H^\mu$,
+     only $\overline{\cal B}(B_s \to \bar\mu\mu)$, and all the data in
      \reftab{tab:observables} and additional new physics contributions to
-     $\wilson{9,\, 9',\, 10,\,10'}$.
-  }
+     $\wilson{9,\, 9',\, 10,\,10'}$. \checked{}
+   }
 \end{table*}
 
-Scalar couplings $\wilson{S,\, S',\, P,\, P'}$ enter $F_H^\ell$
-without kinematic suppression --- see \refeq{eq:FH-dependence} --- in
-the complementary manner $(\wilson{i} + \wilson{i'})$ to the branching
-ratio $\overline{\cal B}(B_s\to \bar\ell\ell)$, which constrains only
-$(\wilson{i} - \wilson{i'})$, where $i = S,\, P$.  Most notably, we
-find that the current measurement of $F_H^\mu$ does constrain the
-orthogonal $(\wilson{i} + \wilson{i'})$, such that the combination of
-$F_H^\mu$ and $\overline{\cal B}(B_s \to \bar\mu\mu)$ allows to bound
-for the first time the real and imaginary parts of all four couplings.
+Scalar couplings $\wilson{S,\, S',\, P,\, P'}$ enter $F_H^\ell$ without
+kinematic suppression---see \refeq{eq:FH-dependence}---as the sum $(\wilson{i} +
+\wilson{i'})$ whereas in the branching ratio $\overline{\cal B}(B_s\to
+\bar\ell\ell)$ they appear as the difference $(\wilson{i} - \wilson{i'}), i =
+S,\, P$.  Since the existing measurement of $F_H^\mu$ constrains the sum, the
+combination of $F_H^\mu$ and $\overline{\cal B}(B_s \to \bar\mu\mu)$ allows
+us---for the first time---to bound the real and imaginary parts of all four
+couplings.  The corresponding 2D-marginalized regions in the
+$\mbox{Re}(\wilson{i} \pm \wilson{i'})$ ($i = S, P$) planes are shown in
+\reffig{fig:scalar}. The corresponding plots for $\mbox{Im}(\wilson{i} \pm
+\wilson{i'})$ are very similar to those shown and thus omitted. These bounds do
+not change when including all other data in \reftab{tab:observables}, since the
+$A_{\rm FB}^\mu(B\to K\bar\mu\mu)$ requires interference of scalar with tensor
+couplings and other observables are not very sensitive to scalar
+couplings. Quantitatively, the constraint from $\overline{\cal B} (B_s \to
+\bar\mu\mu)$ on $(\wilson{i} - \wilson{i'})$ is about a factor four to five
+stronger than the one of $F_H^\mu$ on $(\wilson{i} + \wilson{i'})$.
 
-The according four-parameter fit for complex-valued scalar couplings
-to the data of $\overline{\cal B}(B_s \to \bar\mu\mu)$ and $F_H^\mu$
-results in the (2D-marginalized) regions in the $\mbox{Re}(\wilson{i}
-\pm \wilson{i'})$ ($i = S, P$) planes shown in
-\reffig{fig:scalar}. The corresponding plots for $\mbox{Im}(\wilson{i}
-\pm \wilson{i'})$ are very similar to those shown and thus
-omitted. These bounds do not change when including all other data in
-\reftab{tab:observables}, since the $A_{\rm FB}^\mu(B\to K\bar\mu\mu)$
-requires interference of scalar with tensor couplings and other
-observables are not very sensitive to scalar
-couplings. Quantitatively, the constraint from $\overline{\cal B} (B_s
-\to \bar\mu\mu)$ on $(\wilson{i} - \wilson{i'})$ is about a factor
-four to five stronger than the one of $F_H^\mu$ on $(\wilson{i} +
-\wilson{i'})$.
-
-Interference terms of $\wilson{P,\,P'}$ with vector couplings might
-weaken these bounds. Most important for $\overline{\cal B}(B_s \to
-\bar\mu\mu)$ are $(\wilson{10} - \wilson{10'})$ --- compare
-\refeq{eq:Br-Bsmumu:time0} --- and for $F_H^\ell$ similarly
-$(\wilson{10} + \wilson{10'})$ \cite{Bobeth:2007dw}, which are
-suppressed by factors $m_\mu/M_{B_s}$ and $m_\mu/\sqrt{q^2}$,
-respectively \fred{hard to read}. However, these terms become
-important for small $\wilson{P,\,P'}$ due to the large SM contribution
-of $\wilson[SM]{10} \simeq -4.2$. We compile bounds on complex-valued
-scalar couplings in \reftab{tab:cSP:1-dimCLs} for only $F_H^\mu$, only
-$\overline{\cal B}(B_s \to \bar\mu\mu)$, and their combination with
-all the other observables in \reftab{tab:observables}. In the last
-case, we allow new physics in vector couplings $\wilson{9,\ 9',\,
-  10,\, 10'}$ assuming uniform priors for $\mbox{Re, Im}(\wilson{i})
-\in[-7,\, 7]$.  Neither $F_H^\ell$ nor $\overline{\cal B}(B_s \to
-\bar\ell\ell)$ alone can bound all four complex-valued scalar
-couplings, however their combination is capable to do so and moreover,
-the bounds are stable against destructive interference with vector
-couplings. In the special case of real-valued couplings,
-$\overline{\cal B}(B_s \to \bar\ell\ell)$ would lead to
-rings~\cite{Alonso:2014csa} instead of circles. In the most general
-scenario, we find the following bounds with 68\% (95\%) probability:
+Interference terms of $\wilson{P,\,P'}$ with vector couplings might weaken these
+bounds. For $\overline{\cal B}(B_s \to \bar\mu\mu)$, the relevant term is
+$(\wilson{10} - \wilson{10'})$ (see \refeq{eq:Br-Bsmumu:time0}) and for
+$F_H^\ell$ it is $(\wilson{10} + \wilson{10'})$ \cite{Bobeth:2007dw}; both are
+suppressed by the factors $m_\mu/M_{B_s}$ and $m_\mu/\sqrt{q^2}$,
+respectively. Nevertheless, these terms become important for small
+$\wilson{P,\,P'}$ due to the large SM value of $\wilson[SM]{10} \simeq -4.2$. We
+compile bounds on complex-valued scalar couplings in \reftab{tab:cSP:1-dimCLs}
+for only $F_H^\mu$, only $\overline{\cal B}(B_s \to \bar\mu\mu)$, and their
+combination with all the other observables in \reftab{tab:observables}. Neither
+$F_H^\ell$ nor $\overline{\cal B}(B_s \to \bar\ell\ell)$ alone can bound all
+four complex-valued scalar couplings, however their combination is capable to do
+so and moreover, the bounds are stable against destructive interference with
+vector couplings. In the case of $\wilson[NP]{9,9',10,10'} \ne 0$, we find the
+following bounds with 68\% (95\%) probability:
 \begin{equation}
+  \label{eq:SP-bounds}
   \begin{aligned}
     \left| \wilson{S} \right| & \in [0.06,\, 0.25]\; ([0.01,\, 0.36]),\\
     \left| \wilson{S'} \right| & \in [0.09,\, 0.46]\; ([0.02,\, 0.73]),\\
@@ -1041,54 +1047,40 @@ scenario, we find the following bounds with 68\% (95\%) probability:
     \left| \wilson{P'} \right| & \in [0.11,\, 0.42]\; ([0.02,\, 0.63]).
   \end{aligned}
 \end{equation}
+Allowing in addition $\wilson{T,T5} \ne 0$, the intervals of
+\refeq{eq:SP-bounds} are quite similar but in general (10--20)\% narrower and
+shifted by that amount towards zero. Again, this can be explained by the
+cumulative effect of $\wilson{S,S',P,P'}$ and $\wilson{T,T5}$ in $F_H^\ell$
+shown in \refeq{eq:FH-dependence}.
 
-Our results improve and extend previous bounds in the literature to
-the most general case of complex-valued couplings. For example they
-are a factor two to five more stringent than \cite{Becirevic:2012fy}
-and comparable to \cite{Altmannshofer:2012az} once restricting to the
-much simpler scenarios considered there.
-
-\begin{figure*}
-  \begin{center}
-      \includegraphics[width=.35\textwidth]{plots/pdf/smEFTS_K_Bsmumu,smEFTS10_K_KstarBR_Bsmumu_0,2}
-      \includegraphics[width=.35\textwidth]{plots/pdf/smEFTS_K_Bsmumu,smEFTS10_K_KstarBR_Bsmumu_1,3}
-    \end{center}
-    \caption{
-    Constraints (2D-marginalized) on complex-valued scalar couplings
-    $\wilson{S,\,S'}$ in the scenario SM-EFT from all data in
-    \reftab{tab:observables} (red) at 68\% (darker) and 95\%
-    (lighter) probability when marginalising over non-zero $\mbox{Re, Im}
-    (\wilson[NP]{10,\,10'}) \in [-7,\,7]$.
-    For comparison the according constraints from only $\overline{\cal B}(B_s\to \bar\mu\mu)$
-    and $F_H^\mu$ \todo{What else?}
-    (dashed blue contours) at 68\% (inner) and 95\% (outer) probability.
-    The SM is indicated by the black diamond.
-  }
-  \label{fig:scalar:SM-EFT}
-\end{figure*}
-
+In the special case of real-valued couplings, $\overline{\cal B}(B_s \to
+\bar\ell\ell)$ would lead to rings~\cite{Alonso:2014csa} instead of circles in \reffig{fig:scalar}.
+Our results improve and extend previous bounds in the literature to the most
+general case of complex-valued couplings. For example they are a factor two to
+five more stringent than \cite{Becirevic:2012fy} and comparable to
+\cite{Altmannshofer:2012az} once restricting to the simpler scenarios considered
+there.
 %
 %
 %--------+---------+---------+---------+---------+---------+---------+---------+
 \subsection{SM-EFT-constrained scalar couplings \label{sec:SM-EFT}}
 
-In the following we consider a model-independent scenario as predicted by the SM
+In the following we consider a model-independent scenario as given by the SM but
 augmented by dimension six operators that respect the SM gauge group and are
-composed out of SM fields only. After the discovery of a scalar resonance at the LHC
-that complies currently with all requirements of the Higgs particle in the SM
-and the steadily rising lower bounds on new particle masses towards higher energies
-from ATLAS and CMS such a scenario becomes more and more viable \fred{hard to read}.
+composed of SM fields only. Such a scenario becomes more and more viable for two
+reasons. The first is the discovery of a scalar resonance at the LHC in
+agreement with all requirements of the Higgs particle in the SM. The second are
+the steadily rising lower bounds on the mass of new particles reported by ATLAS
+and CMS in various more or less specific models.
 
-A non-redundant set of dimension-six operators of this effective
-theory (SM-EFT) was given in \cite{Grzadkowski:2010es} and the
-matching to the effective theory of $\Delta B = 1$ decays
-\refeq{eq:Heff} at the scale $\mu \sim m_W$ of the order of the
-$W$-boson mass in~\cite{D'Ambrosio:2002ex} for vector couplings
-$\wilson{7,\,9,\,10}$. The matching for tensor \refeq{eq:tensor:ops}
-and scalar \refeq{eq:scalar:ops} operators \cite{Alonso:2014csa} shows
-that SM gauge groups in conjunction with the linear representation
-\todo{Ask Martin, Oscar how to correctly phrase this} impose the
-relations
+A non-redundant set of dimension-six operators of this effective theory (SM-EFT)
+was given in \cite{Grzadkowski:2010es} and the matching to the effective theory
+of $\Delta B = 1$ decays \refeq{eq:Heff} at the scale $\mu \sim m_W$ of the
+order of the $W$-boson mass is presented in~\cite{D'Ambrosio:2002ex} for vector
+couplings $\wilson{7,\,9,\,10}$. The matching of tensor \refeq{eq:tensor:ops}
+and scalar \refeq{eq:scalar:ops} operators \cite{Alonso:2014csa} shows that SM
+gauge groups in conjunction with the linear representation \todo{Ask Martin,
+  Oscar how to correctly phrase this} impose the relations
 \begin{align}
   \label{eq:mEFT-constraints}
   \wilson{P}  & = -\wilson{S}\,, &
@@ -1096,13 +1088,14 @@ relations
   \wilson{T}  & = \wilson{T5} = 0
 \end{align}
 on scalar and pseudo-scalar couplings and require tensor couplings to be
-suppressed to the level of dimension eight operators. In consequence only two
-scalar couplings $\wilson{S,\, S'}$ arise that scale as $\sim v^2/\Lambda_{\rm NP} \ll 1$
-where $v^2$ denotes the scale of electroweak symmetry breaking and $\Lambda_{\rm NP}$
-a high energy scale at which new physics generates these operators.
+suppressed to the level of dimension-eight operators. In consequence only two
+scalar couplings $\wilson{S,\, S'}$ arise that scale as $\sim v^2/\Lambda_{\rm
+  NP} \ll 1$ where $v^2$ denotes the scale of electroweak symmetry breaking and
+$\Lambda_{\rm NP}$ is the high-energy scale at which new physics generates these
+operators.
 
-The couplings $\wilson{S,\, S'}$ can be bound quite reliably from (omitting
-for the sake of the argument terms of order $m_\ell^2/M_{B_s}^2$ and $m_s/m_b$)
+Omitting for the sake of simplicity terms of order $m_\ell^2/M_{B_s}^2$ and
+$m_s/m_b$, the couplings $\wilson{S,\, S'}$ can be bound quite reliably from
 \cite{Alonso:2014csa}
 \begin{equation}
 \begin{aligned}
@@ -1111,11 +1104,11 @@ for the sake of the argument terms of order $m_\ell^2/M_{B_s}^2$ and $m_s/m_b$)
     + \left|\wilson{S} - \wilson{S'}\right|^2
 \\[0.2cm]
   - & \frac{4 m_\ell\, m_b}{M_{B_s}^2} \mbox{Re}
-  \left[ (\wilson{S} + \wilson{S'})(\wilson{10} - \wilson{10'})^* \right]
+  \left[ (\wilson{S} + \wilson{S'})(\wilson{10} - \wilson{10'})^* \right] \,.
 \end{aligned}
 \end{equation}
-and almost similarly (omitting terms of order $m_\ell^2/q^2$
-and $m_s/m_b$)
+In similar spirit, dropping terms of order $m_\ell^2/q^2$ and
+$m_s/m_b$ gives
 \begin{equation}
 \begin{aligned}
   F_H^\ell & \propto
@@ -1127,43 +1120,65 @@ and $m_s/m_b$)
 \end{aligned}
 \end{equation}
 
-The SM gauge group does not imply any relation between $\wilson{10}$
-and $\wilson{10'}$, so they are in general additional independent
-parameters. Here we find that destructive interference with
-contributions involving $\wilson{10,\, 10'}$ does not significantly
-alter the bounds on $\wilson{S,\, S'}$.  Since we consider here
-complex-valued couplings the allowed regions are circles rather than
-rings as for the case of real-valued
-couplings~\cite{Alonso:2014csa}. The result of the simultaneous fit of
-complex-valued $\wilson{S,\,S',\,10,\,10'}$ is shown in
-\reffig{fig:scalar:SM-EFT}. \fred{Circle smaller, prob. moves to
-  center compared to Alonso}
+The SM gauge group does not imply any relation between $\wilson{10}$ and
+$\wilson{10'}$, so they are in general additional independent parameters. Here
+we find that destructive interference with contributions involving
+$\wilson{10,\, 10'}$ does not significantly alter the bounds on $\wilson{S,\,
+  S'}$.  The results of two fits are shown in \reffig{fig:scalar:SM-EFT}. In the
+first fit, we set $\wilson[NP]{10, 10'} = 0$ and include all constraints on $B
+\to K \mu \bar{\mu}$ and $B_s \to \mu \bar{\mu}$. In the second fit, we allow
+$\wilson[NP]{10, 10'} \ne 0$ and further include all $B \to K^*\mu \bar{\mu}$
+constraints from \reftab{tab:observables}. For both fits, all six 2D marginals
+of real and imaginary parts of $\wilson{S}$ vs. $\wilson{S'}$ have nearly
+circular contours of equal size that contain the SM point at the 68\% level
+except for $\mbox{Re}(\wilson{S})$ vs. $\mbox{Re}(\wilson{S'})$ where it is
+within the 95\% credible region. The regions hardly vary between the two fits.
 
-It must be noted that relations \refeq{eq:mEFT-constraints} are a consequence
-of embedding the Higgs in a weak doublet along with the Goldstone bosons.
-For example choosing a non-linear representation of the scalar sector allows
-for additional dimension six operators in the SM-EFT, such that $\wilson{S,S',P,P'}$
-are all independent and tensor operators have non-vanishing couplings already
-at dimension six \cite{Cata:2015lta}.
+\begin{figure*}
+  \begin{center}
+      \includegraphics[width=.35\textwidth]{plots/pdf/smEFTS_K_Bsmumu,smEFTS10_K_KstarBR_Bsmumu_0,2}
+      \includegraphics[width=.35\textwidth]{plots/pdf/smEFTS_K_Bsmumu,smEFTS10_K_KstarBR_Bsmumu_1,3}
+    \end{center}
+    \caption{ 68\% and 95\% contours of the 2D-marginalized distributions of
+      scalar couplings $\wilson{S,\,S'}$ in the scenario SM-EFT with all
+      constraints in \reftab{tab:observables} (red) when marginalising over
+      non-zero $\mbox{Re, Im} (\wilson[NP]{10,\,10'})$.  For comparison, we
+      superimpose the corresponding contours from using only $\overline{\cal
+        B}(B_s\to \bar\mu\mu)$ and all $B \to K \mu \bar{\mu}$ constraints
+      (dashed blue contours) with fixed $\wilson[NP]{10,\,10'} = 0$.  The SM is
+      indicated by the black diamond.  \checked{}}
+  \label{fig:scalar:SM-EFT}
+\end{figure*}
+
+Since we consider here complex-valued couplings the allowed regions are circles
+rather than rings as for the case of real-valued
+couplings~\cite{Alonso:2014csa}. Compared to those rings, the circles are
+smaller because the probability moves from the ring towards the center of the
+circle.
+
+It must be noted that the relations \refeq{eq:mEFT-constraints} are a
+consequence of embedding the Higgs in a weak doublet along with the Goldstone
+bosons.  For example choosing a non-linear representation of the scalar sector
+allows additional dimension-six operators in the SM-EFT, such that the couplings
+$\wilson{S,S',P,P'}$ are all independent and tensor operators have nonvanishing
+couplings already at dimension six \cite{Cata:2015lta}.
 
 %
 %
 %--------+---------+---------+---------+---------+---------+---------+---------+
-\subsection{Tensor, scalar and vector couplings \label{sec:tensor:scalar}}
+\subsection{Tensor, scalar, and vector couplings \label{sec:tensor:scalar}}
 
 The most general fit of complex-valued tensor and scalar couplings
-$\wilson{S,S',P,P',T,T5}$ in combination with complex-valued vector
-couplings $\wilson{9,\,9',\,10,\, 10'}$ --- i.e. the combination of
-\refsec{sec:tensor} and \refsec{sec:scalar} with same prior ranges ---
-yields bounds very similar to those in tables \ref{tab:cTT5:1-dimCLs}
-and \ref{tab:cSP:1-dimCLs} . The changes are only small and in fact
-the bounds tend to be even more stringent because tensor and scalar
-couplings can contribute to $F_H^{\mu}$ only constructively --- see
-\refeq{eq:FH-dependence}.  As before, branching-ratio measurements of
-$B\to K^{*}\bar\mu\mu$ help to strengthen the constraints on
-$\wilson{T,\, T5}$. This demonstrates that even in the case of
-complex-valued couplings the data are able to constrain all real and
-imaginary parts.
+$\wilson{S,S',P,P',T,T5}$ in combination with vector couplings
+$\wilson{9,\,9',\,10,\, 10'}$---the combination of \refsec{sec:tensor} and
+\refsec{sec:scalar}---yields bounds very similar to those in tables
+\ref{tab:cTT5:1-dimCLs} and \ref{tab:cSP:1-dimCLs} . The changes are only small
+and in fact the bounds tend to be even more stringent because tensor and scalar
+couplings can contribute to $F_H^{\mu}$ only constructively---see
+\refeq{eq:FH-dependence}.  As before, branching-ratio measurements of $B\to
+K^{*}\bar\mu\mu$ help to improve the constraints on $\wilson{T,\, T5}$. This
+demonstrates that even in the case of complex-valued couplings there is enough
+information in the data to bound all 20 real and imaginary parts.
 
 %
 %
@@ -1237,7 +1252,7 @@ imaginary parts.
   \renewcommand{\arraystretch}{1.0}
   \caption{
      \label{tab:postdictions}
-     The 68\% probability intervals of not yet measured angular observables in
+     The 68\% probability intervals of not-yet-measured angular observables in
      $B^0\to K^{*0}\bar\mu\mu$ integrated over $q^2$ bins at low- and high-$q^2$
      for several new physics scenarios respecting all the considered experimental
      constraints. The SM prior predictives are given too, where ``$\simeq 0$''
@@ -1303,7 +1318,7 @@ experimental constraints in \reftab{tab:observables}. In view of current
 experimental precision of $20\%$ of the branching ratio measurements at LHCb
 \cite{Aaij:2013iag} with only 1 fb$^{-1}$, corresponding to the ${\cal
   O}(10^{-8})$, one can indeed hope for some sensitivity to such large effects
-in $(J_{1c} + J_{2c})$ and $(J_{1s} - 3\, J_{2s})$ for the not yet published 3
+in $(J_{1c} + J_{2c})$ and $(J_{1s} - 3\, J_{2s})$ for the not-yet-published 3
 fb$^{-1}$ data set at least with the method of moments~\cite{beaujean:2015mom}.
 
 The CP asymmetry $A_{\Delta\Gamma}(B_s\to \bar\mu\mu)$ induced by
@@ -1327,7 +1342,7 @@ $B\to K^{(*)} \bar\mu\mu$. Both observables, $F_H^\mu$ and $A_{\rm FB}^\mu$,
 belong to a class in which vector and dipole couplings that arise also in
 the standard model (SM) are suppressed (mostly kinematically by $m_\ell /
 \sqrt{q^2}$) w.r.t tensor and scalar couplings. We provide predictions for
-analogous but not yet measured angular observables $J_{6c}$, $(J_{1c} + J_{2c})$
+analogous but not-yet-measured angular observables $J_{6c}$, $(J_{1c} + J_{2c})$
 and $(J_{1s} - 3 J_{2s})$ in $B\to K^* (\to K\pi) \bar\mu\mu$.
 
 We find that the experimental measurement of $F_H^\mu$, especially at high-$q^2$,
@@ -1364,7 +1379,7 @@ couplings. In this scenario tensor couplings are absent and additional
 relations between scalar couplings are enforced by the linear realisation of the
 $SU(2)_L \otimes U(1)_Y$ electroweak symmetry group.
 
-Our study of yet not measured angular observables $J_{6c}$, $(J_{1c} + J_{2c})$
+Our study of yet-not-measured angular observables $J_{6c}$, $(J_{1c} + J_{2c})$
 and $(J_{1s} - 3 J_{2s})$ in $B\to K^* (\to K\pi) \bar\mu\mu$ (see
 \reftab{tab:postdictions}) shows that despite the current bounds on tensor couplings,
 enhancements of two orders of magnitude over the SM predictions are allowed for
@@ -1385,9 +1400,11 @@ $B_s$ meson can still take any value in the range $[-1,\, 1]$.
   Bouchard and Matthew Wingate for communications on their results of $B\to K$
   \cite{Bouchard:2013eph} and $B\to K^*$ \cite{Horgan:2015vla} form factors,
   respectively. We thank also David Straub for his support with LCSR results of
-  $B\to K^*$ form factors \cite{Straub:2015ica}.
-  C.B. was supported by the ERC Advanced Grant project ``FLAVOUR''
-  (267104).
+  $B\to K^*$ form factors \cite{Straub:2015ica}.  C.B. was supported by the ERC
+  Advanced Grant project ``FLAVOUR'' (267104). We acknowledge the support by the
+  DFG Cluster of Excellence "Origin and Structure of the Universe". The
+  computations have been carried out on the computing facilities of the
+  Computational Center for Particle and Astrophysics (C2PAP).
 \end{acknowledgements}
 
 
@@ -1404,7 +1421,7 @@ $B_s$ meson can still take any value in the range $[-1,\, 1]$.
 %
 %--------+---------+---------+---------+---------+---------+---------+---------+
 \section{
-  Angular observables in $B\to K^* \bar\ell\ell$
+  \checked{Angular observables in $B\to K^* \bar\ell\ell$}
   \label{app:BKstarellell}
 }
 
@@ -1752,7 +1769,7 @@ covariance matrix. \todo{In the case of lattice predictions, we proceed as in ou
 previous work \cite{Beaujean:2013soa} by generating form factor values of
 $V,\, A_{0,1,12},\, T_{1,2,3}$ at $q^2 = (15,\, 19.21)\,\mbox{GeV}^2$ from updated results
 \cite{Horgan:2015vla} (arXiv~v2), including their $8\times8$ correlation matrix
-see \reftab{tab:btokstar-lattice}.}
+see \reftab{tab:btok-lattice}.}
 
 \todo{We have compared our choice of three parameters in the SSE \refeq{eq:SSE-FF-parameterization}
 versus two parameters only and found that in the latter case lattice form factor
@@ -1760,9 +1777,9 @@ results influence the fit such that form factors tend to be higher than LCSR
 predictions at low $q^2$ leading to a worse fit. Hence we prefer the three-parameter
 setup as it accommodates better LCSR and lattice results.}
 
-\section{Monte Carlo sampling}
-\label{app:mc}
-\todo{reference in main text} The marginalization of the posterior is performed
+\section{\checked{Monte Carlo sampling} \label{app:mc}}
+
+The marginalization of the posterior is performed
 with the package {\tt pypmc}~\cite{beaujean_2015_20045}, which incorporates the
 algorithm presented in \cite{Beaujean:2013:PMC, Beaujean:2012uj} and in addition
 an implementation of the variational Bayes algorithm. In every analysis we first
