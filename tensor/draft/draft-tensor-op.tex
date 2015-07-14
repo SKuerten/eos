@@ -59,8 +59,8 @@
 %%
 \newcommand{\eos}[1]{{\color{red}{#1}}}   % things to be checked and replaced with EOS results
 \newcommand{\fred}[1]{{\color{green}{#1}}}
-\newcommand{\todo}[1]{{\color{purple}{ {\bf ToDo: }{#1}}}}
-\newcommand{\checked}[1]{{\color{magenta}{ {\bf Checked: }{#1}}}}
+\newcommand{\todo}[1]{{\color{magenta}{ {\bf ToDo: }{#1}}}}
+\newcommand{\checked}[1]{{\color{brown}{ {\bf Checked: }{#1}}}}
 
 %% ----------------------------
 %%  Physics, Math, Convenience
@@ -304,6 +304,7 @@
 \maketitle
 
 \begin{abstract}
+  \todo{check}
   The angular distribution of $B\to K\bar\ell\ell$ ($\ell =
   e,\,\mu,\,\tau$) provides a lepton-forward-backward asymmetry,
   $A_{\rm FB}^\ell$, and a flat term, $F_H^\ell$, that are strongly
@@ -321,6 +322,7 @@
   upper bounds on all four couplings. \fred{Try to shorten, add
     sentence ``independent of deviations in vector-coupling dominated
     observables''. There could be a bit of summary of outcome here, too}
+  \todo{check captions of figures and tables}
 \end{abstract}
 
 %
@@ -398,7 +400,7 @@ appendices.
 %
 %--------+---------+---------+---------+---------+---------+---------+---------+
 \section{
-  Effective Theory
+  \checked{Effective Theory}
   \label{sec:EFT}
 }
 
@@ -413,10 +415,11 @@ In the framework of the $|\Delta B| = |\Delta S| = 1$ effective theory
        \sum_{\ell = e,\, \mu,\, \tau} \sum_i  \wilson[\ell]{i}(\mu_b)  \Op_i \Big] + \text{h.c.}
 \end{aligned}
 \end{equation}
-the most general dimension-six flavor-changing operators $\Op_i$ mediating
-$b\to s \gamma$ and $b\to s \bar\ell\ell$ are classified according to their
-chiral structure. There are dipole ($i = 7,7')$ and vector ($i = 9,9',10,10'$)
-operators
+the most general dimension-six flavor-changing operators $\Op_i$ mediating $b\to
+s \gamma$ and $b\to s \bar\ell\ell$ are classified according to their chiral
+structure. There are dipole ($i = 7,7'$ \fred{so there is no $\mu, \tau$ version
+  of $\wilson{7}$? I guess it should also depend on $\mu_b$}) and vector ($i =
+9,9',10,10'$) operators
 \begin{equation}
   \label{eq:SM:ops}
 \begin{aligned}
@@ -454,7 +457,7 @@ and tensor ($i = T,T5$) operators
 \end{equation}
 where the notation $\Op_{T5} = i/2\, \varepsilon^{\mu\nu\alpha\beta}
 \[\bar{s} \sigma_{\mu\nu} b\]\!\[\bar{\ell} \sigma_{\alpha\beta} \ell\]$ is
-also used frequently in the literature. Their respective short-distance couplings,
+also used frequently in the literature. The respective short-distance couplings,
 the Wilson coefficients $\wilson[\ell]{i}(\mu_b)$ are evaluated at a scale of
 the order of the $b$-quark mass $\mu_b \sim m_b$ and can be modified from SM
 predictions in the presence of new physics.
@@ -473,7 +476,6 @@ $\wilson[SM]{7'} = m_s/m_b\, \wilson[SM]{7}$, $\wilson[\ell, SM]{S,S',P,P'} \sim
 %connection with the measurement of $R_K = {\cal B}_\mu/{\cal B}_e$ in
 %$q^2 \in [1, 6]$ GeV$^2$ \cite{Aaij:2014ora}, which deviates by $2.6\sigma$
 %from the SM prediction $R_K^{\rm SM} = 1.00$ \cite{Bobeth:2007dw, Bouchard:2013mia}.
-
 The Wilson coefficients of the four-quark current-current and QCD-penguin
 operators as well as of the chromomagnetic dipole operators are set to their
 NNLO SM values at $\mu_b = 4.2 \, \mbox{GeV}$ \cite{Bobeth:2003at, Huber:2005ig}.
@@ -483,7 +485,7 @@ NNLO SM values at $\mu_b = 4.2 \, \mbox{GeV}$ \cite{Bobeth:2003at, Huber:2005ig}
 %
 %--------+---------+---------+---------+---------+---------+---------+---------+
 \section{
-  Observables and experimental input
+  \checked{Observables and experimental input}
   \label{sec:observables}
 }
 
@@ -496,26 +498,26 @@ couplings
   F_H^\ell(q^2) \big|_{\rm SM} & \propto \frac{m_\ell^2}{q^2}\,, &
   A_{\rm FB}^\ell \big|_{\rm SM} & = 0 \,.
 \end{align}
-Hence, for $\ell = e,\, \mu$ both observables are quasi-null tests.
-The $F_H^\ell(q^2)|_{\rm SM}$
-is strongly suppressed away from both kinematical endpoints in $q^2$,
-except for $\ell = \tau$, \cite{Bobeth:2007dw, Bobeth:2011nj, Bouchard:2013eph}.
-Non-zero values
-of $A_{\rm FB}^\ell|_{\rm SM}$ can be induced by higher order QED corrections,
-which will modify the simple $\cos\theta_\ell$ dependence
-of the angular distribution~\refeq{eq:ang-distr}, however, currently there is
-no solid estimate available for this source of SM background\footnote{The leading
-QED corrections to $B\to X_s\bar\ell\ell$ \cite{Huber:2015sra} might provide an estimate of
-corresponding effects in $B\to K \bar\ell\ell$.}.
+Hence, for $\ell = e,\, \mu$ both observables are quasi-null tests.  The flat
+term $F_H^\ell(q^2)|_{\rm SM}$ is strongly suppressed away from both \fred{Why
+  both? At $q^2_{\rm max}$ it is strongly suppressed according to the formula
+  given.} kinematic endpoints in $q^2$, except for $\ell = \tau$,
+\cite{Bobeth:2007dw, Bobeth:2011nj, Bouchard:2013eph}.  Non-zero values of
+$A_{\rm FB}^\ell|_{\rm SM}$ can be induced by higher order QED corrections,
+which will modify the simple $\cos\theta_\ell$ dependence of the angular
+distribution~\refeq{eq:ang-distr}, however, currently there is no solid estimate
+available for this source of SM background\footnote{The leading QED corrections
+  to $B\to X_s\bar\ell\ell$ \cite{Huber:2015sra} might provide an estimate of
+  corresponding effects in $B\to K \bar\ell\ell$.}.
 
-This picture does not change in the presence of new physics
-contributions to vector and dipole operators $i =
-7,7',9,9',10,10'$. On the other hand, non-vanishing tensor or scalar
-contributions are enhanced unless the dynamics of NP implies similar
-suppression factors, i.e., lepton-Yukawa couplings for $F_H^\ell$ or
-$\alpha_e$ in the case of $A_{\rm FB}^\ell$. In particular, $F_H^\ell$
-is very sensitive to tensor couplings $A_{\rm FB}^\ell$ is sensitive
-to the interference of tensor and scalar couplings.
+This picture does not change in the presence of new physics contributions to
+vector and dipole operators $i = 7,7',9,9',10,10'$. On the other hand,
+non-vanishing tensor or scalar contributions are enhanced unless the dynamics of
+NP implies similar suppression factors, i.e., lepton-Yukawa couplings for
+$F_H^\ell$ or $\alpha_e$ in the case of $A_{\rm FB}^\ell$. In particular,
+$F_H^\ell$ is very sensitive to tensor couplings (see \refeq{eq:AFB-dependence}
+below) and $A_{\rm FB}^\ell$ is sensitive to the interference of tensor and
+scalar couplings (see \refeq{eq:FH-dependence} below).
 
 \begin{figure*}
   \setlength{\relwidth}{0.33\textwidth}
@@ -553,39 +555,40 @@ to the interference of tensor and scalar couplings.
   \label{fig:FHvsCT}
 \end{figure*}
 
-There are also angular observables $J_i$ in $B\to K^*(\to K\pi)\,
-\bar\ell\ell$ with the same properties, i.e. tensor and scalar
-contributions are kinematically enhanced by a factor
-$\sqrt{q^2}/m_\ell$ over vector ones present in the SM or their
-respective interference terms. These are $J_{6c}$ and the two linear
-combinations $(J_{1s} - 3 J_{2s})$ and $(J_{1c} + J_{2c})$ with
-explicit formulas given in \refapp{app:BKstarellell}. In our fits and
-predictions we include all kinematically suppressed terms. But for the
-purpose of illustration, we now consider the analytical dependence for
-vanishing lepton mass. In this limit,
+There are some angular observables $J_i$ in $B\to K^*(\to K\pi)\, \bar\ell\ell$
+with the same properties; i.e. tensor and scalar contributions are kinematically
+enhanced by a factor $\sqrt{q^2}/m_\ell$ over vector ones present in the SM or
+their respective interference terms. These are $J_{6c}$ and the two linear
+combinations $(J_{1s} - 3 J_{2s})$ and $(J_{1c} + J_{2c})$ with explicit
+formulas given in \refapp{app:BKstarellell}. In our fits and predictions we
+include all kinematically suppressed terms. But for the purpose of illustration,
+we now consider the analytical dependence for vanishing lepton mass. In this
+limit,
 \begin{align}
   J_{6c} & \propto
     \mbox{Re}\big[(\wilson[]{P} - \wilson[]{P'})\, \wilson[\ast]{T}
                 - (\wilson[]{S} - \wilson[]{S'})\, \wilson[\ast]{T5}\big]
 \intertext{is sensitive to the interference of tensor and scalar operators,
-  complementary to the $A_{\rm FB}^\ell$ in $B\to K \bar\ell\ell$}
+  complementary to $A_{\rm FB}^\ell$ in $B\to K \bar\ell\ell$}
   \label{eq:AFB-dependence}
   A_{\rm FB}^\ell & \propto
     \mbox{Re}\big[(\wilson[]{P} + \wilson[]{P'})\, \wilson[\ast]{T5}
                 + (\wilson[]{S} + \wilson[]{S'})\, \wilson[\ast]{T}\big]
                 \Big/ \Gamma_\ell \,,
 \end{align}
-i.e., with an interchange of tensor contributions $T \leftrightarrow T5$.
-We note also that $J_{6c}$ contributes to lepton forward-backward asymmetry
-of $B\to K^* \bar\ell\ell$ being $\propto (J_{6s} + J_{6c}/2)$. Since
-it has to compete with $J_{6s}$ in this observable, a separate measurement of
-$J_{6s}$ and $J_{6c}$ is necessary. Further, only tensor contributions enter
+i.e., with an interchange of tensor contributions $T \leftrightarrow T5$.  We
+note also that $J_{6c}$ contributes to the lepton forward-backward asymmetry of
+$B\to K^* \bar\ell\ell$ being $\propto (J_{6s} + J_{6c}/2)$. Since it has to
+compete with $J_{6s}$ in this observable, a separate measurement of $J_{6s}$ and
+$J_{6c}$ is necessary.
+
+Only tensor contributions enter
 \begin{align}
   (J_{1s} - 3\, J_{2s}) & \propto
   \left(\ldots |\wilson{T}|^2 + \ldots |\wilson{T5}|^2 \right) \,,
 \end{align}
-where the dots indicate different kinematical and form factor dependences.
-On the other hand, tensor and scalar contributions enter
+where the dots indicate different kinematic and form-factor dependencies.  But
+tensor \emph{and} scalar contributions enter
 \begin{equation}
 \begin{aligned}
   (J_{1c} + J_{2c}) & \propto
@@ -607,31 +610,31 @@ which is similar to the dependence of $F_H^\ell$ in $B\to K
   \Big/ \Gamma_\ell \,.
 \end{aligned}
 \end{equation}
-Concerning $F_H^\ell$, the involved kinematical factors --- see \cite{Bobeth:2007dw,
-Bobeth:2012vn} --- are such that tensor and scalar couplings contribute only
-constructively/cumulatively, apart of cancellations among $\wilson{S(P)}$ and $\wilson{S'(P')}$.
-Further, interference terms (in the numerator of $F_H^\ell$) of $(\wilson{T} \times
-\wilson{7,7',9,9'})$ and $(\wilson{P,P'} \times \wilson{10,10'})$ are suppressed
-by $m_\ell/\sqrt{q^2}$, but can become relevant in case that $\wilson{T} \ll \wilson{7,7',9,9'}$
-and $\wilson{P,P'} \ll\wilson{10,10'}$ can overcome this suppression factor,
-respectively.
+Concerning $F_H^\ell$, the involved kinematic factors---see \cite{Bobeth:2007dw,
+  Bobeth:2012vn}---are such that tensor and scalar couplings contribute only
+constructively/cumulatively, apart from cancellations among $\wilson{S(P)}$ and
+$\wilson{S'(P')}$.  Interference terms in the numerator of $F_H^\ell$ of the
+form $(\wilson{T} \times \wilson{7,7',9,9'})$ and $(\wilson{P,P'} \times
+\wilson{10,10'})$ are suppressed by $m_\ell/\sqrt{q^2}$. They can only become
+relevant in case $\wilson{T} \ll \wilson{7,7',9,9'}$ or $\wilson{P,P'}
+\ll\wilson{10,10'}$.
 
-The observables $F_H^\ell$ \refeq{eq:FH-dependence} and $A_{\rm FB}^\ell$
-\refeq{eq:AFB-dependence} are measured in the angular distribution \refeq{eq:ang-distr}
-of $B\to K \bar\ell\ell$ being normalised to the decay width $\Gamma_\ell$, such
-that uncertainties due to form factors can cancel in part \cite{Bobeth:2007dw,
-Bobeth:2012vn}. On the other hand, $J_{6c}$,  $(J_{1s} - 3\, J_{2s})$ and
-$(J_{1c} + J_{2c})$ appear in the unnormalised angular distribution of
-$B\to K^* \bar\ell\ell$ and so-called ``optimised'' versions $S_1$, $M_1$ and
-$M_2$ for the low-$q^2$ region have been identified in~\cite{Matias:2012xw},
-respectively, where form factors cancel in the limit of $m_b \to \infty$.
-For the high-$q^2$ region potential normalisations are discussed in
-\refapp{app:BKstarellell}, which could serve to form optimised observables for
-special scenarios of either vanishing chirality-flipped vector or tensor
-or scalar couplings. In the most general case, however, there are no optimised
-observables at high-$q^2$. Although form factors do not cancel in this case, it
-might be still advantageous to use normalisations, for example when the overall
-normalisation of $B\to K^*$ form factors constitutes a major theoretical
+On the one hand, the observables $F_H^\ell$ \refeq{eq:FH-dependence} and $A_{\rm
+  FB}^\ell$ \refeq{eq:AFB-dependence} are measured in the angular distribution
+\refeq{eq:ang-distr} of $B\to K \bar\ell\ell$ normalized to the decay width
+$\Gamma_\ell$ such that uncertainties due to form factors can cancel in part
+\cite{Bobeth:2007dw, Bobeth:2012vn}. On the other hand, $J_{6c}$, $(J_{1s} - 3\,
+J_{2s})$, and $(J_{1c} + J_{2c})$ appear in the unnormalized angular
+distribution of $B\to K^* \bar\ell\ell$. ``Optimized'' versions $S_1$, $M_1$,
+and $M_2$ for the low-$q^2$ region for which form factors cancel in the limit of
+$m_b \to \infty$ have been identified in~\cite{Matias:2012xw}.  For the
+high-$q^2$ region, potential normalizations are discussed in
+\refapp{app:BKstarellell}, which could serve to form optimized observables for
+special scenarios of either vanishing chirality-flipped vector or tensor or
+scalar couplings. In the most general case, however, there are no optimized
+observables at high $q^2$. Although form factors do not cancel in this case, it
+might still be preferable to use normalizations, for example when the overall
+normalization of $B\to K^*$ form factors constitutes a major theoretical
 uncertainty.
 
 \begin{table*}
@@ -688,31 +691,43 @@ ${B\to K}$ form factors
 \end{center}
 \end{table*}
 
-To illustrate the sensitivity of $F_H^\ell$ to tensor couplings, we
-compare it in \reffig{fig:FHvsCT} to the one of the branching ratios
-of $B\to K^{(*)} \bar\ell\ell$ for {$\ell = \mu$}, integrated over low
-and high $q^2$. The details of the numerical input and the treatment
-of uncertainty propagation can be found in \refapp{app:theory:inputs}.
-In view of the hint of new physics in $\wilson[NP]{9} < 0$ from recent
-global analysis of $b\to s (\gamma,\, \bar\ell\ell)$ data
-\cite{Descotes-Genon:2013wba, Altmannshofer:2013foa, Beaujean:2013soa,
-  Hurth:2014vma, Altmannshofer:2014rta} we show besides
-$\wilson[NP]{9} = 0$ also predictions for $\wilson[NP]{9} = -1.1$. As
-can be seen, the sensitivity to tensor couplings is highest for
-$F_H^\ell$ at high $q^2$, also due to a partial cancellation of form
-factors \cite{Bobeth:2012vn}, whereas the one on $\wilson[NP]{9} < 0$
-is rather mild, in contrast to that of the branching ratios. For the
-latter, ${\cal B}(B\to K^* \bar\ell\ell)$ shows stronger dependence on
-$\wilson{T}$ compared to ${\cal B}(B\to K \bar\ell\ell)$ and has some
-impact on the constraints on tensor couplings as will be discussed in
-\refsec{sec:results}. In consequence, the data on $F_H^\ell$ at high
-$q^2$ provides currently the most stringent constraints on the size of
-tensor couplings. Moreover, the dependence on vector couplings is such
-that $\wilson[NP]{9} < 0$ leads to stronger constraints on
-$\wilson{T}$ than $\wilson[NP]{9} \approx 0$. \fred{Stress that
-  $J_{1c}+J_{2c}$ and $J_{1s}-3J_{2s}$ robust against changes in
-  $\wilson{9}$ but sensitive to $\wilson{T}$. $F_H$ sensitive to
-  $\wilson[NP]{9}$ only if $\wilson{T} \ne 0$. Mention prior predictive}
+To illustrate the sensitivity of $F_H^\ell$ to tensor couplings, we compare it
+in \reffig{fig:FHvsCT} to the branching ratios of $B\to K^{(*)} \bar\ell\ell$
+for {$\ell = \mu$}, integrated over one low-$q^2$ and one high-$q^2$ bin. The
+details of the numerical input and the uncertainty propagation can be found in
+\refapp{app:theory:inputs} and \refapp{app:mc}.  In light of the hint of new
+physics in $\wilson{9}$ from recent global analyses of $b\to s (\gamma,\,
+\bar\ell\ell)$ data \cite{Descotes-Genon:2013wba, Altmannshofer:2013foa,
+  Beaujean:2013soa, Hurth:2014vma, Altmannshofer:2014rta}, we show predictions
+for $\wilson[NP]{9} = -1.1$ in addition to $\wilson[NP]{9} = 0$.
+
+From \reffig{fig:FHvsCT}, the highest sensitivity to tensor couplings of any $B
+\to K$ observable is attained by $F_H^\ell$ at high $q^2$ due to a partial
+cancellation of form factors \cite{Bobeth:2012vn}. If the experimental
+uncertainty could be reduced further, $F_H^\ell$ would give a very strong
+constraint on a simultaneous negative shift in $\wilson[NP]{9}$ and
+$\wilson[NP]{T}$. The prediction of ${\cal B}(B\to K \bar\ell\ell)$ is
+essentially insensitive to $\wilson{T}$ but sensitive to $\wilson{NP}[9]$. A
+stronger impact on global fits, however, would required reduced theory
+uncertainty.
+
+The observable ${\cal B}(B\to K^* \bar\ell\ell)$ shows moderate dependence on
+$\wilson{T}$ at least at low $q^2$ and has some impact on the constraints on
+tensor couplings as will be discussed in \refsec{sec:results}. At the moment,
+theory and experimental uncertainty are of similar size.
+
+$J_{1c}+J_{2c}$ is sensitive to $\wilson{T}$ in both $q^2$ regimes. At low
+$q^2$, it is mildly affected by $\wilson[NP]{9}$, whereas at high $q^2$ it is
+unaffected. Regarding $J_{1s}-3J_{2s}$, the situation is reversed: here the
+strong dependence on $\wilson{T}$ appears at low $q^2$.  Overall, $F_H^\ell$,
+$J_{1c}+J_{2c}$ at large $q^2$, and $J_{1s}-3J_{2s}$ are sensitive to
+$\wilson{T}$ and theoretically very clean around $\wilson{T}=0$.
+
+From the available measurements, $F_H^\ell$ at high $q^2$ currently provides the
+most stringent constraints on the size of tensor couplings. Moreover, the
+dependence on vector couplings is such that $\wilson[NP]{9} < 0$ leads to
+stronger constraints on $\wilson{T}$ than $\wilson[NP]{9} \approx
+0$.
 
 Important additional constraints on scalar couplings come from the
 branching ratio of $B_s \to \bar\mu\mu$ as given in
@@ -722,12 +737,12 @@ the moduli $|\wilson{S} - \wilson{S'}|$ and $|\wilson{P} -
 \wilson{10'})$. Thus it is complementary to $F_H^{\ell}$ in $B\to K
 \bar\ell\ell$; see Eq. \refeq{eq:FH-dependence}.
 
-Eventually we also explore the effect of interference with NP in the
-vector couplings $\wilson{9,\,9',\,10,\,10'}$ on the bounds on tensor
-and scalar couplings.  For this purpose we include also the branching
-ratio, the lepton forward-backward asymmetry and the rate CP asymmetry
-of $B\to K^* \bar\mu\mu$ as they provide additional constraints on the
-real and imaginary parts of $\wilson{9,\,9',\,10,\,10'}$.
+Eventually we also explore the effect of interference with NP in the vector
+couplings $\wilson{9,\,9',\,10,\,10'}$ on the bounds on tensor and scalar
+couplings.  For this purpose we include also the branching ratio, the lepton
+forward-backward asymmetry, and the rate CP asymmetry of $B\to K^* \bar\mu\mu$
+as they provide additional constraints on the real and imaginary parts of
+$\wilson{9,\,9',\,10,\,10'}$.
 
 The experimental inputs of all observables entering our fits is listed
 in \reftab{tab:observables} together with input for the $B\to K^{(*)}$
@@ -1504,7 +1519,7 @@ SM prediction $\overline{\cal B} (B_s \to \bar\mu\mu) = (3.65 \pm 0.23) \cdot
 10^{-9}$~\cite{Bobeth:2013uxa} includes NLO electroweak \cite{Bobeth:2013tba}
 and NNLO QCD corrections \cite{Hermann:2013kca}.
 
-Finally we discuss the possibility of suitable normalisations of $J_{6c}$,
+Finally we discuss the possibility of suitable normalizations of $J_{6c}$,
 $(J_{1s} - 3\, J_{2s})$ and $(J_{1c} + J_{2c})$ at high $q^2$ that would provide
 optimized observables. For this purpose we use form-factor relations at leading
 order in $1/m_b$ and neglect terms suppressed by $m_\ell/\sqrt{q^2}$. With the
@@ -1525,7 +1540,7 @@ Here $f_{\perp, \parallel, 0}$ and $A_0$ denote $B\to K^*$ form factors, whereas
 the $\rho_1^\pm$ depends on vector couplings and $\rho_1^T \propto
 (|\wilson{T}|^2 + |\wilson{T5}|^2)$.
 
-Concerning $(J_{1s} - 3\, J_{2s})$, there are no appropriate normalisations,
+Concerning $(J_{1s} - 3\, J_{2s})$, there are no appropriate normalizations,
 unless the chirality-flipped $\wilson[NP]{7',\,9',\,10'} = 0$ because then
 $\rho_1^+ = \rho_1^-$ holds. There are three potential normalizations
 \begin{equation}
@@ -1634,7 +1649,7 @@ As we do not make use of form factor relations for tensor and scalar amplitudes
 in $B\to K\bar\ell\ell$, additional nuisance parameters are included for the complete
 set of $B\to K$ form factors $f_{+,T,0}$. As a consequence of using the
 $z$-parameterization \cite{Khodjamirian:2010vf}, only five nuisance parameters
-(listed in \reftab{tab:hadronic:nuisance}) arise due to the kinematical relation
+(listed in \reftab{tab:hadronic:nuisance}) arise due to the kinematic relation
 $f_0(0) = f_+(0)$. As prior information, the LCSR results~\cite{Khodjamirian:2010vf}
 and \cite{Ball:2004ye} have been averaged (see \reftab{tab:hadronic:nuisance} and
 cf. \cite{Beaujean:2013soa}), and supplemented with lattice determinations~\cite{Bouchard:2013eph}.
