@@ -16,7 +16,13 @@ hdf5_subdirectory = '/chain #0'
 
 class Target(object):
     """Transform parameters with a linear transformation so pypmc samples
-     *uncorrelated* parameters but eos sees the correlated parameters."""
+    *uncorrelated* parameters but eos sees the correlated parameters. We
+    don't have to include a Jacobian determinant because the
+    transformation matrix is a constant triangular matrix, so the
+    determinant is just a constant that modifies the anyway arbitray
+    normalization of the likelihood.
+
+    """
     def __init__(self, analysis, filename=None):
 
         self.analysis = analysis
