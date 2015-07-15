@@ -538,20 +538,18 @@ scalar couplings (see \refeq{eq:FH-dependence} below).
     \includegraphics[width=\relwidth]{plots/pdf/ct_Kstar_J_1s_minus_3J_2s1to6}
     \includegraphics[width=\relwidth]{plots/pdf/ct_Kstar_J_1s_minus_3J_2s15to19}
   \end{center}
-\caption{ The sensitivity to the tensor coupling
-      $\wilson{T}$ of $F_H$ [first row] and ${\cal B}$ [second row] in
-      $B^+ \to K^+ \bar\mu\mu$ and ${\cal B}$ [third row], $J_{1c} +
-      J_{2c}$ [fourth row], and $J_{1s}-3 J_{2s}$ [fifth row] in $B^0 \to K^{*0}
-      \bar\mu\mu$ integrated over low- and high-$q^2$ bins. In the
-      last two rows, the observables are normalized by the lifetime of
-      the $B$ meson for easier comparison with the branching
-      ratios. The bands represent the theory uncertainties at 68\%
-      and 95\% probability.  For comparison, two sets of bands are
-      shown for the SM, $\wilson[NP]{9} = 0$ (blue), and
-      $\wilson[NP]{9} = -1.1$ (red), and an additional band of the
-      latest 68\% uncertainty reported by LHCb (grey) if a measurement
-      is available.
-      }
+  \caption{ The sensitivity to the tensor coupling $\mbox{Re}(\wilson{T})$ of
+    $F_H$ (first row) and ${\cal B}$ (second row) in $B^+ \to K^+ \bar\mu\mu$
+    and ${\cal B}$ (third row), $J_{1c} + J_{2c}$ (fourth row), and $J_{1s}-3
+    J_{2s}$ (fifth row) in $B^0 \to K^{*0} \bar\mu\mu$ integrated over low- and
+    high-$q^2$ bins. In the last two rows, the observables are rescaled by the
+    lifetime of the $B$ meson for easier comparison with the branching
+    ratios. The bands represent the theory uncertainties at 68\% and 95\%
+    probability of the prior predictive distribution.  For comparison, two sets
+    of bands are shown for the SM, $\wilson[NP]{9} = 0$ (blue), and
+    $\wilson[NP]{9} = -1.1$ (red), and an additional band of the latest 68\%
+    confidence interval reported by LHCb (grey) if a measurement is
+    available. \checked{} }
   \label{fig:FHvsCT}
 \end{figure*}
 
@@ -751,7 +749,7 @@ the $B\to K^{(*)}$ form factors. More details on the latter can be found in
 %
 %--------+---------+---------+---------+---------+---------+---------+---------+
 \section{
-  Fits and constraints
+  \checked{Fits and constraints}
   \label{sec:results}
 }
 
@@ -894,16 +892,21 @@ bounds \cite{Bobeth:2012vn} on $\wilson{T,\,T5}$ by roughly 50\%.
 
 A keen observer may notice that in \reftab{tab:cTT5:1-dimCLs} the SM point
 $\wilson{T,T5} \equiv 0$ is contained in every 68\% region in cartesian
-coordinates but never in even the 95\% region in polar coordinates. This is a
-consequence of the general \emph{concentration of measure}. Another way to look
-at it is to transform the uniform prior density from cartesian to polar
-coordinates. For the example of the single Wilson coefficient, say $\wilson{T}$,
-the transformed density is proportional to the determinant of the Jacobian which
-is $|\wilson{T}|$. In words, the uniform prior on $\mbox{Re}(\wilson{T})$ and
-$\mbox{Im}(\wilson{T})$ favors larger values of $|\wilson{T}|$ even though we
-consider it consensus in the community that smaller rather than larger values
-are held reasonable because in the SM, $\wilson{T} = 0$. We suggest therefore
-that the default prior be changed in the future.
+coordinates but never in even the 95\% region in polar coordinates\footnote{But
+  the bin with lower edge $\wilson{T,T5} = 0$ is always in the 99\%
+  region.}. This is a consequence of the general \emph{concentration of
+  measure}. Another way to look at it is to transform the uniform prior density
+from cartesian to polar coordinates. For the example of a single Wilson
+coefficient, say $\wilson{T}$, the transformed density is proportional to the
+determinant of the Jacobian which is $|\wilson{T}|$. Since the cartesian prior
+boundaries are much larger than the regions of high likelihood, one could think
+the value of the boundary is irrelevant but in fact it determines the peak of
+the prior in polar coordinates. In other words, the uniform prior on
+$\mbox{Re}(\wilson{T})$ and $\mbox{Im}(\wilson{T})$ favors larger values of
+$|\wilson{T}|$ even though we consider it consensus in the community that
+smaller rather than larger values are reasonable because $\wilson{T} = 0$ in the
+SM. We suggest therefore that the default treatment be revised in the future to
+include available prior knowledge.
 
 %
 %
@@ -1341,64 +1344,69 @@ at the presence of scalar operators.
 %
 %
 %--------+---------+---------+---------+---------+---------+---------+---------+
-\section{Conclusions}
+\section{\checked{Conclusions}}
 
-We have derived to date most stringent constraints on tensor and scalar
-couplings that mediate $b\to s\bar\mu\mu$ utilising the latest measurements
-of angular observables $F_H^\mu$ and the lepton forward-backward asymmetry
-$A_{\rm FB}^\mu$ in $B^+\to K^+ \bar\mu\mu$ from LHCb \cite{Aaij:2014tfa},
-supplemented by measurements of the branching ratios of $B_s\to \bar\mu\mu$ and
-$B\to K^{(*)} \bar\mu\mu$. Both observables, $F_H^\mu$ and $A_{\rm FB}^\mu$,
-belong to a class in which vector and dipole couplings that arise also in
-the standard model (SM) are suppressed (mostly kinematically by $m_\ell /
-\sqrt{q^2}$) w.r.t tensor and scalar couplings. We provide predictions for
-analogous but not-yet-measured angular observables $J_{6c}$, $(J_{1c} + J_{2c})$
-and $(J_{1s} - 3 J_{2s})$ in $B\to K^* (\to K\pi) \bar\mu\mu$.
+We have derived the most stringent constraints to date on tensor and scalar
+couplings that mediate $b\to s\bar\mu\mu$ transitions using the latest
+measurements of angular observables $F_H^\mu$ and the lepton forward-backward
+asymmetry $A_{\rm FB}^\mu$ in $B^+\to K^+ \bar\mu\mu$ from LHCb
+\cite{Aaij:2014tfa}, supplemented by measurements of the branching ratios of
+$B_s\to \bar\mu\mu$ and $B\to K^{(*)} \bar\mu\mu$. Both $F_H^\mu$ and $A_{\rm
+  FB}^\mu$ belong to a class of observables in which vector and dipole
+couplings---present in the standard model (SM)---are suppressed (mostly
+kinematically by $m_\ell / \sqrt{q^2}$) with respect to tensor and scalar
+couplings. We provide predictions for the equivalent but not-yet-measured
+angular observables $J_{6c}$, $(J_{1c} + J_{2c})$ and $(J_{1s} - 3 J_{2s})$ in
+$B\to K^* (\to K\pi) \bar\mu\mu$.
 
-We find that the experimental measurement of $F_H^\mu$, especially at high-$q^2$,
+In a Bayesian analysis of the complex-valued couplings of the effective theory,
+we find that the measurement of $F_H^\mu$, especially at high-$q^2$,
 \begin{enumerate}
-\item imposes by itself constraints on tensor couplings $|\wilson{T,\,T5}|
-  < 0.43\, (0.57)$ at 68\% (95\%) probability, superseding previous bounds.
-  In combination with current data from $B\to K^* \bar\mu\mu$ and lattice
-  $B\to K^*$ form factors they become tighter $|\wilson{T,\,T5}| < 0.33\,
-  (0.43)$, even in the presence of nonstandard contributions in vector
-  couplings.
-\item allows for the first time to bound all four scalar couplings $\wilson{i}$
-  with $i = S,\,S',\,P,\,P'$ due to it's complementarity to $\overline{\cal B}(B_s
-  \to \bar\mu\mu)$. Even when taking into account destructive interference with
-  vector couplings, $|\wilson{i} + \wilson{i'}| < 0.3\, (0.6)$ and
-  $|\wilson{i} - \wilson{i'}| < 0.1\, (0.2)$ for $i = S,P$ at 68\% (95\%)
-  probability. Currently, the bounds from $F_H^\mu$ are not as strong as those
-  from $\overline{\cal B}(B_s \to \bar\mu\mu)$ by about a factor four. In the
-  future, measurements at LHCb and Belle II will further tighten the bounds.
+  \item imposes by itself bounds on tensor couplings $|\wilson{T,\,T5}|$ such
+  that the upper bound of the smallest 68\% (95\%) credibility interval is
+  $0.43\, (0.57)$, superseding previous bounds.  In combination with current
+  data from $B\to K^* \bar\mu\mu$ and lattice $B\to K^*$ form factors, the
+  bounds are lowered to 0.33 (0.43), even in the presence of nonstandard
+  contributions in vector couplings.
+  \item for the first time allows to bound all four scalar couplings
+  $\wilson{i}$ with $i = S,\,S',\,P,\,P'$ due to it's complementarity to
+  $\overline{\cal B}(B_s \to \bar\mu\mu)$. Even when taking into account
+  destructive interference with vector couplings, $|\wilson{i} + \wilson{i'}| <
+  0.3\, (0.6)$ and $|\wilson{i} - \wilson{i'}| < 0.1\, (0.2)$ for $i = S,P$ with
+  at least 68\% (95\%) probability. Currently, the bounds from $F_H^\mu$ are
+  weaker than those from $\overline{\cal B}(B_s \to \bar\mu\mu)$ by about a
+  factor of four. Future measurements of $F_H^\mu$ at LHCb and Belle II will
+  further tighten the bounds.
 
-  Moreover, measurements of $F_H^e$ ($\ell = e$)
-  will provide constraints on scalar couplings in the electron channel in
-  the lack of measurements of the branching ratio of $B_s \to \bar{e}e$.
+  Moreover, measurements of $F_H^e$ ($\ell = e$) will provide constraints on
+  scalar couplings in the electron channel in the absence of a direct
+  determination of the branching ratio of $B_s \to \bar{e}e$.
 \end{enumerate}
 Our updated bounds on complex-valued tensor and scalar couplings are summarised
 in \reftab{tab:cTT5:1-dimCLs} and \reftab{tab:cSP:1-dimCLs}, accounting also for
 interference effects with vector couplings. These bounds hold even in the most
-general scenario of complex-valued tensor, scalar and vector couplings, showing
-also that the data is able to bound the real and imaginary parts of all Wilson
-coefficients simultaneously.
+general scenario of complex-valued tensor, scalar, and vector couplings, showing
+that the data are good enough to bound the real and imaginary parts of all
+Wilson coefficients simultaneously.
 
-As a special case, we considered also the scenario arising from the SM augmented
-by dimension 6 operators generalising existing studies to the case of complex-valued
-couplings. In this scenario tensor couplings are absent and additional
-relations between scalar couplings are enforced by the linear realisation of the
-$SU(2)_L \otimes U(1)_Y$ electroweak symmetry group.
+As a special case, we considered the scenario arising from the SM augmented by
+dimension-6 operators generalising existing studies to the case of
+complex-valued couplings. In this scenario, tensor couplings are absent and
+additional relations between scalar couplings are enforced by the linear
+realisation of the $SU(2)_L \otimes U(1)_Y$ electroweak symmetry group.
 
-Our study of yet-not-measured angular observables $J_{6c}$, $(J_{1c} + J_{2c})$
+Our study of not-yet-measured angular observables $J_{6c}$, $(J_{1c} + J_{2c})$,
 and $(J_{1s} - 3 J_{2s})$ in $B\to K^* (\to K\pi) \bar\mu\mu$ (see
-\reftab{tab:postdictions}) shows that despite the current bounds on tensor couplings,
-enhancements of two orders of magnitude over the SM predictions are allowed for
-$(J_{1c} + J_{2c})$ and $(J_{1s} - 3 J_{2s})$. On the other hand, current bounds
-on scalar couplings from $B_s\to \bar\mu\mu$ and $F_H^\mu$ are already quite
-restrictive allowing only for small deviations from SM predictions in
-$(J_{1c} + J_{2c})$ and $(J_{1s} - 3 J_{2s})$. Notably, the CP asymmetry
-$A_{\Delta\Gamma}(B_s\to \bar\mu\mu)$ induced by nonvanishing width of the
-$B_s$ meson can still take any value in the range $[-1,\, 1]$.
+\reftab{tab:postdictions}) shows that despite the current bounds on tensor
+couplings, enhancements of up to two orders of magnitude over the SM predictions
+are allowed for $(J_{1c} + J_{2c})$ and $(J_{1s} - 3 J_{2s})$, placing them in
+reach of the LHCb analysis of the full phase I data set. Our bounds on scalar
+couplings from $B_s\to \bar\mu\mu$ and $F_H^\mu$, however, are already quite
+restrictive permitting only small deviations from SM predictions in $(J_{1c} +
+J_{2c})$ and $(J_{1s} - 3 J_{2s})$. Notably, the CP asymmetry
+$A_{\Delta\Gamma}(B_s\to \bar\mu\mu)$ is a sensitive probe to distinguish tensor
+from scalar couplings; it can take on any value in the range $[-1,\, 1]$ for
+nonzero scalar couplings but is fixed to one if the scalar couplings vanish.
 
 %
 %
@@ -1406,11 +1414,11 @@ $B_s$ meson can still take any value in the range $[-1,\, 1]$.
 %--------+---------+---------+---------+---------+---------+---------+---------+
 \begin{acknowledgements}
   We are grateful to Danny van Dyk for helpful discussions and his support on
-  EOS \cite{EOS}. Concerning form factor results from lattice, we thank Chris
-  Bouchard and Matthew Wingate for communications on their results of $B\to K$
-  \cite{Bouchard:2013eph} and $B\to K^*$ \cite{Horgan:2015vla} form factors,
-  respectively. We thank also David Straub for his support with LCSR results of
-  $B\to K^*$ form factors \cite{Straub:2015ica}.  C.B. was supported by the ERC
+  EOS \cite{EOS}. Concerning form factor results from lattice QCD, we thank
+  Chris Bouchard and Matthew Wingate for communications on their results of
+  $B\to K$ \cite{Bouchard:2013eph} and $B\to K^*$ \cite{Horgan:2015vla} form
+  factors. We thank also David Straub for his support with LCSR results of $B\to
+  K^*$ form factors \cite{Straub:2015ica}.  C.B. was supported by the ERC
   Advanced Grant project ``FLAVOUR'' (267104). We acknowledge the support by the
   DFG Cluster of Excellence "Origin and Structure of the Universe". The
   computations have been carried out on the computing facilities of the
