@@ -1,4 +1,3 @@
-% \documentclass[prd,preprintnumbers,nofootinbib,twocolumn]{revtex4-1}
 \documentclass[twocolumn,epjc3]{svjour3}
 
 \RequirePackage[T1]{fontenc}
@@ -57,10 +56,10 @@
 %%
 %% Comments
 %%
-\newcommand{\eos}[1]{{\color{red}{#1}}}   % things to be checked and replaced with EOS results
 \newcommand{\fred}[1]{{\color{green}{#1}}}
 \newcommand{\todo}[1]{{\color{magenta}{ {\bf ToDo: }{#1}}}}
 \newcommand{\checked}[1]{{\color{brown}{ {\bf Checked: }{#1}}}}
+\renewcommand{\checked}[1]{#1}
 
 %% ----------------------------
 %%  Physics, Math, Convenience
@@ -258,6 +257,11 @@
 % useful variable for multiple same-size plots
 %
 \newlength{\relwidth}
+
+%
+% codes
+%
+\def \eos{\texttt{EOS}}
 %--------+---------+---------+---------+---------+---------+---------+---------+
 %
 %
@@ -304,25 +308,23 @@
 \maketitle
 
 \begin{abstract}
-  \todo{check}
-  The angular distribution of $B\to K\bar\ell\ell$ ($\ell =
-  e,\,\mu,\,\tau$) provides a lepton-forward-backward asymmetry,
-  $A_{\rm FB}^\ell$, and a flat term, $F_H^\ell$, that are strongly
-  suppressed in the standard model. In both, nonstandard tensor and
-  scalar contributions are enhanced with respect to vector ones. We
-  use latest experimental results for $\ell = \mu$ in combination with
-  $B_s\to \bar\mu\mu$ to derive stronger model-independent constraints
-  on tensor and scalar effective couplings and determine their impact
-  on not-yet-measured angular observables in $B\to K^*\bar\mu\mu$,
-  which feature the same suppression of vector couplings.  Most
-  notably, the measurement of $F_H^\mu$ provides constraints on
-  (pseudo-)scalar couplings and their chirality-flipped counterparts
-  that are complementary to the ones from the branching ratio $B_s\to
-  \bar\mu\mu$, which allows to put for the first time simultaneously
-  upper bounds on all four couplings. \fred{Try to shorten, add
-    sentence ``independent of deviations in vector-coupling dominated
-    observables''. There could be a bit of summary of outcome here, too}
-  \todo{check captions of figures and tables}
+  The angular distribution of $B\to K\bar\ell\ell$ ($\ell = e,\,\mu,\,\tau$)
+  depends on two parameters, the lepton forward-backward asymmetry, $A_{\rm
+    FB}^\ell$, and the flat term, $F_H^\ell$. Both are strongly suppressed in
+  the standard model and constitute sensitive probes of tensor and scalar
+  contributions. We use the latest experimental results for $\ell = \mu$ in
+  combination with $B_s\to \bar\mu\mu$ to derive the strongest model-independent
+  bounds on tensor and scalar effective couplings to date. The measurement of
+  $F_H^\mu$ is complementary to that of the branching ratio of $B_s\to
+  \bar\mu\mu$ and allows us---for the first time---to constrain all
+  complex-valued (pseudo-)scalar couplings and their chirality-flipped
+  counterparts in one fit. Based on Bayesian fits of various scenarios, we find
+  that our bounds even become tighter when vector couplings are allowed to
+  deviate from the standard model and that specific combinations of angular
+  observables in $B \to K^*$ are still allowed to be up to two orders of
+  magnitude larger than in the standard model, which would place them in the
+  region of LHCb's sensitivity.
+%   \todo{check captions of figures and tables}
 \end{abstract}
 
 %
@@ -925,8 +927,8 @@ include available prior knowledge.
     \bar\mu\mu)$ [blue dashed, center panel], and the combination with all other
     data in \reftab{tab:observables} as well as nonzero
     $\wilson[]{9,\,9',\,10,\, 10'}$ [red solid, right panel] at 68\% (darker)
-    and 95\% (lighter) probability. The constraints on Re$(\wilson{P}Ê\pm
-    \wilson{P'})$ are identical to Re$(\wilson{S}Ê\pm \wilson{S'})$, apart from
+    and 95\% (lighter) probability. The constraints on Re$(\wilson{P}ÃŠ\pm
+    \wilson{P'})$ are identical to Re$(\wilson{S}ÃŠ\pm \wilson{S'})$, apart from
     a small translation of the contours by $(+0.2,\, +0.15)$. The SM prediction is
     indicated by the black diamond. \checked{} }
   \label{fig:scalar}
@@ -1414,7 +1416,7 @@ nonzero scalar couplings but is fixed to one if the scalar couplings vanish.
 %--------+---------+---------+---------+---------+---------+---------+---------+
 \begin{acknowledgements}
   We are grateful to Danny van Dyk for helpful discussions and his support on
-  EOS \cite{EOS}. Concerning form factor results from lattice QCD, we thank
+  \eos~\cite{EOS}. Concerning form factor results from lattice QCD, we thank
   Chris Bouchard and Matthew Wingate for communications on their results of
   $B\to K$ \cite{Bouchard:2013eph} and $B\to K^*$ \cite{Horgan:2015vla} form
   factors. We thank also David Straub for his support with LCSR results of $B\to
@@ -1616,88 +1618,111 @@ $\rho_1^-$ provided scalar couplings vanish.
 %
 %--------+---------+---------+---------+---------+---------+---------+---------+
 \section{
-  Theoretical Inputs
+  \checked{Theoretical Inputs}
   \label{app:theory:inputs}
 }
 
-Here we describe the theoretical treatment of observables and collect numerical
-input of the most relevant parameters. The software package {\tt EOS}
+Here we describe the theoretical treatment of observables and collect the
+numerical input for the relevant parameters. The software package \eos{}
 \cite{Bobeth:2011gi, Bobeth:2011nj, EOS} is used for the calculation of
 observables in $B_s\to \bar\mu\mu$ and $B\to K^{(*)}\bar\ell\ell$ and associated
-constraints. Both the likelihood and the prior are defined entirely within EOS.
+constraints. Both the likelihood and the prior are defined entirely within \eos.
 
 Concerning numerical input, we refer the reader to~\cite{Beaujean:2013soa} for
-the compilation of nuisance parameters and according values, whose uncertainties
-are negligible. Further, we adopt the same values for common nuisance parameters of
-$i)$ the CKM quark-mixing matrix, $ii)$ the charm and bottom quark masses in the
-$\overline{\rm MS}$ scheme, and $iii)$ the parameterisation of subleading corrections
+the compilation of nuisance parameters relevant to this work. We adopt the same
+values for fixed parameters and the same priors unless noted otherwise
+below. Specifically, we use identical priors for for common nuisance parameters
+of the CKM quark-mixing matrix, the charm and bottom quark masses in the
+$\overline{\rm MS}$ scheme, and the parameterisation of subleading corrections
 in $1/m_b$ as given in \cite{Beaujean:2013soa}.
 
 The updated prior of the $B_s$ decay constant $f_{B_s}$ enters the branching
 ratio of $B_s\to \bar\mu\mu$. We adopt recent updates of the $N_f = (2 + 1)$
 FLAG compilation \cite{Aoki:2013ldr}, see \reftab{tab:hadronic:nuisance}, which
-averages the results of \cite{Bazavov:2011aa, McNeile:2011ng, Na:2012kp}.
-More recent calculations with $N_f = (2+1+1)$ \cite{Dowdall:2013tga} and
-$N_f = 2$ \cite{Carrasco:2013zta} are consistent with these averages.
+averages the results of \cite{Bazavov:2011aa, McNeile:2011ng, Na:2012kp}.  More
+recent calculations with $N_f = (2+1+1)$ \cite{Dowdall:2013tga} and $N_f = 2$
+\cite{Carrasco:2013zta} flavors are consistent with these averages.
 
-The tensor and scalar amplitudes in $B\to K^{(*)} \bar\ell\ell$ factorize naively,
-i.e. they depend only on scalar and tensor $B\to K^{(*)}$ form factors. These amplitudes
-are implemented in {\tt EOS} for $B\to K \bar\ell\ell$ and $B\to K^* \bar\ell\ell$ as
-given in \cite{Bobeth:2007dw} and \cite{Bobeth:2012vn}, respectively and we refrain from
-using respective form factor relations at large and low recoil for the tensor and scalar
-$B\to K$ and $B\to K^*$ form factors.
+The tensor and scalar amplitudes in $B\to K^{(*)} \bar\ell\ell$ factorize
+naively, i.e. they depend only on scalar and tensor $B\to K^{(*)}$ form
+factors. These amplitudes are implemented in \eos{} for $B\to K \bar\ell\ell$
+and $B\to K^* \bar\ell\ell$ as given in \cite{Bobeth:2007dw} and
+\cite{Bobeth:2012vn}, respectively and we refrain from using form-factor
+relations at large and low recoil for the tensor and scalar $B\to K$ and $B\to
+K^*$ form factors.  Therefore, we need additional nuisance parameters for the
+complete set of $B\to K$ form factors $f_{+,T,0}$. As a consequence of using the
+$z$ parameterization \cite{Khodjamirian:2010vf} and the kinematic relation
+$f_0(0) = f_+(0)$, five nuisance parameters (listed in
+\reftab{tab:hadronic:nuisance}) are needed. As prior information, we average the
+LCSR results~\cite{Khodjamirian:2010vf} and \cite{Ball:2004ye} (see
+\reftab{tab:hadronic:nuisance} and cf. \cite{Beaujean:2013soa}) supplement them
+with lattice determinations~\cite{Bouchard:2013eph}.
+
+Contrary to \cite{Beaujean:2013soa}, we do not choose a log-gamma distribution
+for the asymmetric uncertainties in priors anymore but rather a continuous yet
+asymmetric Gaussian distribution. In a unifying spirit, we now use the
+continuous rather than discontinuous asymmetric Gaussian to approximate
+asymmetric experimental intervals in our likelihood.
+
+The lattice results are given in a slightly different parametrization
+necessitating a conversion to the parametrization used here. For this purpose,
+we generate the form factors from the parametrization
+of~\cite{Bouchard:2013eph}, including full correlations, at three values of $q^2
+= 17,\, 20,\, 23$ GeV$^2$.  Subsequently, these ``data'' are included in the
+prior by means of a multivariate Gaussian whose mean and covariance is given in
+\reftab{tab:btok-lattice}. The $q^2$ values and number of points are chosen such
+that the correlation of neighboring points is small enough to keep the
+covariance nonsingular.
+
 
 \begin{table}
 \begin{center}
 \renewcommand{\arraystretch}{1.4}
 \begin{tabular}{cccc}
 \hline
-  Quantity & Prior & Unit & Reference\\
-\hline \hline
-  \multicolumn{4}{c}{$B_s$ decay constant}
+  Quantity & Prior & Reference\\
+\hline
+  \multicolumn{3}{c}{$B_s$ decay constant}
 \\
 \hline
-  $f_{B_s}$   &  $227.7 \pm 4.5$         &  MeV &  \cite{Aoki:2013ldr}\\
-\hline \hline
-  \multicolumn{4}{c}{$B\to K$ form factors}\\
+  $f_{B_s}$   &  ($227.7 \pm 4.5$) MeV &  \cite{Aoki:2013ldr}\\
 \hline
-  $f_+(0)$    &  $0.34 \pm 0.05$         &  --    &  \cite{Khodjamirian:2010vf, Ball:2004ye}\\
-  $f_T(0)$    &  $0.38 \pm 0.06$         &  --    &  \cite{Khodjamirian:2010vf, Ball:2004ye}\\
-  $b_1^0$     &  $-4.3^{+0.8}_{-0.9}$    &  --    &  \cite{Khodjamirian:2010vf}\\
-  $b_1^+$     &  $-2.1^{+0.9}_{-1.6}$    &  --    &  \cite{Khodjamirian:2010vf}\\
-  $b_1^T$     &  $-2.2^{+1.0}_{-2.0}$    &  --    &  \cite{Khodjamirian:2010vf}\\
-\hline \hline
-\multicolumn{4}{c}{$B\to K^*$ form factors}\\
+  \multicolumn{3}{c}{$B\to K$ form factors}\\
 \hline
-\todo{fill in}\\
+  $f_+(0)=f_0(0)$    &  $0.34 \pm 0.05$       &  \cite{Khodjamirian:2010vf, Ball:2004ye}\\
+  $f_T(0)$    &  $0.38 \pm 0.06$      &  \cite{Khodjamirian:2010vf, Ball:2004ye}\\
+  $b_1^0$     &  $-4.3^{+0.8}_{-0.9}$    &  \cite{Khodjamirian:2010vf}\\
+  $b_1^+$     &  $-2.1^{+0.9}_{-1.6}$    &  \cite{Khodjamirian:2010vf}\\
+  $b_1^T$     &  $-2.2^{+1.0}_{-2.0}$    &  \cite{Khodjamirian:2010vf}\\
+\hline
+\multicolumn{3}{c}{$B\to K^*$ form factors}\\
+\hline
+$\alpha_{0}^{A_0}$     & $0.35^{+0.02}_{-0.03}$      & \cite{Straub:2015ica, Horgan:2015vla}\\
+$\alpha_{1}^{A_0}$     & $-1.21^{+0.08}_{-0.08}$     & \cite{Straub:2015ica, Horgan:2015vla}\\
+$\alpha_{2}^{A_0}$     & $0.77^{+0.45}_{-0.48}$      & \cite{Straub:2015ica, Horgan:2015vla}\\
+$\alpha_{0}^{A_1}$     & $0.2625^{+0.015}_{-0.015}$  & \cite{Straub:2015ica, Horgan:2015vla}\\
+$\alpha_{1}^{A_1}$     & $0.07^{+0.08}_{-0.08}$      & \cite{Straub:2015ica, Horgan:2015vla}\\
+$\alpha_{2}^{A_1}$     & $0.045^{+0.12}_{-0.15}$     & \cite{Straub:2015ica, Horgan:2015vla}\\
+$\alpha_{1}^{A_{12}}$  & $0.53^{+0.10}_{-0.14}$     & \cite{Straub:2015ica, Horgan:2015vla}\\
+$\alpha_{2}^{A_{12}}$  & $0.32^{+0.33}_{-0.39}$      & \cite{Straub:2015ica, Horgan:2015vla}\\
+$\alpha_{0}^{V}$       & $0.35^{+0.02}_{-0.03}$      & \cite{Straub:2015ica, Horgan:2015vla}\\
+$\alpha_{1}^{V}$       & $-1.19^{+0.08}_{-0.08}$     & \cite{Straub:2015ica, Horgan:2015vla}\\
+$\alpha_{2}^{V}$       & $1.55^{+0.33}_{-0.33}$      & \cite{Straub:2015ica, Horgan:2015vla}\\
+$\alpha_{0}^{T_1}$     & $0.31^{+0.02}_{-0.02}$      & \cite{Straub:2015ica, Horgan:2015vla}\\
+$\alpha_{1}^{T_1}$     & $-1.07^{+0.08}_{-0.08}$     & \cite{Straub:2015ica, Horgan:2015vla}\\
+$\alpha_{2}^{T_1}$     & $1.40^{+0.30}_{-0.30}$      & \cite{Straub:2015ica, Horgan:2015vla}\\
+$\alpha_{1}^{T_2}$     & $0.33^{+0.08}_{-0.10}$     & \cite{Straub:2015ica, Horgan:2015vla}\\
+$\alpha_{2}^{T_2}$     & $0.26^{+0.21}_{-0.24}$      & \cite{Straub:2015ica, Horgan:2015vla}\\
+$\alpha_{0}^{T_{23}}$  & $0.67^{+0.04}_{-0.05}$      & \cite{Straub:2015ica, Horgan:2015vla}\\
+$\alpha_{1}^{T_{23}}$  & $0.93^{+0.28}_{-0.22}$     & \cite{Straub:2015ica, Horgan:2015vla}\\
+$\alpha_{2}^{T_{23}}$  & $-0.15^{+0.86}_{-0.71}$      & \cite{Straub:2015ica, Horgan:2015vla}\\
 \hline
 \end{tabular}
 \renewcommand{\arraystretch}{1.0}
-\caption{\label{tab:hadronic:nuisance} Prior distributions of the nuisance parameters
-   for hadronic quantities entering inclusive and exclusive decays. Note that
-   $f_0(0) = f_+(0)$.
-}
+\caption{\label{tab:hadronic:nuisance} Prior distributions of the nuisance
+  parameters for hadronic quantities. \checked{} }
 \end{center}
 \end{table}
-
-As we do not make use of form factor relations for tensor and scalar amplitudes
-in $B\to K\bar\ell\ell$, additional nuisance parameters are included for the complete
-set of $B\to K$ form factors $f_{+,T,0}$. As a consequence of using the
-$z$-parameterization \cite{Khodjamirian:2010vf}, only five nuisance parameters
-(listed in \reftab{tab:hadronic:nuisance}) arise due to the kinematic relation
-$f_0(0) = f_+(0)$. As prior information, the LCSR results~\cite{Khodjamirian:2010vf}
-and \cite{Ball:2004ye} have been averaged (see \reftab{tab:hadronic:nuisance} and
-cf. \cite{Beaujean:2013soa}), and supplemented with lattice determinations~\cite{Bouchard:2013eph}.
-Contrary to \cite{Beaujean:2013soa}, we do not adapt anymore a log-gamma prior for
-the asymmetric uncertainties but rather a continuous, but asymmetric gaussian distribution.
-The lattice results are given within a slightly different parameterisation necessitating
-a conversion to the parameterisation used here. For this purpose, we generate the
-form factors from the parameterisation \cite{Bouchard:2013eph}, including full
-correlations, at three values of $q^2 = 17,\, 20,\, 23$ GeV$^2$ finding the results
-compiled in \reftab{tab:btok-lattice}. (The $q^2$ values and number of points are chosen
-such that the correlation of neighboring points does not exceed $80\%$.)
-Subsequently, these ``data'' of the form factors is included in the likelihood
-by means of a multivariate Gaussian in addition to experimental measurements.
 
 \begin{table*}
   \begin{center}
@@ -1734,66 +1759,83 @@ by means of a multivariate Gaussian in addition to experimental measurements.
   \end{center}
 
     \renewcommand{\arraystretch}{1.0}
-    \caption{Mean values, uncertainties (top) and correlation
-        information (bottom) of lattice points \cite{Bouchard:2013eph} for the
-        $B\to K$ form factors $f_{0,+,T}(q^2)$.
+    \caption{Mean values, standard deviations (top) and correlation
+        coefficients (bottom) of lattice points \cite{Bouchard:2013eph} for the
+        $B\to K$ form factors $f_{0,+,T}(q^2)$. \checked{}
         \label{tab:btok-lattice}
       }
 \end{table*}
 
 We change the parameterization of $B\to K^*$ form factors w.r.t. our previous
-work \cite{Beaujean:2013soa} slightly and use now the simplified series expansion
-(SSE) \cite{Bharucha:2010im}
+work \cite{Beaujean:2013soa} slightly and now use the simplified series
+expansion (SSE) \cite{Bharucha:2010im}
 \begin{align}
   \label{eq:SSE-FF-parameterization}
   F_i(q^2) & =
   \frac{1}{1 - q^2/M_{R,i}^2} \sum_k \alpha_k^i \left[z(q^2) - z(0)\right]^k \,,
 \end{align}
-with three parameters $\alpha_k^i$ ($k=0,1,2$) per form factor $i = V,\, A_{0,1},
-T_{1,23}$ and two ($k=1,2$) for $i= A_{12}, T_2$. The parameters $\alpha_0^i$
+with three parameters $\alpha_k^i$ ($k=0,1,2$) per form factor $i = V,\, A_0,A_1,
+T_1,T_{23}$ and two ($k=1,2$) for $i= A_{12}, T_2$. The parameters $\alpha_0^i$
 correspond to $F_i(q^2 = 0)$ and the kinematic constraints
 \begin{align}
   A_{12}(0) & = {\cal F}_{\rm kin}\, A_0(0) \,, &
-  T_1(0) & = T_2(0)
+  T_1(0) & = T_2(0) \,,
 \end{align}
 are used to eliminate $\alpha_0^{A_{12}, T_2}$, where the kinematic factor
 ${\cal F}_{\rm kin} \equiv (M_B^2 - M_{K^*}^2)/(8 M_B M_{K^*})$ depends on the
 $B$- and $K^*$-meson masses. The residual masses $M_{R,i}$ are set to the values
 given in \cite{Straub:2015ica}.
 
-This parameterization allows us to combine consistently available results
-of form factors from different nonperturbative approaches, namely LCSR's at
-large recoil and lattice at low recoil and implement simultaneously the
-kinematic constraints. We determine the parameters $\alpha_i^k$
-in a combined fit to form factor predictions of $V, A_{0,1,2},T_{1,2,3}$ from the
-LCSR \cite{Straub:2015ica} and of $V, A_{0,1,12},T_{1,2,23}$ from the lattice
-\cite{Horgan:2013hoa, Horgan:2015vla} calculations,
-including their correlations. Further, we implement the second kinematic constraint
+This parameterization allows us to consistently combine available results of
+form factors from different nonperturbative approaches, namely LCSR's at large
+recoil and lattice at low recoil and to simultaneously implement the kinematic
+constraints. We determine the parameters $\alpha_i^k$ in a combined fit to
+form-factor predictions of $V, A_{0,1,2},T_{1,2,3}$ from the LCSR
+\cite{Straub:2015ica} and of $V, A_0,A_1,A_{12},T_1,T_2,T_{23}$ from the lattice
+\cite{Horgan:2013hoa, Horgan:2015vla} calculations, including their
+correlations. We verified that the  constraint
 \begin{align}
   \label{eq:A12-constraint-q2max}
   A_{12}(q_{\rm max}^2) & = {\cal F}_{\rm kin}\, A_1(q_{\rm max}^2)
 \end{align}
-at maximal $q_{\rm max}^2 \equiv (M_B - M_{K^*})^2$. Uninformative flat priors
-are chosen for all $\alpha_k^i$
+at the kinematic endpoint $q_{\rm max}^2 \equiv (M_B - M_{K^*})^2$ is satisfied
+to high accuracy by the above constraints and thus need not be imposed
+explicitly. Uninformative flat priors are chosen for all $\alpha_k^i$ with
+ranges
 \begin{align}
   \alpha_0^i & \in [0,\, 1] \,, &
   \alpha_{1}^i & \in [-2,\, 2]  \,, &
   \alpha_{2}^i & \in [-3,\, 3] \,.
-\end{align}
-The results of the LCSR predictions of the form factors have been provided to us
+t\end{align}
+The results of the LCSR form-factor predictions have been provided to us
 directly by the authors of \cite{Straub:2015ica} at $q^2 = (0.1,\, 4.1,\, 8.1,\,
-12.1)\, \mbox{GeV}^2$ for $V,\, A_{0,1,12},\, T_{1,2,3}$, including their $28\times 28$
-covariance matrix. \todo{In the case of lattice predictions, we proceed as in our
-previous work \cite{Beaujean:2013soa} by generating form factor values of
-$V,\, A_{0,1,12},\, T_{1,2,3}$ at $q^2 = (15,\, 19.21)\,\mbox{GeV}^2$ from updated results
-\cite{Horgan:2015vla} (arXiv~v2), including their $8\times8$ correlation matrix
-see \reftab{tab:btok-lattice}.}
+12.1)\, \mbox{GeV}^2$ for $V, A_0,A_1,A_{12},T_1,T_2,T_{3}$ including the
+$28\times 28$ covariance matrix. Similar results could have been obtained by
+``drawing'' form factors from the correlated parameters given in
+\cite{Straub:2015ica} and ancillary files just as for $B \to K$ lattice form
+factors.
 
-\todo{We have compared our choice of three parameters in the SSE \refeq{eq:SSE-FF-parameterization}
-versus two parameters only and found that in the latter case lattice form factor
-results influence the fit such that form factors tend to be higher than LCSR
-predictions at low $q^2$ leading to a worse fit. Hence we prefer the three-parameter
-setup as it accommodates better LCSR and lattice results.}
+But for the $B \to K^*$ lattice form factors this approach is not good enough as
+we were not even able to select just two $q^2$ values and obtain a nonsingular
+covariance. We then contacted the authors of~\cite{Horgan:2015vla} and obtained
+the original values of the form factors (including correlation) at various
+values in the interval $q^2 \in [11.9,\, 17.8]$ to which Horgan et al. fit the
+SSE. The covariance has a block-diagonal structure with a 48$\times$48 block for
+$V, A_0, A_1, A_{12}$ and a 36$\times$36 block for $T_1, T_2, T_{23}$. Having
+the ``raw'' information on form-factor values is much more reliable and future
+proof as there are no issues with artificial correlation and we could one day
+decide to use yet another form-factor parametrization and fit it easily to these
+data points.
+
+We have compared the SSE fit \refeq{eq:SSE-FF-parameterization} with two versus
+three parameters and found that in the former case lattice form factors
+influence the fit such that form factors tend to be higher than LCSR predictions
+at low $q^2$ leading to a poor fit. Hence we prefer the three-parameter setup as
+it provides the flexibility needed to accomodate LCSR and lattice results. Means
+and standard abbreviations of that three-parameter fit are given in
+\reftab{tab:hadronic:nuisance}, we omit the correlations for the sake of brevity
+but are happy to provide them.
+
 
 \section{\checked{Monte Carlo sampling} \label{app:mc}}
 
@@ -1848,6 +1890,10 @@ parameters $\vecth$ is given as
 \end{align}
 We estimate $P(X|M)$ by computing $f(\vecth_i)$ for every sample $\vecth_i \sim
 P(\vecth|M)$, then smooth as above.
+
+\todo{this is just filler text to avoid ``pdfendlink ended up in different
+  nesting level than pdfstartlinkâ€™'' because entry \cite{Horgan:2013pva} is broken across two pages
+}
 
 %
 %
