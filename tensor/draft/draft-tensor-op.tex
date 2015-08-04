@@ -1896,22 +1896,27 @@ form-factor constraints without any experimental data and use the resulting
 covariance matrix to transform parameters such that the new parameters are
 uncorrelated.
 
-In all but three cases, the Markov chains then give reliable results. But when
-we analyze scenarios with $\wilson[NP]{S,P} \ne 0$ and all exp.  constraints,
-strong correlations appear again. As a final solution, we then use importance
-sampling with the initial proposal function determined by a fit of a Gaussian
-mixture to the MCMC samples within the variational Bayes approximation. As the
-posterior is unimodal and closely resembles a Gaussian, only a few Gaussian
-components are needed; i.e., 3 components proved optimal by the variational
+In all but three cases, the Markov chains then give reliable
+results. But when we analyze scenarios with $\wilson{S,P} \ne 0$ and
+all experimental constraints, strong correlations appear again. As a
+final solution, we then use importance sampling with the initial
+proposal function determined by a fit of a Gaussian mixture to the
+MCMC samples within the variational Bayes
+approximation~\cite{Jahn:2015}. As the posterior is unimodal and
+closely resembles a Gaussian, only a few Gaussian components are
+needed; i.e., 3 components proved optimal by the variational
 approximation to the model evidence.
 
-In the most challenging run with 62 parameters, we obtain a relative effective
-sample size of only 0.038\%. We want to have enough independent samples $N$ such
-that the 68\% region is determined with a relative precision of about 1\%. As a
-rule of thumb, we consider the ``relative error of the error'' given by
-$1/\sqrt{2 N}$~\cite[ch. 37]{Agashe:2014kda}.  In the 62D case, we compute
-$1.1\cdot10^6$ importance samples such that $N \approx 3500$ and the estimated
-relative error of the error is 1.2\% and thus good enough for our purposes.
+In the most challenging run with 62 parameters, we obtain a relative
+effective sample size of only 0.038\%. We want to have enough
+independent samples $N$ such that the 68\% region is determined with a
+relative precision of about 1\%. As a rule of thumb, we consider the
+``relative error of the error'' given by $1/\sqrt{2
+  N}$~\cite[ch. 37]{Agashe:2014kda}.  In the 62D case, we compute a
+total of $1.1\cdot10^6$ importance samples, update the proposal after
+every $10^5$ samples, and combine all samples~\cite{Jahn:2015} such
+that $N \approx 3500$ and the estimated relative error of the error is
+1.2\% and thus good enough for our purposes.
 
 To create the smooth marginal plots in Figures
 \ref{fig:FHvsCT}--\ref{fig:scalar:SM-EFT}, we apply kernel density estimation
