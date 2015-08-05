@@ -198,3 +198,5 @@ export CONSTRAINTS_unc_K=$CONSTRAINTS_B_TO_K_FF_ALL
 export CONSTRAINTS_unc_Kstar="
 $CONSTRAINTS_B_TO_KSTAR_FF_ALL
 "
+# no constraints, just priors
+export CONSTRAINTS_unc_Kstar_uncorr=

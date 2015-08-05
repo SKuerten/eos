@@ -31,6 +31,31 @@ export NUISANCE_DECAY_CONSTANTS_flag13="
 min0=0; max0=1;
 min1=-2; max1=2;
 min2=-3; max2=3;
+N_SIGMAS_FF=5
+export NUISANCE_B_TO_V_FORM_FACTORS_BSZ2015_uncorr="
+    --global-option form-factors BSZ2015
+
+    --nuisance    B->K^*::alpha^A0_0@BSZ2015      $min0  $max0 ${N_SIGMAS_FF} --prior  gaussian +0.32           +0.35           +0.37
+    --nuisance    B->K^*::alpha^A0_1@BSZ2015      $min1  $max1 ${N_SIGMAS_FF} --prior  gaussian -1.29           -1.21           -1.13
+    --nuisance    B->K^*::alpha^A0_2@BSZ2015      $min2  $max2 ${N_SIGMAS_FF} --prior  gaussian +0.29           +0.77           +1.22
+    --nuisance    B->K^*::alpha^A1_0@BSZ2015      $min0  $max0 ${N_SIGMAS_FF} --prior  gaussian +0.2475         +0.2625         +0.2775
+    --nuisance    B->K^*::alpha^A1_1@BSZ2015      $min1  $max1 ${N_SIGMAS_FF} --prior  gaussian -0.01           +0.07           +0.13
+    --nuisance    B->K^*::alpha^A1_2@BSZ2015      $min2  $max2 ${N_SIGMAS_FF} --prior  gaussian -0.105          +0.045          +0.165
+    --nuisance    B->K^*::alpha^A12_1@BSZ2015     $min1  $max1 ${N_SIGMAS_FF} --prior  gaussian +0.39           +0.53           +0.63
+    --nuisance    B->K^*::alpha^A12_2@BSZ2015     $min2  $max2 ${N_SIGMAS_FF} --prior  gaussian -0.075          +0.315          +0.645
+    --nuisance    B->K^*::alpha^V_0@BSZ2015       $min0  $max0 ${N_SIGMAS_FF} --prior  gaussian +0.3225         +0.3475         +0.3625
+    --nuisance    B->K^*::alpha^V_1@BSZ2015       $min1  $max1 ${N_SIGMAS_FF} --prior  gaussian -1.27           -1.19           -1.11
+    --nuisance    B->K^*::alpha^V_2@BSZ2015       $min2  $max2 ${N_SIGMAS_FF} --prior  gaussian +1.215          +1.545          +1.875
+    --nuisance    B->K^*::alpha^T1_0@BSZ2015      $min0  $max0 ${N_SIGMAS_FF} --prior  gaussian +0.2925         +0.3125         +0.3275
+    --nuisance    B->K^*::alpha^T1_1@BSZ2015      $min1  $max1 ${N_SIGMAS_FF} --prior  gaussian -1.15           -1.07           -0.99
+    --nuisance    B->K^*::alpha^T1_2@BSZ2015      $min2  $max2 ${N_SIGMAS_FF} --prior  gaussian +1.095          +1.395          +1.695
+    --nuisance    B->K^*::alpha^T2_1@BSZ2015      $min1  $max1 ${N_SIGMAS_FF} --prior  gaussian +0.23           +0.33           +0.41
+    --nuisance    B->K^*::alpha^T2_2@BSZ2015      $min2  $max2 ${N_SIGMAS_FF} --prior  gaussian +0.015          +0.255          +0.465
+    --nuisance    B->K^*::alpha^T23_0@BSZ2015     $min0  $max0 ${N_SIGMAS_FF} --prior  gaussian +0.6225         +0.6675         +0.7025
+    --nuisance    B->K^*::alpha^T23_1@BSZ2015     $min1  $max1 ${N_SIGMAS_FF} --prior  gaussian +0.71           +0.93           +1.21
+    --nuisance    B->K^*::alpha^T23_2@BSZ2015     $min2  $max2 ${N_SIGMAS_FF} --prior  gaussian -0.855          -0.15           +0.705
+"
+# rely on constraint to determine parameters
 export NUISANCE_B_TO_V_FORM_FACTORS_BSZ2015="
     --global-option form-factors BSZ2015
 
@@ -167,6 +192,13 @@ $NUISANCE_QUARK_MASSES_PDG2012
 $NUISANCE_B_TO_VPARALL_SUBLEADING
 $NUISANCE_B_TO_VPERPLL_SUBLEADING
 $NUISANCE_B_TO_V_FORM_FACTORS_BSZ2015
+"
+export NUISANCE_unc_Kstar_uncorr="
+$NUISANCE_CKM_posthep13
+$NUISANCE_QUARK_MASSES_PDG2012
+$NUISANCE_B_TO_VPARALL_SUBLEADING
+$NUISANCE_B_TO_VPERPLL_SUBLEADING
+$NUISANCE_B_TO_V_FORM_FACTORS_BSZ2015_uncorr
 "
 export NUISANCE_unc_Bsmumu="
 $NUISANCE_CKM_posthep13
