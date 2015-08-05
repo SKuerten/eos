@@ -1099,39 +1099,48 @@ there.
 %--------+---------+---------+---------+---------+---------+---------+---------+
 \subsection{SM-EFT-constrained scalar couplings \label{sec:SM-EFT}}
 
-In the following we consider a {scenario consisting of the
-  SM augmented} by dimension-six operators that respect the SM gauge
+In the following we consider a scenario in which it is assumed that there is
+a sizeable hierarchy between the electroweak scale and the new-physics 
+scale, $\Lambda_{\rm NP}$, and that the SM gauge symmetries $SU(2)_L \times
+U(1)_Y$ are only broken at the electroweak scale. This results in the
+augmentation of the SM by dimension-six operators that respect the SM gauge
 group and are composed of SM fields only. Such a scenario becomes more
 and more viable for two reasons. The first is the discovery of a
 scalar resonance at the LHC in agreement with all requirements of the
-Higgs particle in the SM. The second are the steadily rising lower
+Higgs particle in the SM. The second is the steadily rising lower
 bounds on the mass of new particles reported by ATLAS and CMS in
 various more or less specific models.
 
-A nonredundant set of dimension-six operators of this effective theory (SM-EFT)
-was given in \cite{Grzadkowski:2010es} and the matching to the effective theory
-of $\Delta B = 1$ decays \refeq{eq:Heff} at the scale $\mu \sim m_W$ of the
-order of the $W$-boson {mass in~\cite{D'Ambrosio:2002ex}} for vector
-couplings $\wilson{7,\,9,\,10}$. The matching of tensor \refeq{eq:tensor:ops}
-and scalar \refeq{eq:scalar:ops} operators \cite{Alonso:2014csa} shows that SM
-gauge groups in conjunction with the linear representation \todo{Ask Martin,
-  Oscar how to correctly phrase this} impose the relations
+A nonredundant set of dimension-six operators of this effective theory (SM-EFT),
+requiring additionally the electroweak symmetry to be linearly realized,
+was given in \cite{Grzadkowski:2010es}.  The matching of the SM-EFT to the
+effective theory of $\Delta B = 1$ decays \refeq{eq:Heff} at the scale
+$\mu \sim m_W$ of the order of the $W$-boson mass was performed for vector
+couplings $\wilson{7,\,9,\,10}$ in~\cite{D'Ambrosio:2002ex}. The matching
+of tensor \refeq{eq:tensor:ops} and scalar \refeq{eq:scalar:ops} operators 
+\cite{Alonso:2014csa} shows that SM gauge groups in conjunction with the 
+linear representation impose the relations
 \begin{align}
   \label{eq:mEFT-constraints}
   \wilson{P}  & = -\wilson{S}\,, &
   \wilson{P'} & = \wilson{S'}\,, &
   \wilson{T}  & = \wilson{T5} = 0
 \end{align}
-on scalar and pseudo-scalar couplings and require tensor couplings to be
+on scalar couplings and require tensor couplings to be
 suppressed to the level of dimension-eight operators. In consequence only two
-scalar couplings $\wilson{S,\, S'}$ arise that scale as $\sim v^2/\Lambda_{\rm
-  NP} \ll 1$ where $v^2$ denotes the scale of electroweak symmetry breaking and
-$\Lambda_{\rm NP}$ is the high-energy scale at which new physics {
-is decoupled}.
+scalar couplings $\wilson{S,\, S'}$ arise that scale as $(\sim v/\Lambda_{\rm
+  NP})^2 \ll 1$ where $v \propto m_W$ denotes the scale of electroweak symmetry breaking.
+
+It must be noted that the relations \refeq{eq:mEFT-constraints} are a
+consequence of embedding the Higgs in a weak doublet along with the Goldstone
+bosons.  For example choosing a nonlinear representation of the scalar sector
+allows additional dimension-six operators in the according effective theory, 
+such that the couplings $\wilson{S,S',P,P'}$ are all independent and tensor
+operators have nonvanishing couplings already at dimension six 
+\cite{Cata:2015lta}.
 
 Omitting for the sake of simplicity terms of order $m_\ell^2/M_{B_s}^2$ and
-$m_s/m_b$, the couplings $\wilson{S,\, S'}$ can be bound quite reliably from
-\cite{Alonso:2014csa}
+$m_s/m_b$, the couplings $\wilson{S,\, S'}$ can be bound from~\cite{Alonso:2014csa}
 \begin{equation}
 \begin{aligned}
   \overline{\cal B}(B_s\to \bar\ell\ell) & \propto
@@ -1155,8 +1164,8 @@ $m_s/m_b$ gives
 \end{aligned}
 \end{equation}
 
-The SM gauge group does not imply any relation between $\wilson{10}$ and
-$\wilson{10'}$, so they are in general additional independent parameters. Here
+In the SM-EFT no relations between $\wilson{10}$ and$\wilson{10'}$ arise, 
+so they are in general additional independent parameters. Here
 we find that destructive interference with contributions involving
 $\wilson{10,\, 10'}$ does not significantly alter the bounds on $\wilson{S,\,
   S'}$.  The results of two fits are shown in \reffig{fig:scalar:SM-EFT}. In the
@@ -1190,13 +1199,6 @@ rather than rings as for the case of real-valued
 couplings~\cite{Alonso:2014csa}. Compared to those rings, the circles are
 smaller because the probability moves from the ring towards the center of the
 circle.
-
-It must be noted that the relations \refeq{eq:mEFT-constraints} are a
-consequence of embedding the Higgs in a weak doublet along with the Goldstone
-bosons.  For example choosing a nonlinear representation of the scalar sector
-allows additional dimension-six operators in the SM-EFT, such that the couplings
-$\wilson{S,S',P,P'}$ are all independent and tensor operators have nonvanishing
-couplings already at dimension six \cite{Cata:2015lta}.
 
 %
 %
@@ -1459,7 +1461,8 @@ couplings can take on any value in the range $[-1,\, 1]$.
   Chris Bouchard and Matthew Wingate for communications on their results of
   $B\to K$ \cite{Bouchard:2013eph} and $B\to K^*$ \cite{Horgan:2015vla} form
   factors. We thank also David Straub for his support with LCSR results of $B\to
-  K^*$ form factors \cite{Straub:2015ica}.  C.B. was supported by the ERC
+  K^*$ form factors \cite{Straub:2015ica}. We thank Martin Jung, David Straub
+  and Danny van Dyk for comments on the manuscript. C.B. was supported by the ERC
   Advanced Grant project ``FLAVOUR'' (267104). We acknowledge the support by the
   DFG Cluster of Excellence "Origin and Structure of the Universe". The
   computations have been carried out on the computing facilities of the
