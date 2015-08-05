@@ -60,6 +60,7 @@ class Unc(object):
         with h5py.File(args.output, 'a') as output_file:
             ds_obs = output_file.create_dataset('/observable', data=self.results)
             ds_obs.attrs['name'] = self.args.observable
+            ds_obs.attrs['kinematics'] = repr(self.args.kinematics)
 
             # fixed values always the same, only use from last output
             ds_fixed = output_file.create_dataset('/descriptions/fixed parameter', data=arr.T[0])

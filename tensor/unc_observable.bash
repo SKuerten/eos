@@ -42,10 +42,11 @@ export UNC_KIN_K_ACP1dot1to6="s_min 1.1 s_max 6"
 export UNC_OBS_K_ACP15to22="B->Kll::A_CP@LowRecoil${GLOBAL_OPTIONS}${K_OPTIONS}"
 export UNC_KIN_K_ACP15to22="s_min 15 s_max 22"
 
+######################################################################
 KSTAR_OPTIONS=",q=d,l=mu,form-factors=BSZ2015"
 
-export UNC_OBS_Kstar_BR1to6="B->K^*ll::BRavg@LargeRecoil${GLOBAL_OPTIONS}${KSTAR_OPTIONS}"
-export UNC_KIN_Kstar_BR1to6="s_min 1 s_max 6"
+export UNC_OBS_Kstar_BR1dot1to6="B->K^*ll::BRavg@LargeRecoil${GLOBAL_OPTIONS}${KSTAR_OPTIONS}"
+export UNC_KIN_Kstar_BR1dot1to6="s_min 1.1 s_max 6"
 
 export UNC_OBS_Kstar_BR14to16="B->K^*ll::BRavg@LowRecoil${GLOBAL_OPTIONS}${KSTAR_OPTIONS}"
 export UNC_KIN_Kstar_BR14to16="s_min 14.18 s_max 16"
@@ -57,22 +58,22 @@ export UNC_OBS_Kstar_BR15to19="B->K^*ll::BRavg@LowRecoil${GLOBAL_OPTIONS}${KSTAR
 export UNC_KIN_Kstar_BR15to19="s_min 15 s_max 19"
 
 
-export UNC_OBS_Kstar_J_1c_plus_J_2c1to6="B->K^*ll::J_1c+J_2cavg@LargeRecoil${GLOBAL_OPTIONS}${KSTAR_OPTIONS}"
-export UNC_KIN_Kstar_J_1c_plus_J_2c1to6=${UNC_KIN_Kstar_BR1to6}
+export UNC_OBS_Kstar_J_1c_plus_J_2c1dot1to6="B->K^*ll::J_1c+J_2cavg@LargeRecoil${GLOBAL_OPTIONS}${KSTAR_OPTIONS}"
+export UNC_KIN_Kstar_J_1c_plus_J_2c1dot1to6=${UNC_KIN_Kstar_BR1dot1to6}
 
 export UNC_OBS_Kstar_J_1c_plus_J_2c15to19="B->K^*ll::J_1c+J_2cavg@LowRecoil${GLOBAL_OPTIONS}${KSTAR_OPTIONS}"
-export UNC_KIN_Kstar_J_1c_plus_J_2c15to19="s_min 15 s_max 19"
+export UNC_KIN_Kstar_J_1c_plus_J_2c15to19=${UNC_KIN_Kstar_BR15to19}
 
 
-export UNC_OBS_Kstar_J_1s_minus_3J_2s1to6="B->K^*ll::J_1s-3J_2savg@LargeRecoil${GLOBAL_OPTIONS}${KSTAR_OPTIONS}"
-export UNC_KIN_Kstar_J_1s_minus_3J_2s1to6=${UNC_KIN_Kstar_BR1to6}
+export UNC_OBS_Kstar_J_1s_minus_3J_2s1dot1to6="B->K^*ll::J_1s-3J_2savg@LargeRecoil${GLOBAL_OPTIONS}${KSTAR_OPTIONS}"
+export UNC_KIN_Kstar_J_1s_minus_3J_2s1dot1to6=${UNC_KIN_Kstar_BR1dot1to6}
 
 export UNC_OBS_Kstar_J_1s_minus_3J_2s15to19="B->K^*ll::J_1s-3J_2savg@LowRecoil${GLOBAL_OPTIONS}${KSTAR_OPTIONS}"
 export UNC_KIN_Kstar_J_1s_minus_3J_2s15to19=${UNC_KIN_Kstar_J_1c_plus_J_2c15to19}
 
 
-export UNC_OBS_Kstar_J_6c1to6="B->K^*ll::J_6cavg@LargeRecoil${GLOBAL_OPTIONS}${KSTAR_OPTIONS}"
-export UNC_KIN_Kstar_J_6c1to6=${UNC_KIN_Kstar_BR1to6}
+export UNC_OBS_Kstar_J_6c1dot1to6="B->K^*ll::J_6cavg@LargeRecoil${GLOBAL_OPTIONS}${KSTAR_OPTIONS}"
+export UNC_KIN_Kstar_J_6c1dot1to6=${UNC_KIN_Kstar_BR1dot1to6}
 
 export UNC_OBS_Kstar_J_6c15to19="B->K^*ll::J_6cavg@LowRecoil${GLOBAL_OPTIONS}${KSTAR_OPTIONS}"
 export UNC_KIN_Kstar_J_6c15to19=${UNC_KIN_Kstar_J_1c_plus_J_2c15to19}
@@ -81,14 +82,14 @@ export UNC_KIN_Kstar_J_6c15to19=${UNC_KIN_Kstar_J_1c_plus_J_2c15to19}
 export UNC_OBS_Bsmumu_A_DeltaGamma="B_q->ll::A_DeltaGamma${GLOBAL_OPTIONS},q=s,l=mu"
 
 # compare for debugging
-export UNC_OBS_Kstar_ACP1dot1to6="B->K^*ll::A_CP@LargeRecoil${GLOBAL_OPTIONS}${KSTAR_OPTIONS}"
-export UNC_KIN_Kstar_ACP1dot1to6="s_min 1.1 s_max 6"
+export UNC_OBS_Kstar_ACP1dot1dot1to6="B->K^*ll::A_CP@LargeRecoil${GLOBAL_OPTIONS}${KSTAR_OPTIONS}"
+export UNC_KIN_Kstar_ACP1dot1dot1to6="s_min 1.1 s_max 6"
 
 export UNC_OBS_Kstar_ACP15to19="B->K^*ll::A_CP@LowRecoil${GLOBAL_OPTIONS}${KSTAR_OPTIONS}"
 export UNC_KIN_Kstar_ACP15to19="s_min 15 s_max 19"
 
-export UNC_OBS_Kstar_AFB1dot1to6="B->K^*ll::A_FBavg@LargeRecoil${GLOBAL_OPTIONS}${KSTAR_OPTIONS}"
-export UNC_KIN_Kstar_AFB1dot1to6="s_min 1.1 s_max 6"
+export UNC_OBS_Kstar_AFB1dot1dot1to6="B->K^*ll::A_FBavg@LargeRecoil${GLOBAL_OPTIONS}${KSTAR_OPTIONS}"
+export UNC_KIN_Kstar_AFB1dot1dot1to6="s_min 1.1 s_max 6"
 
 export UNC_OBS_Kstar_AFB14dot18to16="B->K^*ll::A_FBavg@LowRecoil${GLOBAL_OPTIONS}${KSTAR_OPTIONS}"
 export UNC_KIN_Kstar_AFB14dot18to16="s_min 14.18 s_max 16"
