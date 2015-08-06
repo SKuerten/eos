@@ -832,7 +832,14 @@ class Spring2015(object):
         return r'$\wilson[NP]{9} = ' + str(value) + '$'
 
     def scenario_comparison(self, obs, s_min, s_max, scen=('ct', 'ct_c9_1dot1'), delta_c9=(0, -1.1)):
-        return [dict(name=scen[i] + '_' + obs + '%gto%g' % (s_min, s_max), unc_label=self.np_label(delta_c9[i])) for i
+        # if s_min not integer, truncate to first decimal digit
+        kin = list(range(2))
+        for i, x in enumerate((s_min, s_max)):
+            kin[i] = repr(int(np.floor(x)))
+            if np.floor(x) != float(x):
+                kin[i] += 'dot' + repr(int(np.floor((x - np.floor(x)) * 10)))
+
+        return [dict(name=scen[i] + '_' + obs + '%sto%s' % tuple(kin), unc_label=self.np_label(delta_c9[i])) for i
                 in range(len(scen))]
 
     def fig_1(self):
@@ -842,7 +849,7 @@ class Spring2015(object):
         ylabel = r'$\langle F_H \rangle'
         yrange = (-0.02, 0.3)
 
-        s_min, s_max = 1, 6
+        s_min, s_max = 1.1, 6
         self.fig_pred(scen_obs=self.scenario_comparison(obs, s_min, s_max),
                       measurement=dict(central=0.03, sigma_upper=0.036),
                       ylabel=ylabel + '_{[%g,%g]}$' % (s_min, s_max), yrange=yrange)
@@ -856,7 +863,7 @@ class Spring2015(object):
         yrange = (0.5e-7, 2.75e-7)
         ylabel = r'$\langle \mathcal{B}(K) \rangle'
 
-        s_min, s_max = 1, 6
+        s_min, s_max = 1.1, 6
         self.fig_pred(scen_obs=self.scenario_comparison(obs, s_min, s_max),
                       measurement=dict(central=2.42e-8 * 4.9, sigma_upper=6.8072975548304046e-09),
                       ylabel=ylabel + '_{[%g,%g]}$' % (s_min, s_max), yrange=yrange)
@@ -893,7 +900,7 @@ class Spring2015(object):
         ylabel = r'$\tau_B \, \times \, \langle J_{1c} + J_{2c} \rangle'
 
         s_min, s_max = 1.1, 6
-        self.fig_pred(scen_obs=self.scenario_comparison(obs, 1, s_max),
+        self.fig_pred(scen_obs=self.scenario_comparison(obs, s_min, s_max),
                       measurement=None, rescale=tau_B,
                       ylabel=ylabel + '_{[%g,%g]}$' % (s_min, s_max), yrange=yrange)
 
@@ -906,7 +913,7 @@ class Spring2015(object):
         ylabel = r'$\tau_B \, \times \, \langle J_{1s} - 3 J_{2s} \rangle'
         obs = 'Kstar_J_1s_minus_3J_2s'
         s_min, s_max = 1.1, 6
-        self.fig_pred(scen_obs=self.scenario_comparison(obs, 1, s_max),
+        self.fig_pred(scen_obs=self.scenario_comparison(obs, s_min, s_max),
                       measurement=None, rescale=tau_B,
                       ylabel=ylabel + '_{[%g,%g]}$' % (s_min, s_max), yrange=yrange)
 
@@ -1014,7 +1021,7 @@ if __name__ == '__main__':
     matplotlib.rcParams['axes.linewidth'] = major['width']
 
     f = Spring2015()
-    f.figSP()
-    f.figTT5()
+    # f.figSP()
+    # f.figTT5()
     f.fig_1()
-    f.fig_constrained()
+    # f.fig_constrained()
