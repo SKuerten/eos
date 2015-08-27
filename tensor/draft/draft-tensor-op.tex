@@ -861,12 +861,6 @@ in $B\to K^*\bar\mu\mu$ and $A_{\Delta\Gamma}$ in $B_s\to\bar\mu\mu$.
   & $[-0.20,\, 0.18]$, $[-0.36,\, 0.35]$
   \\
   \hline
-  $|\wilson{T}|$, $|\wilson{T5}|$
-  & $[0.13,\, 0.43]$, $[0.03,\, 0.57]$
-  & $[0.09,\, 0.33]$, $[0.02,\, 0.44]$
-  & $[0.10,\, 0.33]$, $[0.02,\, 0.43]$
-  \\
-  \hline
   \end{tabular}
 
   \end{center}
@@ -916,24 +910,6 @@ which we attribute to {the} cumulative effect of $\wilson{S,S',P,P'} \ne 0$ in
 $F_H^\ell$; cf. \refeq{eq:FH-dependence}. In summary, the $F_H^\mu$
 measurement~\cite{Aaij:2014tfa} of LHCb with 3 fb$^{-1}$ shrinks the previous
 bounds \cite{Bobeth:2012vn} on $\wilson{T,\,T5}$ by roughly 50\%.
-
-A keen observer may notice that in \reftab{tab:cTT5:1-dimCLs} the SM point
-$\wilson{T,T5} \equiv 0$ is contained in every 68\% region in Cartesian
-coordinates but never in even the 95\% region in polar coordinates\footnote{But
-  the bin with lower edge $\wilson{T,T5} = 0$ is always in the 99\%
-  region.}. This is a consequence of the general \emph{concentration of
-  measure}. Another way to look at it is to transform the uniform prior density
-from Cartesian to polar coordinates. For the example of a single Wilson
-coefficient, say $\wilson{T}$, the transformed density is proportional to the
-determinant of the Jacobian which is $|\wilson{T}|$. Since the Cartesian prior
-boundaries are much larger than the regions of high likelihood, one could think
-the value of the boundary is irrelevant, but in fact it determines the peak of
-the prior in polar coordinates. In other words, the uniform prior on
-$\mbox{Re}(\wilson{T})$ and $\mbox{Im}(\wilson{T})$ favors larger values of
-$|\wilson{T}|$ even though we consider it consensus in the community that
-smaller rather than larger values are reasonable because $\wilson{T} = 0$ in the
-SM. We suggest therefore that the default treatment be revised in the future to
-include available prior knowledge.
 
 %
 %
@@ -1070,22 +1046,7 @@ combination with all the other observables in \reftab{tab:observables}. Neither
 $F_H^\ell$ nor $\overline{\cal B}(B_s \to \bar\ell\ell)$ alone can bound all
 four complex-valued scalar couplings, however their combination is capable to do
 so and moreover, the bounds are stable against destructive interference with
-vector couplings. In the case of $\wilson[NP]{9,9',10,10'} \ne 0$, we find the
-following bounds with 68\% (95\%) probability:
-\begin{equation}
-  \label{eq:SP-bounds}
-  \begin{aligned}
-    \left| \wilson{S} \right| & \in [0.06,\, 0.25]\; ([0.01,\, 0.36]),\\
-    \left| \wilson{S'} \right| & \in [0.09,\, 0.46]\; ([0.02,\, 0.73]),\\
-    \left| \wilson{P} \right| & \in [0.05,\, 0.21]\; ([0.01,\, 0.32]),\\
-    \left| \wilson{P'} \right| & \in [0.11,\, 0.42]\; ([0.02,\, 0.63]).
-  \end{aligned}
-\end{equation}
-Allowing in addition $\wilson{T,T5} \ne 0$, the intervals of
-\refeq{eq:SP-bounds} are quite similar but in general (10--20)\% narrower and
-shifted by that amount towards zero. Again, this can be explained by the
-cumulative effect of $\wilson{S,S',P,P'}$ and $\wilson{T,T5}$ in $F_H^\ell$
-shown in \refeq{eq:FH-dependence}.
+vector couplings.
 
 In the special case of real-valued couplings, $\overline{\cal B}(B_s \to
 \bar\ell\ell)$ would lead to rings~\cite{Alonso:2014csa} instead of circles in \reffig{fig:scalar}.
@@ -1207,15 +1168,17 @@ circle.
 
 The most general fit of complex-valued tensor and scalar couplings
 $\wilson{S,S',P,P',T,T5}$ in combination with vector couplings
-$\wilson{9,\,9',\,10,\, 10'}$---the combination of \refsec{sec:tensor} and
-\refsec{sec:scalar}---yields bounds very similar to those in tables
-\ref{tab:cTT5:1-dimCLs} and~\ref{tab:cSP:1-dimCLs}. The changes are only small
-and in fact the bounds tend to be even more stringent because tensor and scalar
-couplings can contribute to $F_H^{\mu}$ only constructively---see
-\refeq{eq:FH-dependence}.  As before, branching-ratio measurements of $B\to
-K^{*}\bar\mu\mu$ help to improve the constraints on $\wilson{T,\, T5}$. This
-demonstrates that even in the case of complex-valued couplings there is enough
-information in the data to bound all 20 real and imaginary parts.
+$\wilson{9,\,9',\,10,\, 10'}$---the combination of \refsec{sec:tensor}
+and \refsec{sec:scalar}---yields bounds very similar to those in
+tables \ref{tab:cTT5:1-dimCLs} and~\ref{tab:cSP:1-dimCLs}. The changes
+are only small and in fact the bounds tend to be even more stringent
+\fred{by $\sim (10 - 20) \%$} because tensor and scalar couplings can
+contribute to $F_H^{\mu}$ only constructively---see
+\refeq{eq:FH-dependence}.  As before, branching-ratio measurements of
+$B\to K^{*}\bar\mu\mu$ help to improve the constraints on
+$\wilson{T,\, T5}$. This demonstrates that even in the case of
+complex-valued couplings there is enough information in the data to
+bound all 20 real and imaginary parts.
 
 %
 %
@@ -1403,22 +1366,25 @@ $(J_{1c} + J_{2c})$ and $(J_{1s} - 3 J_{2s})$ in $B\to K^* (\to K\pi)
 In a Bayesian analysis of the complex-valued couplings of the effective theory,
 we find that the measurement of $F_H^\mu$, especially at high-$q^2$,
 \begin{enumerate}
-\item imposes by itself {constraints} on tensor couplings
-  $|\wilson{T,\,T5}|$ such that the upper bound of the smallest 68\%
-  (95\%) credibility interval is $0.43\, (0.57)$, superseding previous
-  bounds.  In combination with current data from $B\to K^* \bar\mu\mu$
-  and lattice {predictions of} $B\to K^*$ form factors, the
-  bounds are lowered to 0.33 (0.43), even in the presence of
-  nonstandard contributions in vector couplings.
-  \item for the first time allows to {simultaneously} bound all four scalar couplings
-  {$\wilson{S,S',P,P'}$} due to its complementarity to
-  $\overline{\cal B}(B_s \to \bar\mu\mu)$. Even when taking into account
-  destructive interference with vector couplings, $|\wilson{i} + \wilson{i'}| <
-  0.3\, (0.6)$ and $|\wilson{i} - \wilson{i'}| < 0.1\, (0.2)$ for $i = S,P$ with
-  at least 68\% (95\%) probability. Currently, the bounds from $F_H^\mu$ are
-  weaker than those from $\overline{\cal B}(B_s \to \bar\mu\mu)$ by about a
-  factor of four. Future measurements of $F_H^\mu$ at LHCb and Belle II will
-  further tighten the bounds.
+\item imposes by itself {constraints} on \fred{real and imaginary
+    parts of the} tensor couplings \fred{$\wilson{T,\,T5}$} such that the
+  upper bound of the smallest 68\% (95\%) credibility interval is
+  \fred{$ \lesssim 0.25\, (0.45)$}, superseding previous bounds.  In
+  combination with current data from $B\to K^* \bar\mu\mu$ and lattice
+  {predictions of} $B\to K^*$ form factors, the bounds are lowered to
+  \fred{$\lesssim 0.23\, (0.39)$}, even in the presence of nonstandard
+  contributions in vector couplings.
+\item for the first time allows to {simultaneously} bound all four
+  scalar couplings {$\wilson{S,S',P,P'}$} due to its complementarity
+  to $\overline{\cal B}(B_s \to \bar\mu\mu)$. Even when taking into
+  account destructive interference with vector couplings, \fred{all
+  credibility intervals contain the SM. The corresponding 1D intervals
+  of real and imaginary parts have widths of $\sim 0.6\, (1.2)
+  $ for $\wilson{i} + \wilson{i'}$ and $\sim 0.15\, (0.3)$ for
+  $\wilson{i} - \wilson{i'}$} for $i = S,P$. Currently, the bounds from
+  $F_H^\mu$ are weaker than those from $\overline{\cal B}(B_s \to
+  \bar\mu\mu)$ by about a factor of four. Future measurements of
+  $F_H^\mu$ at LHCb and Belle II will further tighten the bounds.
 
   Moreover, measurements of $F_H^e$ ($\ell = e$) will provide constraints on
   scalar couplings in the electron channel in the absence of a direct
