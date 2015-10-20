@@ -2,17 +2,17 @@ GLOBAL_OPTIONS=",model=WilsonScan,scan-mode=cartesian"
 
 K_OPTIONS=",q=u,l=mu,form-factors=KMPW2010"
 
-export UNC_OBS_K_FH1to6="B->Kll::F_Havg@LargeRecoil${GLOBAL_OPTIONS}${K_OPTIONS}"
-export UNC_KIN_K_FH1to6="s_min 1 s_max 6"
+export UNC_OBS_K_FH1dot1to6="B->Kll::F_Havg@LargeRecoil${GLOBAL_OPTIONS}${K_OPTIONS}"
+export UNC_KIN_K_FH1dot1to6="s_min 1.1 s_max 6"
 
 export UNC_OBS_K_FH15to22="B->Kll::F_Havg@LowRecoil${GLOBAL_OPTIONS}${K_OPTIONS}"
 export UNC_KIN_K_FH15to22="s_min 15.00 s_max 22.00"
 
-export UNC_OBS_K_BR1to6="B->Kll::BRavg@LargeRecoil${GLOBAL_OPTIONS}${K_OPTIONS}"
-export UNC_KIN_K_BR1to6="s_min 1 s_max 6"
+export UNC_OBS_K_BR1dot1to6="B->Kll::BRavg@LargeRecoil${GLOBAL_OPTIONS}${K_OPTIONS}"
+export UNC_KIN_K_BR1dot1to6=${UNC_KIN_K_FH1dot1to6}
 
 export UNC_OBS_K_BR15to22="B->Kll::BRavg@LowRecoil${GLOBAL_OPTIONS}${K_OPTIONS}"
-export UNC_KIN_K_BR15to22="s_min 15.00 s_max 22.00"
+export UNC_KIN_K_BR15to22=${UNC_KIN_K_FH15to22}
 
 # compare for debugging
 
