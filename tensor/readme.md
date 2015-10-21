@@ -66,13 +66,21 @@ parameter values. In the `i`-th call,
    `plotScript.py unc_merged.hdf5 --pypmc --1D-bins 30`
 
 5. copy over
-    ```
+
+    ```bash
     # on desktop machine
     for obs in $observables; do rsync -avR c2pap:/gpfs/work/pr85tu/ru72xaf2/eos/2015-tensor/2015-05-19/ct_c9_1dot1_Kstar_${obs}/unc_merged.hdf5 ./; done
-
     Kobs=$(ls 2015-04-01/)
     for obs in $Kobs; do ln -s 2015-04-01/${obs}/unc_merged.hdf5 unc_${obs}.hdf5; done
     ```
+
+
+posterior predictive
+====================
+
+Follow the same steps as in the previous section up to step 4. Then extract intervals on c2pap and rescale by tau_b
+
+    plotScript.py unc_post_pred_Kstar_J_6c1dot1to6.hdf5 --unc --pypmc --use-KDE --cont
 
 MCMC
 ====
