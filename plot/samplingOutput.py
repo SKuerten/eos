@@ -210,7 +210,7 @@ class MCMC_Output(SamplingOutput):
             else:
                 self.select[0] = 0
         if self.select[1] is None:
-            self.select[1] = self.chain_length
+            self.select[1] = full_length
 
         merged_chains = hdf5_file[prefix + '/chain #' + first_chain + "/samples"][self.select[0]:self.select[1]]
         n_chains_parsed += 1
