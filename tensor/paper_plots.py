@@ -588,7 +588,7 @@ class Spring2015(object):
         ###
         # scenarios
         ###
-
+        '''
         s = 'scSP_FH'
         marg.scen[s] = Scenario(os.path.join(marg.input_base, 'mcmc_' + s + '.hdf5'), colors['grey'],
                                 nbins=300, linestyle='dotted')
@@ -632,7 +632,7 @@ class Spring2015(object):
                                 nbins=300, crop_outliers=500)
         # indices of S,S' and P,P'
         marg.scen[s].spind = [(8, 10), (12, 14)] # real
-        '''
+        marg.scen[s].spind = [(9, 11), (13, 15)] # imag
 
         marg.read_data()
         scenarios = marg.scen.keys()
@@ -682,7 +682,7 @@ class Spring2015(object):
         return
         '''
         # 1D intervals for table
-        '''
+
         for k, v in marg.scen.iteritems():
             m = marg.margs[k]
 
@@ -693,12 +693,12 @@ class Spring2015(object):
                 ind_in_file = v.spind[i // 2][i % 2]
                 m.fixed_1D_binning = False
                 # m.use_histogram = True; m.nBins[ind_in_file] = 80
-                m.use_histogram = False; m.nBins[ind_in_file] = 200; m.kde_bandwidth = 0.08
+                m.use_histogram = False; m.nBins[ind_in_file] = 200; m.kde_bandwidth = 0.07
 
                 m.one_dimensional(ind_in_file)
                 P.savefig(marg.out(k + '_Betrag_' + d.name))
         return
-        '''
+
         # + vs - S
         self.overlay(marg, defs[0], defs[1], scenarios, indices=[marg.scen[s].spind[0] for s in scenarios])
 
@@ -1021,7 +1021,7 @@ if __name__ == '__main__':
     matplotlib.rcParams['axes.linewidth'] = major['width']
 
     f = Spring2015()
-    # f.figSP()
+    f.figSP()
     # f.figTT5()
-    f.fig_1()
+    # f.fig_1()
     # f.fig_constrained()
