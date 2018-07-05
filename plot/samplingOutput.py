@@ -160,7 +160,8 @@ def read_descriptions(file, data_set, npar=None, samples=None):
 
             try:
                 prior_name, prior = f.create(row[4])
-                assert(prior_name == row[0])
+                print("prior_name = {}, expected: {}".format(prior_name, row[0]))
+                #assert(prior_name == row[0])
             except KeyError as e:
                 prior = None
                 print('Warning: in constructing prior for %s: %s' % (row[0], e.message))
