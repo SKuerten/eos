@@ -5,6 +5,7 @@ from __future__ import print_function, division
 
 import commands
 import matplotlib
+matplotlib.use('Agg')
 from matplotlib.backends.backend_pdf import PdfPages
 import os
 from samplingOutput import *

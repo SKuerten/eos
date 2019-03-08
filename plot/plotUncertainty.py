@@ -1,10 +1,12 @@
 #!/usr/bin/python
 # -*- coding: utf-8 -*-
 
+import matplotlib
+matplotlib.use('Agg')
+
 import plotScript as marg
 import translator
 
-import matplotlib
 import matplotlib.ticker as ticker
 import numpy as np
 import os
