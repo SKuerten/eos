@@ -8,6 +8,7 @@ libeosbdecays_la_SOURCES = \
 	b-to-d-pi-l-nu.cc b-to-d-pi-l-nu.hh \
 	b-to-d-l-x-nu.cc b-to-d-l-x-nu.hh \
 	b-to-l-nu.cc b-to-l-nu.hh \
+	b-to-3l-nu.cc b-to-3l-nu.hh \
 	b-to-pi-pi-l-nu.cc b-to-pi-pi-l-nu.hh \
 	b-to-pi-l-x-nu.cc b-to-pi-l-x-nu.hh \
 	b-to-psd-l-nu.cc b-to-psd-l-nu.hh \

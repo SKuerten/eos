@@ -20,6 +20,7 @@
 #include <eos/observable-impl.hh>
 #include <eos/b-decays/b-to-d-pi-l-nu.hh>
 #include <eos/b-decays/b-to-l-nu.hh>
+#include <eos/b-decays/b-to-3l-nu.hh>
 #include <eos/b-decays/b-to-pi-pi-l-nu.hh>
 #include <eos/b-decays/b-to-psd-l-nu.hh>
 #include <eos/b-decays/b-to-vec-l-nu.hh>
@@ -45,6 +46,25 @@ namespace eos
             {
                 make_observable("B_u->lnu::BR", R"(\mathcal{B}(B^- \to \ell^-\bar\nu))",
                         &BToLeptonNeutrino::branching_ratio),
+            }
+        );
+
+        return ObservableGroup(imp);
+    }
+
+    ObservableGroup
+    make_b_to_3l_nu_group()
+    {
+        auto imp = new Implementation<ObservableGroup>(
+            R"(Observables in $B^-\to \ell_1^+\ell_1^-\ell_2^-\bar\nu$ decays)",
+            R"(The option "l1" selects the charged lepton flavour coming out of
+            the virtual photon, "l2" selects the charged lepton flavour coming
+            out of the weak current.)",
+            {
+                make_observable("B_u->mumuenu::d2BR/dq2/dk2", R"(d\mathcal{B}(B^- \to \mu^+\mu^-e^-\bar\nu)/dq^2/dk^2)",
+                        &BToThreeLeptonsNeutrino::branching_ratio,
+                        std::make_tuple("q2", "k2"),
+                        Options{ { "l1", "mu" }, { "l2", "e" } }),
             }
         );
 
@@ -1496,6 +1516,9 @@ namespace eos
             {
                 // B^- -> l^- nubar
                 make_b_to_l_nu_group(),
+
+                // B^- -> l1^+ l1^- l2^- nubar
+                make_b_to_3l_nu_group(),
 
                 // B_{u,d} -> P l^- nubar
                 make_b_to_pi_l_nu_group(),
