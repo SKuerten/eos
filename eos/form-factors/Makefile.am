@@ -24,6 +24,7 @@ libeosformfactors_la_SOURCES = \
 	mesonic-processes.hh \
 	observables.cc observables.hh \
 	parametric-bgl1997.hh parametric-bgl1997-impl.hh parametric-bgl1997.cc \
+	parametric-kkvd2021.cc parametric-kkvd2021.hh \
 	pi-lcdas.cc pi-lcdas.hh \
 	unitarity-bounds.cc unitarity-bounds.hh \
 	zero-recoil-sum-rule.cc zero-recoil-sum-rule.hh

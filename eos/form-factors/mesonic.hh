@@ -43,6 +43,8 @@ namespace eos
      */
     struct PToV { };
 
+    struct PToGammaOffShell { };
+
     struct PToP { };
 
     struct PToPP { };
@@ -76,6 +78,33 @@ namespace eos
     {
         public:
             static std::shared_ptr<FormFactors<PToV>> create(const QualifiedName & name, const Parameters & parameters, const Options & options = Options{ });
+    };
+
+    template <>
+    class FormFactors<PToGammaOffShell> :
+        public virtual ParameterUser
+    {
+        public:
+            virtual ~FormFactors();
+
+            // vector current, transverse polarization of the weak current and the off-shell photon
+            virtual complex<double> F_perp(const double & q2, const double & k2) const = 0;
+
+            // axial current, transverse polarization of the weak current and the off-shell photon
+            virtual complex<double> F_para(const double & q2, const double & k2) const = 0;
+
+            // axial current, longitudinal polarization of the weak current and the off-shell photon
+            virtual complex<double> F_long(const double & q2, const double & k2) const = 0;
+
+            // axial current, scalar polarization of the weak current and longitudinal polarization of the off-shell photon
+            //virtual complex<double> F_time(const double & s) const = 0;
+    };
+
+    template <>
+    class FormFactorFactory<PToGammaOffShell>
+    {
+        public:
+            static std::shared_ptr<FormFactors<PToGammaOffShell>> create(const QualifiedName & name, const Parameters & parameters, const Options & options = Options{ });
     };
 
     template <>
