@@ -30,7 +30,7 @@ namespace eos
     using std::norm;
 
     /*
-     * Decay: B_q^- -> l1^+ l1^- l2^- nubar, cf. [KKvD2021:A]
+     * Decay: B_q^- -> l1^+ l1^- l2^- nubar, cf. [KKvD:2021A]
      */
     template <>
     struct Implementation<BToThreeLeptonsNeutrino>
@@ -67,7 +67,7 @@ namespace eos
             m_B(p["mass::B_u"], u),
             f_B(p["decay-constant::B_u"], u),
             tau_B(p["life_time::B_u"], u),
-            alpha_qed(p["QED::alpha_e(mb)"],u),
+            alpha_qed(p["QED::alpha_e(m_b)"],u),
             opt_l1(o, "l1", {"e", "mu"}, "mu"),
             m_l1(p["mass::" + opt_l1.value()], u),
             opt_l2(o, "l2", {"e", "mu"}, "e"),
@@ -125,6 +125,6 @@ namespace eos
     const std::set<ReferenceName>
     BToThreeLeptonsNeutrino::references
     {
-        "KKvD2021:A"_rn
+        "KKvD:2021A"_rn
     };
 }
