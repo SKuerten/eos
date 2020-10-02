@@ -49,6 +49,8 @@ namespace eos
 
         UsedParameter tau_B;
 
+        UsedParameter alpha_qed;
+
         SwitchOption opt_l1;
 
         UsedParameter m_l1;
@@ -65,12 +67,18 @@ namespace eos
             m_B(p["mass::B_u"], u),
             f_B(p["decay-constant::B_u"], u),
             tau_B(p["life_time::B_u"], u),
+            alpha_qed(p["QED::alpha_e(mb)"],u),
             opt_l1(o, "l1", {"e", "mu"}, "mu"),
             m_l1(p["mass::" + opt_l1.value()], u),
             opt_l2(o, "l2", {"e", "mu"}, "e"),
             m_l2(p["mass::" + opt_l2.value()], u)
         {
             u.uses(*model);
+        }
+
+        double kaellen(const double & s1, const double & s2, const double & s3) const
+        {
+            return s1 * s1 + s2 * s2 + s3 * s3 - 2.0 *(s1 * s2 + s2 * s3 + s1 * s3);
         }
 
         double decay_width(const double & q2, const double & k2) const
@@ -82,8 +90,9 @@ namespace eos
 
             // TODO(SK) -> implement the q^2 and k^2 differential branching
             // fraction
-            return power_of<2>(g_fermi * std::abs(model->ckm_ub()) * f_B * m_l2)
-                * m_B / (8.0 * M_PI) * std::norm(form_factors->F_perp(q2, k2));
+            return power_of<2>(g_fermi * std::abs(model->ckm_ub()) * std::abs(cVL)) * alpha_qed *  (32.0 * M_PI)
+                   * std::sqrt(kaellen(q2, 0.0, m_l2 * m_l2)) * std::sqrt(kaellen(k2, m_l1 * m_l1, m_l1 * m_l1)) * std::sqrt(kaellen(m_B * m_B, q2, k2))
+                   * (std::norm(form_factors->F_perp(q2, k2)) * std::norm(form_factors->F_para(q2, k2)) * std::norm(form_factors->F_long(q2, k2)));
         }
 
         double branching_ratio(const double & q2, const double & k2) const

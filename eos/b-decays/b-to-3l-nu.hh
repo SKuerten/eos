@@ -35,6 +35,8 @@ namespace eos
             BToThreeLeptonsNeutrino(const Parameters & parameters, const Options & options);
             ~BToThreeLeptonsNeutrino();
 
+            double kaellen(const double & s1, const double & s2, const double & s3) const;
+
             // Observables
             double branching_ratio(const double & q2, const double & k2) const;
             double decay_width(const double & q2, const double & k2) const;
