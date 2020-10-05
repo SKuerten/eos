@@ -39,7 +39,9 @@ namespace eos
 
             // Observables
             double branching_ratio(const double & q2, const double & k2) const;
+            double branching_ratio_5diff(const double & q2, const double & k2, const double & y /*cos(theta_W)*/, const double & z /*cos(theta_V)*/, const double & phi) const;
             double decay_width(const double & q2, const double & k2) const;
+            double decay_width_5diff(const double & q2, const double & k2, const double & y /*cos(theta_W)*/, const double & z /*cos(theta_V)*/, const double & phi) const;
 
             /*!
              * References used in the computation of our observables.

@@ -65,6 +65,11 @@ namespace eos
                         &BToThreeLeptonsNeutrino::branching_ratio,
                         std::make_tuple("q2", "k2"),
                         Options{ { "l1", "mu" }, { "l2", "e" } }),
+
+                make_observable("B_u->mumuenu::d5BR/dq2/dk2/dOmega", R"(d\mathcal{B}(B^- \to \mu^+\mu^-e^-\bar\nu)/dq^2/dk^2/dOmega)",
+                        &BToThreeLeptonsNeutrino::branching_ratio_5diff,
+                        std::make_tuple("q2", "k2", "cos_theta_w", "cos_theta_v", "phi"),
+                        Options{ { "l1", "mu" }, { "l2", "e" } }),
             }
         );
 

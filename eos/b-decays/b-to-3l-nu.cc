@@ -91,13 +91,44 @@ namespace eos
             // TODO(SK) -> implement the q^2 and k^2 differential branching
             // fraction
             return power_of<2>(g_fermi * std::abs(model->ckm_ub()) * std::abs(cVL)) * alpha_qed *  (32.0 * M_PI)
-                   * std::sqrt(kaellen(q2, 0.0, m_l2 * m_l2)) * std::sqrt(kaellen(k2, m_l1 * m_l1, m_l1 * m_l1)) * std::sqrt(kaellen(m_B * m_B, q2, k2))
-                   * (std::norm(form_factors->F_perp(q2, k2)) * std::norm(form_factors->F_para(q2, k2)) * std::norm(form_factors->F_long(q2, k2)));
+                    * std::sqrt(kaellen(q2, 0.0, m_l2 * m_l2)) * std::sqrt(kaellen(k2, m_l1 * m_l1, m_l1 * m_l1)) * std::sqrt(kaellen(m_B * m_B, q2, k2))
+                    * (std::norm(form_factors->F_perp(q2, k2)) + std::norm(form_factors->F_para(q2, k2)) + std::norm(form_factors->F_long(q2, k2)));
+        }
+
+        // TODO(SK) -> implement the 5 (q^2,k^2,cos(theta_W), cos(theta_V) and phi) differential branching
+        double decay_width_5diff(const double & q2, const double & k2, const double & y/*cos(theta_W)*/, const double & z/*cos(theta_V)*/, const double & phi) const
+        {
+            const WilsonCoefficients<ChargedCurrent> wc = model->wilson_coefficients_b_to_u(opt_l2.value(), false);
+
+            const complex<double> cVL = wc.cvl();
+            const complex<double> cVR = wc.cvr();
+
+            return power_of<2>(g_fermi * std::abs(model->ckm_ub()) * std::abs(cVL)) * alpha_qed *  (32.0 * M_PI)
+                    * std::sqrt(kaellen(q2, 0.0, m_l2 * m_l2)) * std::sqrt(kaellen(k2, m_l1 * m_l1, m_l1 * m_l1)) * std::sqrt(kaellen(m_B * m_B, q2, k2)) * (
+                    (1.0 - z) * cos(2.0 * phi) * (9.0 * std::norm(form_factors->F_para(q2, k2)) - 3.0 * std::norm(form_factors->F_perp(q2, k2))) / (64.0 * M_PI)
+                    + 9.0 * (1.0 - z) * (2.0 * std::norm(form_factors->F_long(q2, k2)) - std::norm(form_factors->F_para(q2, k2)) + std::norm(form_factors->F_perp(q2, k2))) / (64.0 *M_PI)
+                    + z*z * (9.0 * (y*y * std::norm(form_factors->F_long(q2, k2)) + std::norm(form_factors->F_para(q2, k2))) + std::norm(form_factors->F_perp(q2, k2))) / (32.0 *  M_PI)
+                    + y * 3.0 * std::sqrt(3.0) * ((1.0 - z) / 16.0 - 1.0 / 8.0) * std::real(std::conj(form_factors->F_perp(q2, k2)) * form_factors->F_para(q2, k2)) / (M_PI)
+                    - 3.0 * std::sqrt(3.0) * ((1.0 - z) * cos(phi) * sin(phi) * std::imag(std::conj(form_factors->F_perp(q2, k2)) * form_factors->F_para(q2, k2)) / (16.0 * M_PI))
+                    + y*y * (9.0 * (1.0 - z) * (std::norm(form_factors->F_para(q2, k2)) - std::norm(form_factors->F_perp(q2, k2))) / (64.0 * M_PI)
+                    + (1.0 - z) * cos(2.0 * phi)* (3.0 * std::norm(form_factors->F_perp(q2, k2)) - 9.0 * std::norm(form_factors->F_para(q2, k2))) / (64.0 * M_PI)
+                    + (3.0 * std::norm(form_factors->F_perp(q2, k2)) + 9.0 * std::norm(form_factors->F_para(q2, k2)) - 9.0 *std::norm(form_factors->F_long(q2, k2))) / (32.0 * M_PI)
+                    + 3.0 * std::sqrt(3.0) * (1.0 - z) * cos(phi) * sin(phi) * std::imag(std::conj(form_factors->F_perp(q2, k2)) * form_factors->F_para(q2, k2)) / (16.0 * M_PI))
+                    + z * (3.0 * std::sqrt(3.0 * (1.0 - y) * (1.0 - z)) * cos(phi) * std::real(std::conj(form_factors->F_perp(q2, k2)) * form_factors->F_long(q2, k2)) / (16.0 * M_PI)
+                    - 9.0 * std::sqrt((1.0 - y) * (1.0 - z)) * sin(phi) * std::imag(std::conj(form_factors->F_para(q2, k2)) * form_factors->F_long(q2, k2)) / (16.0 * M_PI)
+                    + y * std::sqrt((1.0 - y) * (1.0 - z)) * (-9.0 * cos(phi) * std::real(std::conj(form_factors->F_para(q2, k2)) * form_factors->F_long(q2, k2))
+                    + 3.0 * std::sqrt(3.0) * sin(phi) * std::imag(std::conj(form_factors->F_perp(q2, k2)) * form_factors->F_long(q2, k2))) / (16.0 * M_PI))
+                    );
         }
 
         double branching_ratio(const double & q2, const double & k2) const
         {
             return decay_width(q2, k2) * tau_B / hbar;
+        }
+
+        double branching_ratio_5diff(const double & q2, const double & k2, const double & y/*cos(theta_W)*/, const double & z/*cos(theta_V)*/, const double & phi) const
+        {
+            return decay_width_5diff(q2, k2, y, z, phi) * tau_B / hbar;
         }
     };
 
@@ -117,9 +148,21 @@ namespace eos
     }
 
     double
+    BToThreeLeptonsNeutrino::branching_ratio_5diff(const double & q2, const double & k2, const double & y/*cos(theta_W)*/, const double & z/*cos(theta_V)*/, const double & phi) const
+    {
+        return _imp->branching_ratio_5diff(q2, k2, y, z, phi);
+    }
+
+    double
     BToThreeLeptonsNeutrino::decay_width(const double & q2, const double & k2) const
     {
         return _imp->decay_width(q2, k2);
+    }
+
+    double
+    BToThreeLeptonsNeutrino::decay_width_5diff(const double & q2, const double & k2, const double & y/*cos(theta_W)*/, const double & z/*cos(theta_V)*/, const double & phi) const
+    {
+        return _imp->decay_width_5diff(q2, k2, y, z, phi);
     }
 
     const std::set<ReferenceName>
