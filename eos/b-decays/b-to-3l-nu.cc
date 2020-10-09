@@ -24,10 +24,14 @@
 #include <eos/utils/power_of.hh>
 #include <eos/utils/private_implementation_pattern-impl.hh>
 #include <eos/utils/options-impl.hh>
+#include <eos/utils/kinematic.hh>
 
 namespace eos
 {
     using std::norm;
+    using std::real;
+    using std::imag;
+    using std::sqrt;
 
     /*
      * Decay: B_q^- -> l1^+ l1^- l2^- nubar, cf. [KKvD:2021A]
@@ -74,11 +78,7 @@ namespace eos
             m_l2(p["mass::" + opt_l2.value()], u)
         {
             u.uses(*model);
-        }
-
-        double kaellen(const double & s1, const double & s2, const double & s3) const
-        {
-            return s1 * s1 + s2 * s2 + s3 * s3 - 2.0 *(s1 * s2 + s2 * s3 + s1 * s3);
+            u.uses(*form_factors);
         }
 
         double decay_width(const double & q2, const double & k2) const
@@ -88,11 +88,15 @@ namespace eos
             const complex<double> cVL = wc.cvl();
             const complex<double> cVR = wc.cvr();
 
+            const complex<double> F_perp = form_factors->F_perp(q2, k2);
+            const complex<double> F_para = form_factors->F_para(q2, k2);
+            const complex<double> F_long = form_factors->F_long(q2, k2);
+
             // TODO(SK) -> implement the q^2 and k^2 differential branching
             // fraction
-            return power_of<2>(g_fermi * std::abs(model->ckm_ub()) * std::abs(cVL)) * alpha_qed *  (32.0 * M_PI)
-                    * std::sqrt(kaellen(q2, 0.0, m_l2 * m_l2)) * std::sqrt(kaellen(k2, m_l1 * m_l1, m_l1 * m_l1)) * std::sqrt(kaellen(m_B * m_B, q2, k2))
-                    * (std::norm(form_factors->F_perp(q2, k2)) + std::norm(form_factors->F_para(q2, k2)) + std::norm(form_factors->F_long(q2, k2)));
+            return power_of<2>(g_fermi * abs(model->ckm_ub()) * abs(cVL)) * alpha_qed *  (32.0 * M_PI)
+                    * sqrt(lambda(q2, 0.0, m_l2 * m_l2) * lambda(k2, m_l1 * m_l1, m_l1 * m_l1) * lambda(m_B * m_B, q2, k2))
+                    * (norm(F_perp) + norm(F_para) + norm(F_long));
         }
 
         // TODO(SK) -> implement the 5 (q^2,k^2,cos(theta_W), cos(theta_V) and phi) differential branching
@@ -103,21 +107,57 @@ namespace eos
             const complex<double> cVL = wc.cvl();
             const complex<double> cVR = wc.cvr();
 
-            return power_of<2>(g_fermi * std::abs(model->ckm_ub()) * std::abs(cVL)) * alpha_qed *  (32.0 * M_PI)
-                    * std::sqrt(kaellen(q2, 0.0, m_l2 * m_l2)) * std::sqrt(kaellen(k2, m_l1 * m_l1, m_l1 * m_l1)) * std::sqrt(kaellen(m_B * m_B, q2, k2)) * (
-                    (1.0 - z) * cos(2.0 * phi) * (9.0 * std::norm(form_factors->F_para(q2, k2)) - 3.0 * std::norm(form_factors->F_perp(q2, k2))) / (64.0 * M_PI)
-                    + 9.0 * (1.0 - z) * (2.0 * std::norm(form_factors->F_long(q2, k2)) - std::norm(form_factors->F_para(q2, k2)) + std::norm(form_factors->F_perp(q2, k2))) / (64.0 *M_PI)
-                    + z*z * (9.0 * (y*y * std::norm(form_factors->F_long(q2, k2)) + std::norm(form_factors->F_para(q2, k2))) + std::norm(form_factors->F_perp(q2, k2))) / (32.0 *  M_PI)
-                    + y * 3.0 * std::sqrt(3.0) * ((1.0 - z) / 16.0 - 1.0 / 8.0) * std::real(std::conj(form_factors->F_perp(q2, k2)) * form_factors->F_para(q2, k2)) / (M_PI)
-                    - 3.0 * std::sqrt(3.0) * ((1.0 - z) * cos(phi) * sin(phi) * std::imag(std::conj(form_factors->F_perp(q2, k2)) * form_factors->F_para(q2, k2)) / (16.0 * M_PI))
-                    + y*y * (9.0 * (1.0 - z) * (std::norm(form_factors->F_para(q2, k2)) - std::norm(form_factors->F_perp(q2, k2))) / (64.0 * M_PI)
-                    + (1.0 - z) * cos(2.0 * phi)* (3.0 * std::norm(form_factors->F_perp(q2, k2)) - 9.0 * std::norm(form_factors->F_para(q2, k2))) / (64.0 * M_PI)
-                    + (3.0 * std::norm(form_factors->F_perp(q2, k2)) + 9.0 * std::norm(form_factors->F_para(q2, k2)) - 9.0 *std::norm(form_factors->F_long(q2, k2))) / (32.0 * M_PI)
-                    + 3.0 * std::sqrt(3.0) * (1.0 - z) * cos(phi) * sin(phi) * std::imag(std::conj(form_factors->F_perp(q2, k2)) * form_factors->F_para(q2, k2)) / (16.0 * M_PI))
-                    + z * (3.0 * std::sqrt(3.0 * (1.0 - y) * (1.0 - z)) * cos(phi) * std::real(std::conj(form_factors->F_perp(q2, k2)) * form_factors->F_long(q2, k2)) / (16.0 * M_PI)
-                    - 9.0 * std::sqrt((1.0 - y) * (1.0 - z)) * sin(phi) * std::imag(std::conj(form_factors->F_para(q2, k2)) * form_factors->F_long(q2, k2)) / (16.0 * M_PI)
-                    + y * std::sqrt((1.0 - y) * (1.0 - z)) * (-9.0 * cos(phi) * std::real(std::conj(form_factors->F_para(q2, k2)) * form_factors->F_long(q2, k2))
-                    + 3.0 * std::sqrt(3.0) * sin(phi) * std::imag(std::conj(form_factors->F_perp(q2, k2)) * form_factors->F_long(q2, k2))) / (16.0 * M_PI))
+            const complex<double> F_perp = form_factors->F_perp(q2, k2);
+            const complex<double> F_para = form_factors->F_para(q2, k2);
+            const complex<double> F_long = form_factors->F_long(q2, k2);
+
+            const double cos_2phi =   cos(2.0 * phi);
+            const double sin_2phi =   sin(2.0 * phi);
+            const double cos_phi  =         cos(phi);
+            const double sin_phi  =         sin(phi);
+
+            const double s000  =   (7. * norm(F_long) + 3. * norm(F_para) + 5. * norm(F_perp)) / (32. * M_PI);
+            const double s010  = - (3. * sqrt(3.) * real(conj(F_perp) * F_para)) / (16. * M_PI);
+            const double s020  = - (4. * norm(F_long) - 9. * norm(F_para) + norm(F_perp)) / (64. * M_PI);
+            const double s100  = - (3. * (3. * norm(F_long) + norm(F_para) + norm(F_perp))) / (32. * M_PI);
+            const double s11m1 =   (9. *  imag(conj(F_para) * F_long)) / (25. * sqrt(2) * M_PI);
+            const double s110  = - (3. * sqrt(3.) * real(conj(F_perp) * F_para)) / (16. * M_PI);
+            const double s111  = - (3. * sqrt(3. / 2.) * real(conj(F_perp) * F_long)) / (25. * M_PI);
+            const double s12m1 = - (4. * sqrt(2.) * imag(conj(F_perp) * F_long)) / (49. * M_PI);
+            const double s120  = 1.0;
+            const double s121  = 1.0;
+            const double s200  = 1.0;
+            const double s21m1 = 1.0;
+            const double s210  = 1.0;
+            const double s211  = 1.0;
+            const double s22m2 = 1.0;
+            const double s22m1 = 1.0;
+            const double s220  = 1.0;
+            const double s221  = 1.0;
+            const double s222  = 1.0;
+
+
+            return power_of<2>(g_fermi * abs(model->ckm_ub()) * abs(cVL)) * alpha_qed *  (32.0 * M_PI)
+                    * sqrt(lambda(q2, 0.0, m_l2 * m_l2) * lambda(k2, m_l1 * m_l1, m_l1 * m_l1) * lambda(m_B * m_B, q2, k2)) * (
+                    + s000
+                    + s010  * y
+                    + s020  * (-1. + 3. * y * y) / 2.
+                    + s100  * z
+                    + s11m1 * sqrt((1. - y * y) * (1. - z * z)) * sin_phi / 2.
+                    + s110  * y * z
+                    + s111  * sqrt((1. - y * y) * (1. - z * z)) * cos_phi / 2.
+                    + s12m1 * y * sqrt(3. *(1. - y * y) * (1. - z * z)) * sin_phi / 2.
+                    + s120  * z * (-1. + 3. * y * y) / 2.
+                    + s121  * y * sqrt(3. *(1. - y * y) * (1. - z * z)) * cos_phi / 2.
+                    + s200  * (-1. + 3. * z * z) / 2.
+                    + s21m1 * z * sqrt(3. *(1. - y * y) * (1. - z * z)) * sin_phi / 2.
+                    + s210  * y * (-1. + 3. * z * z) / 2.
+                    + s211  * z * sqrt(3. *(1. - y * y) * (1. - z * z)) * cos_phi / 2.
+                    + s22m2 * z * 3. * (-1. + y * y) * (-1. + z * z) * sin_2phi / 8.
+                    + s22m1 * y * z * 3. * sqrt((1. - y * y) * (1. - z * z)) * sin_phi / 2.
+                    + s220  * (-1. + 3. * y * y) * (-1. + 3. * z * z) / 4.
+                    + s221  * y * z * 3. * sqrt((1. - y * y) * (1. - z * z)) * cos_phi / 2.
+                    + s222  * y * 3. * (-1. + y * y) * (-1. + z * z) * cos_2phi / 8.
                     );
         }
 
