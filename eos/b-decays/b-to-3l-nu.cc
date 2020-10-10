@@ -124,17 +124,17 @@ namespace eos
             const double s110  = - (3. * sqrt(3.) * real(conj(F_perp) * F_para)) / (16. * M_PI);
             const double s111  = - (3. * sqrt(3. / 2.) * real(conj(F_perp) * F_long)) / (25. * M_PI);
             const double s12m1 = - (4. * sqrt(2.) * imag(conj(F_perp) * F_long)) / (49. * M_PI);
-            const double s120  = 1.0;
-            const double s121  = 1.0;
-            const double s200  = 1.0;
-            const double s21m1 = 1.0;
-            const double s210  = 1.0;
-            const double s211  = 1.0;
-            const double s22m2 = 1.0;
-            const double s22m1 = 1.0;
-            const double s220  = 1.0;
-            const double s221  = 1.0;
-            const double s222  = 1.0;
+            const double s120  = - (3. * (norm(F_para) - norm(F_perp))) / (32. * M_PI);
+            const double s121  =   (4. * sqrt(6.) * real(conj(F_para) * F_long)) / (49. * M_PI);
+            const double s200  =   (norm(F_long) + 3. * norm(F_para) + norm(F_perp)) / (16. * M_PI);
+            const double s21m1 = - (sqrt(3. / 2.) * imag(conj(F_para) * F_long)) / M_PI;
+            const double s210  =    0.0;
+            const double s211  =   (real(conj(F_perp) * F_long)) / (sqrt(2.) * M_PI);
+            const double s22m2 = - (5. * sqrt(3.) * imag(conj(F_perp) * F_para)) / (16. * M_PI);
+            const double s22m1 =   (100. * sqrt(2. / 3.) * imag(conj(F_perp) * F_long)) / (147. * M_PI);
+            const double s220  =   (norm(F_long)) / (8. * M_PI);
+            const double s221  = - (100. * sqrt(2.) * real(conj(F_para) * F_long)) / (147. * M_PI);
+            const double s222  =   (5. * (3 * norm(F_para) - norm(F_perp))) / (32. * M_PI);
 
 
             return power_of<2>(g_fermi * abs(model->ckm_ub()) * abs(cVL)) * alpha_qed *  (32.0 * M_PI)
