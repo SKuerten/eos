@@ -34,6 +34,21 @@ namespace eos
         public FormFactors<PToGammaOffShell>
     {
         private:
+            UsedParameter _t_0;
+            UsedParameter _N_1_perp_0;
+            UsedParameter _N_1_perp_1;
+            UsedParameter _N_1_perp_2;
+
+            double _k(const double & s) const;
+            double _wP(const double & s) const;
+            double _lowenergy1(const double & s) const;
+            double _lowenergy2(const double & s) const;
+            double _highenergy(const double & s) const;
+            double _continuationP(const double & s) const;
+            double _phaseshiftP(const double & s) const;
+            double _omega_integrand(const double & t, const double & s) const;
+            double _omega(const double & k2) const;
+            double _z(const double & q2) const;
 
         public:
             KKvD2021FormFactors(const Parameters &, const Options &);

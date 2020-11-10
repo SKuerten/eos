@@ -30,6 +30,7 @@
 #include <eos/form-factors/unitarity-bounds.hh>
 #include <eos/form-factors/zero-recoil-sum-rule.hh>
 #include <eos/utils/concrete_observable.hh>
+#include <eos/form-factors/parametric-kkvd2021.hh>
 
 namespace eos
 {
@@ -401,6 +402,31 @@ namespace eos
 
     // B -> V(ector)
     // {{{
+
+    // B -> gamma^*
+    // {{{
+    ObservableGroup
+    make_b_to_gammastar_form_factors_group()
+    {
+        auto imp = new Implementation<ObservableGroup>(
+            R"(Form factors for $B \to \gamma^*$ transitions)",
+            R"(Pseudo observables representing the $B \to \gamma^*$ form factors. )"
+            R"(The specific parametrization can be chosen via the "form-factors" option.)",
+            {
+                make_form_factor_adapter("B->gamma^*::Abs{F_perp}(q2,k2)", R"(\text{Abs}\,F_\perp^{B\to \gamma^*}(q^2,k^2))",
+                        &FormFactors<PToGammaOffShell>::abs_F_perp, std::make_tuple("q2", "k2")),
+
+                make_form_factor_adapter("B->gamma^*::Abs{F_para}(q2,k2)", R"(\text{Abs}\,F_\parallel^{B\to \gamma^*}(q^2,k^2))",
+                        &FormFactors<PToGammaOffShell>::abs_F_para, std::make_tuple("q2", "k2")),
+
+                make_form_factor_adapter("B->gamma^*::Abs{F_long}(q2,k2)", R"(\text{Abs}\,F_0^{B\to \gamma^*}(q^2,k^2))",
+                        &FormFactors<PToGammaOffShell>::abs_F_long, std::make_tuple("q2", "k2")),
+            }
+        );
+
+        return ObservableGroup(imp);
+    }
+    // }}}
 
     // B -> rho
     // {{{
@@ -1326,6 +1352,7 @@ namespace eos
                 make_bs_to_ds_form_factors_group(),
 
                 // B -> V
+                make_b_to_gammastar_form_factors_group(),
                 make_b_to_rho_form_factors_group(),
                 make_b_to_kstar_form_factors_group(),
                 make_b_to_dstar_form_factors_group(),

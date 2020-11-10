@@ -98,6 +98,10 @@ namespace eos
 
             // axial current, scalar polarization of the weak current and longitudinal polarization of the off-shell photon
             //virtual complex<double> F_time(const double & s) const = 0;
+
+            double abs_F_perp(const double & q2, const double & k2) const { return std::abs(F_perp(q2, k2)); }
+            double abs_F_para(const double & q2, const double & k2) const { return std::abs(F_perp(q2, k2)); }
+            double abs_F_long(const double & q2, const double & k2) const { return std::abs(F_long(q2, k2)); }
     };
 
     template <>
