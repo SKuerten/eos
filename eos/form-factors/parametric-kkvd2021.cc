@@ -133,7 +133,7 @@ namespace eos
     KKvD2021FormFactors::_z(const double & q2) const
     {
         static const double t_p = power_of<2>(5.279 + 2.0 * 0.137);
-        const double t_0 = t_p * ( 1.0 - sqrt(q2 / t_p) );//Value chosen such that abs(z(q2)-z(0)) is minimal over the q2 range
+        const double t_0 = t_p * ( 1.0 - sqrt(1 - q2 / t_p) );//Value chosen such that abs(z(q2)-z(0)) is minimal over the q2 range
 
         const double tp = sqrt(t_p -q2);
         const double t0 = sqrt(t_0 -q2);
