@@ -37,17 +37,6 @@ namespace eos
         return new KKvD2021FormFactors(p, o);
     }
 
-//    double z(const double & q2) const
-//    {
-//        static const double t_p = power_of<2>(5.279 + 2.0 * 0.137);
-//        const double t_0 = 31.0967;//Value chosen such that abs(z(q2)-z(0)) is minimal
-//
-//        const double tp = sqrt(t_p -q2);
-//        const double t0 = sqrt(t_0 -q2);
-//
-//        return (tp - t0) / (tp + t0);
-//    }
-
     double
     KKvD2021FormFactors::_k(const double & s) const
     {
@@ -113,7 +102,7 @@ namespace eos
         if (s < 0.598457) return _lowenergy1(s);
         else if (0.598457 <= s && s < 0.984064) return _lowenergy2(s);
         else if (0.984064 <= s && s < 2.0164) return _highenergy(s);
-        else if ( 2.0164 < s) return _continuationP(s);
+        else if ( 2.0164 <= s) return _continuationP(s);
         else return 1; //Add Error handling
     }
 
@@ -125,30 +114,37 @@ namespace eos
         double x = 4. * mPion * mPion / (1.0 - t);
         double x_jacobian = 4. * mPion * mPion / ((1.0 - t) * (1.0 - t));
 
-        return x_jacobian *  _phaseshiftP(x) / (x * (x - s) );
+        return x_jacobian * _phaseshiftP(x) / (x * (x - s) );
     }
 
     double
     KKvD2021FormFactors::_omega(const double & k2) const
     {
         std::function<double(const double &)> f = std::bind(&KKvD2021FormFactors::_omega_integrand, this, std::placeholders::_1, k2);
+        const double mPion = 0.13957;
 
-        auto config_QAGS = GSL::QAGS::Config().epsrel(1e-6);
-        return integrate<GSL::QAGS>(f, 0.0, 1.0, config_QAGS);
+        double t_sing = (k2 - 4. * mPion * mPion) / k2;
+
+        auto config_QAGS = GSL::QAGS::Config().epsrel(1.0e-7);
+        return exp((k2 / M_PI) * (integrate<GSL::QAGS>(f, 1.0e-7, t_sing - 1.0e-7, config_QAGS) + integrate<GSL::QAGS>(f, t_sing + 1.0e-7, 1.0, config_QAGS) ) );
     }
 
     double
     KKvD2021FormFactors::_z(const double & q2) const
     {
         static const double t_p = power_of<2>(5.279 + 2.0 * 0.137);
+        const double t_0 = t_p * ( 1.0 - sqrt(q2 / t_p) );//Value chosen such that abs(z(q2)-z(0)) is minimal over the q2 range
 
-        return 1.0*q2*t_p;
+        const double tp = sqrt(t_p -q2);
+        const double t0 = sqrt(t_0 -q2);
+
+        return (tp - t0) / (tp + t0);
     }
 
     complex<double>
     KKvD2021FormFactors::F_perp(const double & q2, const double & k2) const
     {
-        return k2 * q2; //TODO(SK) -> implement F_perp parametrization
+        return _omega(k2)*q2; //TODO(SK) -> implement F_perp parametrization
     }
 
     complex<double>
