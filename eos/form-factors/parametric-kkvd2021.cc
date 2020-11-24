@@ -111,8 +111,8 @@ namespace eos
     {
         const double mPion = 0.13957;
 
-        double x = 4. * mPion * mPion / (1.0 - t);
-        double x_jacobian = 4. * mPion * mPion / ((1.0 - t) * (1.0 - t));
+        double x = 4.0 * mPion * mPion + (1.0 - t) / t;
+        double x_jacobian = 1.0 / (t * t);// jacobian is missing a minus sign cause the gsl-integration takes care of it by the integration interval
 
         return x_jacobian * _phaseshiftP(x) / (x * (x - s) );
     }
@@ -121,12 +121,26 @@ namespace eos
     KKvD2021FormFactors::_omega(const double & k2) const
     {
         std::function<double(const double &)> f = std::bind(&KKvD2021FormFactors::_omega_integrand, this, std::placeholders::_1, k2);
-        const double mPion = 0.13957;
 
-        double t_sing = (k2 - 4. * mPion * mPion) / k2;
+        const double mPion = 0.13957;
+        double t_sing = 1.0 / (k2 - 4.0 * mPion * mPion + 1.0);
 
         auto config_QAGS = GSL::QAGS::Config().epsrel(1.0e-7);
-        return exp((k2 / M_PI) * (integrate<GSL::QAGS>(f, 1.0e-7, t_sing - 1.0e-7, config_QAGS) + integrate<GSL::QAGS>(f, t_sing + 1.0e-7, 1.0, config_QAGS) ) );
+
+        if (k2 < 4.0 * mPion * mPion)
+        {
+            return exp((k2 / M_PI) * (integrate<GSL::QAGS>(f, 1.0e-7, 1.0 - 1.0e-7, config_QAGS)));
+        }
+
+        if (k2 >= 4.0 * mPion * mPion)
+        {
+            return exp((k2 / M_PI) * (integrate<GSL::QAGS>(f, 1.0e-7, t_sing - 1.0e-7, config_QAGS) + integrate<GSL::QAGS>(f, t_sing + 1.0e-7, 1.0, config_QAGS) ) );
+        }
+
+        else
+        {
+        //throw error or something
+        }
     }
 
     double
