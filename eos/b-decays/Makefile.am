@@ -34,6 +34,7 @@ include_eos_bdecays_HEADERS = \
 	b-to-d-pi-l-nu.hh \
 	b-to-d-l-x-nu.hh \
 	b-to-l-nu.hh \
+	b-to-3l-nu.hh \
 	b-to-pi-pi-l-nu.hh \
 	b-to-pi-l-x-nu.hh \
 	b-to-psd-l-nu.hh \
@@ -54,6 +55,7 @@ TESTS = \
 	b-to-d-l-nu_TEST \
 	b-to-dstar-l-nu_TEST \
 	b-to-d-pi-l-nu_TEST \
+	b-to-3l-nu_TEST \
 	b-to-pi-l-nu_TEST \
 	b-to-pi-pi-l-nu_TEST \
 	bs-to-kstar-l-nu_TEST \
@@ -75,6 +77,8 @@ b_to_d_l_nu_TEST_SOURCES = b-to-d-l-nu_TEST.cc
 b_to_dstar_l_nu_TEST_SOURCES = b-to-dstar-l-nu_TEST.cc
 
 b_to_d_pi_l_nu_TEST_SOURCES = b-to-d-pi-l-nu_TEST.cc
+
+b_to_3l_nu_TEST_SOURCES = b-to-3l-nu_TEST.cc
 
 b_to_pi_l_nu_TEST_SOURCES = b-to-pi-l-nu_TEST.cc
 

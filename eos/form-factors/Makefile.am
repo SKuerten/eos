@@ -61,6 +61,7 @@ TESTS = \
 	mesonic_TEST \
 	mesonic-hqet_TEST \
 	parametric-bgl1997_TEST \
+	parametric-kkvd2021_TEST \
 	pi-lcdas_TEST \
 	unitarity-bounds_TEST
 LDADD = \
@@ -93,6 +94,8 @@ mesonic_TEST_SOURCES = mesonic_TEST.cc
 mesonic_hqet_TEST_SOURCES = mesonic-hqet_TEST.cc
 
 parametric_bgl1997_TEST_SOURCES = parametric-bgl1997_TEST.cc
+
+parametric_kkvd2021_TEST_SOURCES = parametric-kkvd2021_TEST.cc
 
 pi_lcdas_TEST_SOURCES = pi-lcdas_TEST.cc
 
