@@ -125,15 +125,17 @@ namespace eos
         const double mPion = 0.13957;
         double t_sing = 1.0 / (k2 - 4.0 * mPion * mPion + 1.0);
 
-        auto config_QAGS = GSL::QAGS::Config().epsrel(1.0e-7);
-
         if (k2 < 4.0 * mPion * mPion)
         {
-            return exp((k2 / M_PI) * (integrate<GSL::QAGS>(f, 1.0e-7, 1.0 - 1.0e-7, config_QAGS)));
+            auto config_QNG = GSL::QNG::Config().epsabs(1.0e-7);
+
+            return exp((k2 / M_PI) * (integrate<GSL::QNG>(f, 0.0, 1.0, config_QNG)));
         }
 
         if (k2 >= 4.0 * mPion * mPion)
         {
+            auto config_QAGS = GSL::QAGS::Config().epsrel(1.0e-7);
+
             return exp((k2 / M_PI) * (integrate<GSL::QAGS>(f, 1.0e-7, t_sing - 1.0e-7, config_QAGS) + integrate<GSL::QAGS>(f, t_sing + 1.0e-7, 1.0, config_QAGS) ) );
         }
 
