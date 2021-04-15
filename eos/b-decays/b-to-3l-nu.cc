@@ -105,9 +105,9 @@ namespace eos
             const complex<double> cVL = wc.cvl();
             const complex<double> cVR = wc.cvr();
 
-            const complex<double> F_perp = form_factors->F_perp(q2, k2);
-            const complex<double> F_para = form_factors->F_para(q2, k2);
-            const complex<double> F_long = form_factors->F_long(q2, k2);
+            const complex<double> F_perp = 1.0;//form_factors->F_perp(q2, k2);
+            const complex<double> F_para = 1.0;//form_factors->F_para(q2, k2);
+            const complex<double> F_long = 1.0;//form_factors->F_long(q2, k2);
 
             const double cos_2phi =   cos(2.0 * phi);
             const double sin_2phi =   sin(2.0 * phi);
@@ -167,6 +167,9 @@ namespace eos
 
         double branching_ratio_5diff(const double & q2, const double & k2, const double & y/*cos(theta_W)*/, const double & z/*cos(theta_V)*/, const double & phi) const
         {
+            const WilsonCoefficients<ChargedCurrent> wc = model->wilson_coefficients_b_to_u(opt_l2.value(), false);
+
+            const complex<double> cVL = wc.cvl();
             return decay_width_5diff(q2, k2, y, z, phi) * tau_B / hbar;
         }
     };

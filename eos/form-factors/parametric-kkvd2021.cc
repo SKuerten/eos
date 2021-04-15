@@ -160,18 +160,24 @@ namespace eos
     complex<double>
     KKvD2021FormFactors::F_perp(const double & q2, const double & k2) const
     {
-        return _omega(k2)*q2; //TODO(SK) -> implement F_perp parametrization
+        const double mBstar = 5.3244e+00;
+
+        return 1.0 / (1.0 - power_of<2>(mBstar) / q2) * _omega(k2); //TODO(SK) -> implement F_perp parametrization
     }
 
     complex<double>
     KKvD2021FormFactors::F_para(const double & q2, const double & k2) const
     {
+        const double mB1 = 5.7259e+00;
+
         return 1.0*q2*k2; //TODO(SK) -> implement F_para parametrization
     }
 
     complex<double>
     KKvD2021FormFactors::F_long(const double & q2, const double & k2) const
     {
+        const double mB1 = 5.7259e+00;
+
         return 1.0*q2*k2; //TODO(SK) -> implement F_long parametrization
     }
 }
