@@ -1637,6 +1637,34 @@ groups:
           latex:    '$\alpha_{T_{23},2}^{B_s \to D_s^*,\mathrm{BSZ2015}}$'
   # }}}
 
+  # Parameters in B -> gamma^* Form Factor Parametrizations
+  # {{{
+  - title: 'Parameters in $B\to \gamma^*$ Form Factor Parametrizations'
+    description: ''
+    parameters:
+      # form factor parameters for B->gamma^* according to [KKvD2021]
+      'B->gamma^*::t_0@KKvD2021' :
+          central: +31.0967
+          min:     +31.0
+          max:     +32.0
+          comments: ''
+      'B->gamma^*::N^1_perp_0@KKvD2021' :
+          central: +1.0
+          min:     +1.0
+          max:     +1.0
+          comments: ''
+      'B->gamma^*::N^1_perp_1@KKvD2021' :
+          central: +0.0
+          min:     +0.0
+          max:     +0.0
+          comments: ''
+      'B->gamma^*::N^1_perp_2@KKvD2021' :
+          central: +0.0
+          min:     +0.0
+          max:     +0.0
+          comments: ''
+  # }}}
+
   # Parameters in B -> P P Form Factor Parametrizations
   # {{{
   - title: 'Parameters in $B\to PP$ Form Factor Parametrizations'
